@@ -100,6 +100,23 @@
 | NFR-16 | Compatibility | Responsive | ระบบต้องรองรับ Desktop, Tablet และ Mobile |
 | NFR-17 | Maintainability | Maintainable System | ระบบควรออกแบบให้สามารถแก้ไขและเพิ่ม Feature ได้ง่าย |
 
+## Theme & UI/UX
+
+| ID | Category | Requirement | Description |
+|---|---|---|---|
+| UI-01 | Theme | Oat Milk | ใช้สีหลัก Oat Milk `#FDF9F2` |
+| UI-02 | Theme | Monday Blue | ใช้สีหลัก Monday Blue `#1D56CF` |
+| UI-03 | Theme | Candy Apple | ใช้สี Accent Candy Apple `#FF0800` |
+| UI-04 | Seat | Available Seat | ที่นั่งว่างแสดงเป็นวงกลมสีดำ ขอบสีขาว พร้อมหมายเลขที่นั่ง |
+| UI-05 | Seat | Booked Seat | ที่นั่งที่ถูกจองแสดงด้วยเครื่องหมาย `✕` |
+| UI-06 | Seat | Selected Seat | ที่นั่งที่ผู้ใช้เลือกแสดงด้วยเครื่องหมาย `✓` |
+| UI-07 | Seat | Zone | แต่ละ Zone สามารถกำหนดสีและราคาแตกต่างกันได้ |
+| UI-08 | Responsive | Mobile | รองรับการใช้งานบนโทรศัพท์มือถือ |
+| UI-09 | Responsive | Desktop | รองรับการใช้งานบนคอมพิวเตอร์ |
+| UI-10 | UX | Easy to Use | Interface ต้องเข้าใจง่ายและใช้งานสะดวก |
+| UI-11 | UX | Booking Flow | ขั้นตอนการจองควรชัดเจน ตั้งแต่เลือก Event → เลือกที่นั่ง → Review → Payment → Ticket |
+| UI-12 | UX | My Tickets | หน้า My Tickets ใช้ Theme สี Oat Milk |
+| UI-13 | UX | Booking | หน้าจองที่นั่งใช้ Monday Blue เป็นสีหลัก |
 ---
 # TOR
 ## spec
