@@ -25,6 +25,19 @@
 ---
 # Functional and Non-Functional Functional
 ## Functional Functional
+### ▶User Authentication & Registration
+FR01 Login - ผู้ใช้สามารถเข้าสู่ระบบได้ โดยรองรับ Gmail, Facebook และเบอร์โทรศัพท์
+FR02 Register - ผู้ใช้สามารถสมัครสมาชิกโดยกรอกชื่อ, Email, เบอร์โทรศัพท์, Password, วันเกิด, เพศ, เลขบัตรประชาชน และที่อยู่
+FR03 Logout - ผู้ใช้สามารถออกจากระบบได้
+### ▶User Profile Management
+FR04 View Profile - ผู้ใช้สามารถดูข้อมูล Profile ของตนเองได้
+FR05 Edit Profile - ผู้ใช้สามารถแก้ไขข้อมูลส่วนตัวและเปลี่ยนรูป Profile ได้
+FR06 Event Categories - ระบบสามารถแบ่ง Event เป็นหมวดหมู่ เช่น Concert, Seminar และ Event อื่น ๆ
+FR07 Available Events - ระบบแสดง Event ที่กำลังเปิดจอง พร้อมสถานะ เช่น Coming Soon, On Sale และ Sold Out
+FR08 Search Event - ผู้ใช้สามารถค้นหาจากชื่องาน, ชื่อศิลปิน หรือชื่อ Event
+FR09 Filter Event - ผู้ใช้สามารถกรอง Event ตามประเภท, วันที่, ศิลปิน และช่วงเวลาที่เปิดจอง
+FR10 Popular Event - ระบบสามารถแสดง Event ที่ได้รับความนิยมเป็น Featured/Popular Event
+FR11 Bookmark Event - ผู้ใช้สามารถ Bookmark Event และรับการแจ้งเตือนเมื่อมีการเปิดขายหรือมีการเปลี่ยนแปลง
 ## Non-Functional Functional
 
 ---
