@@ -173,7 +173,8 @@ https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
 ---
 
 # Product Backlog
-<img width="1234" height="668" alt="github_issues_phase1" src="https://github.com/user-attachments/assets/4c8ca032-1d4d-4f49-9e0c-a6c520f3c51a" />
+<img width="1169" height="673" alt="github_issues_sprint1" src="https://github.com/user-attachments/assets/7ddc3fe2-00d3-478d-b959-b1d65871ed2b" />
+
 
 # Sprint Backlog
 <img width="1251" height="201" alt="github_milestone_sprint_00" src="https://github.com/user-attachments/assets/ca22d6f0-1266-4855-a9d6-4aa812358c84" />
