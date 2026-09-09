@@ -150,3 +150,6 @@
 | UI-13 | UX | Booking | หน้าจองที่นั่งใช้ Monday Blue เป็นสีหลัก |
 
 ---
+
+# Retrospective Phase 1 Youtube Link:
+https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
