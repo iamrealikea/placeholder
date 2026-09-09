@@ -163,6 +163,8 @@
 * **GitHub (Issues & Milestones):** ใช้สำหรับบริหารจัดการ Product Backlog, ติดตามสถานะงาน (Task Tracking) และวางแผน Sprint Backlog
 * **GitHub Repository & Markdown:** ใช้สำหรับจัดเก็บเอกสารรายงานโครงการทั้งหมดในรูปแบบไฟล์ `README.md`
 * **YouTube:** ใช้สำหรับอัปโหลดและเผยแพร่วิดีโอบันทึกการสัมภาษณ์เก็บ Requirement รวมถึงวิดีโอบันทึกการประชุมสรุปผลงาน (Retrospective) เพื่อใช้แปะลิงก์อ้างอิงในรายงาน
+* **Figma** สำหรับออกแบบหน้าจอและสร้างต้นแบบระบบ
+* **Visual Studio Code** สำหรับเขียนและจัดการโค้ด
 ---
 # Requirements Youtube Link:
 https://youtu.be/-l-ONZ0Nss0
