@@ -164,3 +164,7 @@ https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
 <img width="1251" height="201" alt="github_milestone_sprint_00" src="https://github.com/user-attachments/assets/ca22d6f0-1266-4855-a9d6-4aa812358c84" />
 <img width="1374" height="661" alt="github_milestone_sprint_01" src="https://github.com/user-attachments/assets/3e4486d3-2441-4588-bbab-3d94db1ce3fa" />
 
+# Example detail issue
+<img width="1324" height="681" alt="github_issues_detail" src="https://github.com/user-attachments/assets/39a561e2-9c11-4481-9f22-91c0aa340c43" />
+
+
