@@ -156,3 +156,15 @@ https://youtu.be/-l-ONZ0Nss0
 
 # Retrospective Phase 1 Youtube Link:
 https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
+
+# Product Backlog
+<img width="1234" height="668" alt="github_issues_phase1" src="https://github.com/user-attachments/assets/4c8ca032-1d4d-4f49-9e0c-a6c520f3c51a" />
+
+# Sprint Backlog
+<img width="1251" height="201" alt="github_milestone_sprint_00" src="https://github.com/user-attachments/assets/ca22d6f0-1266-4855-a9d6-4aa812358c84" />
+<img width="1374" height="661" alt="github_milestone_sprint_01" src="https://github.com/user-attachments/assets/3e4486d3-2441-4588-bbab-3d94db1ce3fa" />
+
+# Example detail issue
+<img width="1324" height="681" alt="github_issues_detail" src="https://github.com/user-attachments/assets/39a561e2-9c11-4481-9f22-91c0aa340c43" />
+
+
