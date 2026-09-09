@@ -150,12 +150,27 @@
 | UI-13 | UX | Booking | หน้าจองที่นั่งใช้ Monday Blue เป็นสีหลัก |
 
 ---
+## Process, Methods, and Tools (กระบวนการทำงานและเครื่องมือ)
 
+### 1. Process (กระบวนการทำงาน)
+* **Agile Scrum Methodology:** ดำเนินการพัฒนาโดยแบ่งการทำงานออกเป็นรอบสั้น ๆ (Sprints) เพื่อให้ทีมสามารถตรวจสอบความคืบหน้า ปรับเปลี่ยนแผนงาน และส่งมอบงานได้อย่างยืดหยุ่น โดยใน **Sprint 1** เน้นกระบวนการเริ่มต้น ได้แก่ การเก็บรวบรวมความต้องการ (Requirement Collection) การวิเคราะห์ระบบ และการจัดทำรายงานโครงการ (Report)
+
+### 2. Methods (วิธีการดำเนินงาน)
+* **Requirement Engineering:** ทำการสัมภาษณ์ผู้ใช้งานจริง (คนนอกกลุ่ม) เพื่อเก็บรวบรวมความต้องการทั้งแบบ Functional และ Non-Functional นำมาวิเคราะห์ ออกแบบ และจัดทำเป็นเอกสารข้อกำหนดโครงการ (TOR)
+* **Backlog Grooming & Sprint Planning:** แปลงความต้องการทั้งหมดให้อยู่ในรูปของ User Stories กำหนดรายละเอียดงาน (Work Items) จัดลำดับความสำคัญ และวางแผนงานลงใน Sprint Backlog เพื่อเตรียมพร้อมสำหรับการพัฒนาในเฟสถัดไป
+
+### 3. Tools (เครื่องมือที่ใช้)
+* **GitHub (Issues & Milestones):** ใช้สำหรับบริหารจัดการ Product Backlog, ติดตามสถานะงาน (Task Tracking) และวางแผน Sprint Backlog
+* **GitHub Repository & Markdown:** ใช้สำหรับจัดเก็บเอกสารรายงานโครงการทั้งหมดในรูปแบบไฟล์ `README.md`
+* **YouTube:** ใช้สำหรับอัปโหลดและเผยแพร่วิดีโอบันทึกการสัมภาษณ์เก็บ Requirement รวมถึงวิดีโอบันทึกการประชุมสรุปผลงาน (Retrospective) เพื่อใช้แปะลิงก์อ้างอิงในรายงาน
+---
 # Requirements Youtube Link:
 https://youtu.be/-l-ONZ0Nss0
 
 # Retrospective Phase 1 Youtube Link:
 https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
+
+---
 
 # Product Backlog
 <img width="1234" height="668" alt="github_issues_phase1" src="https://github.com/user-attachments/assets/4c8ca032-1d4d-4f49-9e0c-a6c520f3c51a" />
