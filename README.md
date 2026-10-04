@@ -185,4 +185,34 @@ https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
 # Example detail issue
 <img width="1324" height="681" alt="github_issues_detail" src="https://github.com/user-attachments/assets/39a561e2-9c11-4481-9f22-91c0aa340c43" />
 
+# Mermaid Diagram
+```mermaid
+flowchart TD
+    A([Start]) --> B[Home / Event List]
 
+    B --> C[Search and Filter Events]
+    C --> D[Event Details]
+    D --> E{Logged in?}
+
+    E -->|No| F[Login / Register]
+    F --> B
+    E -->|Yes| G[Choose Ticket Type]
+
+    G --> H[Seat Selection]
+    H --> I{Seat Available?}
+    I -->|No| H
+    I -->|Yes| J[Payment Summary]
+
+    J --> K[Select Payment Method]
+    K --> L{Payment Successful?}
+
+    L -->|No| M[Show Payment Error]
+    M --> K
+
+    L -->|Yes| N[Generate Ticket and QR Code]
+    N --> O[My Tickets]
+
+    B --> P[My Profile]
+    P --> Q[Edit Profile]
+    Q --> P
+```
