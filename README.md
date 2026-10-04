@@ -1,4 +1,4 @@
-<img width="792" height="627" alt="image" src="https://github.com/user-attachments/assets/6b0f053d-a732-4d07-8c74-1d2a5e68f6e4" /># Ticket Platform Web Application
+# Ticket Platform Web Application
 
 ## สมาขิกกลุ่ม
 | ลำดับ | ชื่อ-สกุล              | รหัสนิสิต     |
