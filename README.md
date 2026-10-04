@@ -1,4 +1,4 @@
-# Ticket Platform Web Application
+<img width="792" height="627" alt="image" src="https://github.com/user-attachments/assets/6b0f053d-a732-4d07-8c74-1d2a5e68f6e4" /># Ticket Platform Web Application
 
 ## สมาขิกกลุ่ม
 | ลำดับ | ชื่อ-สกุล              | รหัสนิสิต     |
@@ -185,7 +185,43 @@ https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
 # Example detail issue
 <img width="1324" height="681" alt="github_issues_detail" src="https://github.com/user-attachments/assets/39a561e2-9c11-4481-9f22-91c0aa340c43" />
 
-# Mermaid Diagram
+# Document Diagram
+## Architecture Design Diagram
+```mermaid
+flowchart TB
+    subgraph Client["Frontend: Express"]
+        W["Customer Web App<br/>"]
+        O["Organizer Dashboard"]
+        S["Staff Scanner Page<br/>Camera QR Scan"]
+    end
+
+    subgraph Server["Application Tier"]
+        API["API Layer<br/>REST Controllers + JWT + RBAC"]
+        BL["Service Logic Layer<br/>Auth / Event / Seat / Booking<br/>Payment / Ticket / Report"]
+        DAL["Data Access Layer<br/>Repository + ORM"]
+        JOB["Background Scheduler<br/>Expire Held Seats"]
+    end
+
+    subgraph Data["Data Tier"]
+        DB[("PostgreSQL")]
+    end
+
+    subgraph Ext["External Services"]
+        PAY["Payment Gateway<br/>Mock / Omise Sandbox"]
+        MAIL["Email Service<br/>SMTP / SendGrid"]
+    end
+
+    W -->|"HTTPS / JSON"| API
+    O -->|"HTTPS / JSON"| API
+    S -->|"HTTPS / JSON"| API
+    API --> BL
+    BL --> DAL
+    DAL --> DB
+    JOB --> DAL
+    BL <-->|"Webhook / API"| PAY
+    BL --> MAIL
+```
+## Use Case Diagram 
 ```mermaid
 flowchart TD
     A([Start]) --> B[Home / Event List]
