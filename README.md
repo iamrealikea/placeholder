@@ -188,6 +188,10 @@ https://youtu.be/W9PHzGiH1ts
 # Example detail issue
 <img width="1324" height="681" alt="github_issues_detail" src="https://github.com/user-attachments/assets/39a561e2-9c11-4481-9f22-91c0aa340c43" />
 
+# Design Prototype
+<img width="1201" height="620" alt="image" src="https://github.com/user-attachments/assets/1be8cfba-502c-4a27-b71d-18859b639d65" />
+
+
 # Document Diagram
 ## Architecture Design Diagram
 ```mermaid
