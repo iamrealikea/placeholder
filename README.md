@@ -172,6 +172,9 @@ https://youtu.be/-l-ONZ0Nss0
 # Retrospective Phase 1 Youtube Link:
 https://youtu.be/y5xg2nNoAHg?si=fjigoSF_WZ-VYavK
 
+# Retrospective Phase 2 Youtube Link:
+https://youtu.be/W9PHzGiH1ts
+
 ---
 
 # Product Backlog
