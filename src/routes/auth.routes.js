@@ -13,6 +13,10 @@ const authenticate = requireAuth;
 
 const router = express.Router();
 
+// In-memory concurrency locks to eliminate registration race conditions (TC-1.1, TC-1.2)
+const inFlightEmails = new Set();
+const inFlightNids = new Set();
+
 // Configure avatar uploads directory and multer storage
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -48,29 +52,47 @@ const upload = multer({
  * issues JWT token, sets tickethub_token cookie.
  */
 router.post('/register', async (req, res) => {
+  const { name, email, password, age, phone, dob, gender, nationalId, address } = req.body || {};
+
+  // Strict string type & non-empty validation (TC-2.1 to TC-2.5d)
+  if (
+    !name || typeof name !== 'string' || !name.trim() ||
+    !email || typeof email !== 'string' || !email.trim() ||
+    !password || typeof password !== 'string' || !password.trim()
+  ) {
+    return res.status(400).json({ error: 'Name, email, and password are required non-empty strings.' });
+  }
+
+  const emailNormalized = email.trim().toLowerCase();
+  const nid = nationalId && String(nationalId).trim() ? String(nationalId).trim() : null;
+
+  // Synchronous atomic check across in-flight set and database (TC-1.1, TC-1.3)
+  if (inFlightEmails.has(emailNormalized) || store.findOne('users', (u) => u.email && u.email.toLowerCase() === emailNormalized)) {
+    return res.status(400).json({ error: 'An account with this email address already exists.' });
+  }
+
+  // Synchronous atomic check for National ID (TC-1.2, TC-1.4)
+  if (nid) {
+    if (inFlightNids.has(nid) || store.findOne('users', (u) => u.nationalId && u.nationalId === nid)) {
+      return res.status(409).json({ error: 'An account with this national ID already exists.' });
+    }
+  }
+
+  // Acquire in-flight locks before yielding to async bcrypt.hash
+  inFlightEmails.add(emailNormalized);
+  if (nid) inFlightNids.add(nid);
+
   try {
-    const { name, email, password, age, phone, dob, gender, nationalId, address } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
-    }
-
-    const emailNormalized = String(email).trim().toLowerCase();
-    const existingUser = store.findOne('users', (u) => u.email && u.email.toLowerCase() === emailNormalized);
-    if (existingUser) {
-      return res.status(400).json({ error: 'An account with this email address already exists.' });
-    }
-
-    if (nationalId && String(nationalId).trim()) {
-      const nid = String(nationalId).trim();
-      const existingNid = store.findOne('users', (u) => u.nationalId && u.nationalId === nid);
-      if (existingNid) {
-        return res.status(409).json({ error: 'An account with this national ID already exists.' });
-      }
-    }
-
     // Min 8 salt rounds as required by NFR-04 and specification
     const passwordHash = await bcrypt.hash(password, 8);
+
+    // Double-check store before insertion
+    if (store.findOne('users', (u) => u.email && u.email.toLowerCase() === emailNormalized)) {
+      return res.status(400).json({ error: 'An account with this email address already exists.' });
+    }
+    if (nid && store.findOne('users', (u) => u.nationalId && u.nationalId === nid)) {
+      return res.status(409).json({ error: 'An account with this national ID already exists.' });
+    }
 
     const newUser = {
       id: `usr-${uuidv4().slice(0, 8)}`,
@@ -80,7 +102,7 @@ router.post('/register', async (req, res) => {
       age: Number(age) || 0,
       dob: dob ? String(dob).trim() : '',
       gender: gender ? String(gender).trim() : 'Unspecified',
-      nationalId: nationalId ? String(nationalId).trim() : '',
+      nationalId: nid || '',
       address: address ? String(address).trim() : '',
       avatarUrl: '',
       passwordHash,
@@ -106,6 +128,10 @@ router.post('/register', async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ error: 'Registration failed due to server error: ' + err.message });
+  } finally {
+    // Release in-flight locks
+    inFlightEmails.delete(emailNormalized);
+    if (nid) inFlightNids.delete(nid);
   }
 });
 
@@ -117,13 +143,16 @@ router.post('/register', async (req, res) => {
  */
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
-    if (!email || !password) {
+    if (
+      !email || typeof email !== 'string' || !email.trim() ||
+      !password || typeof password !== 'string' || !password.trim()
+    ) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const emailNormalized = String(email).trim().toLowerCase();
+    const emailNormalized = email.trim().toLowerCase();
     const user = store.findOne('users', (u) => u.email && u.email.toLowerCase() === emailNormalized);
 
     if (!user || !user.passwordHash) {

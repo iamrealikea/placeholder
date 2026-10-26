@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tickets - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body style="background-color: var(--oat-milk);">
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/index.html" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/event.html" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets.html" class="nav-link active">My Tickets</a></li>
+            <li><a href="/support.html" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
+          🔍
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          🔔
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          👤
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container on Oat Milk Background (UI-12) -->
+  <main class="container tickets-container">
+    
+    <div style="text-align: center; margin-bottom: 24px;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">My Electronic Tickets</h1>
+      <p style="color: #6B7280;">Present this QR code at venue entrance for fast check-in.</p>
+    </div>
+
+    <!-- Active Ticket Carousel (UI-12) -->
+    <div id="ticketCarouselArea">
+      
+      <div style="text-align: center; margin-bottom: 8px;">
+        <span id="ticketIndexBadge" class="badge-pill-blue" style="font-size: 0.85rem;">Ticket 1 of 1</span>
+      </div>
+
+      <div class="eticket-carousel-wrap">
+        
+        <!-- Red Previous Arrow ◀ -->
+        <button id="prevTicketBtn" class="carousel-arrow-btn" aria-label="Previous Ticket" disabled>
+          ◀
+        </button>
+
+        <!-- E-Ticket Card with Real QR Image -->
+        <div class="eticket-card">
+          <div class="eticket-header">
+            <span id="ticketStatusBadge" class="badge-pill-red" style="font-size: 0.75rem;">VALID</span>
+            <h3 id="ticketEventTitle" style="font-size: 1.35rem; margin-top: 8px;">Forza Horizon Live</h3>
+            <div id="ticketRound" style="font-size: 0.9rem; opacity: 0.9;">📅 11 Nov 2026 • 19:00</div>
+          </div>
+
+          <div class="eticket-body">
+            <!-- Real QR Code Image -->
+            <div class="eticket-qr-box">
+              <img id="ticketQrImage" src="" alt="Electronic Ticket QR Code">
+            </div>
+
+            <div id="ticketCode" class="eticket-code">TKT-XXXX-0000</div>
+            <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 16px;">Scan via gate scanner for single-entry admission</div>
+
+            <table class="eticket-details-table">
+              <tr>
+                <td>Attendee:</td>
+                <td id="ticketHolder">Alex Rivers</td>
+              </tr>
+              <tr>
+                <td>Seat Assignment:</td>
+                <td id="ticketSeat" style="color: #1D56CF;">VIP A1</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Red Next Arrow ▶ -->
+        <button id="nextTicketBtn" class="carousel-arrow-btn" aria-label="Next Ticket" disabled>
+          ▶
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- Purchase History Section (FR-32) -->
+    <div style="margin-top: 48px;">
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; color: #111827;">Purchase & Booking History</h2>
+      
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Booking ID</th>
+              <th>Date</th>
+              <th>Event</th>
+              <th>Seats</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="purchaseHistoryBody">
+            <!-- Populated by my-tickets.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p>Single-use authenticated QR tickets with anti-reuse protection.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/my-tickets.js"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/index.html" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/event.html" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
+            <li><a href="/support.html" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
+          🔍
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          🔔
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          👤
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    <div style="margin: 32px 0 24px;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">Account & Profile</h1>
+    </div>
+
+    <!-- Profile Grid Layout -->
+    <div class="profile-grid">
+      
+      <!-- Left Column: User Card, Avatar Upload, Points & Red "My Ticket" Pill -->
+      <div>
+        <div class="profile-card">
+          <div class="avatar-large">
+            <img id="profileAvatarImg" src="" alt="Profile Avatar" style="display: none;">
+            <div id="avatarInitials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #1D56CF;">
+              U
+            </div>
+          </div>
+
+          <h2 id="profileName" style="font-size: 1.5rem; margin-bottom: 4px;">User</h2>
+          <div id="profileEmail" style="color: #6B7280; font-size: 0.95rem; margin-bottom: 8px;">user@example.com</div>
+          <span id="profileRoleBadge" class="badge-pill-blue" style="font-size: 0.75rem;">CUSTOMER</span>
+
+          <!-- Loyalty Points Card (FR-46) -->
+          <div class="points-pill-card">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #1D56CF; text-transform: uppercase;">TicketHub Points</div>
+            <div id="loyaltyPointsCount" style="font-size: 2rem; font-weight: 900; color: #1D56CF; margin: 4px 0;">650</div>
+            <small style="color: #4B5563;">Earn 1 pt / 100 THB • Redeem 100 pt = 10 THB</small>
+          </div>
+
+          <!-- Candy Apple Red Pill "My Ticket" Button -->
+          <div style="margin-top: 16px;">
+            <a href="/my-tickets.html" class="btn-pill-red" style="width: 100%; font-size: 1.05rem; padding: 12px;">
+              🎟️ My Ticket
+            </a>
+          </div>
+
+          <!-- Avatar Upload Form -->
+          <div style="margin-top: 24px; text-align: left; border-top: 1px solid #E5E7EB; padding-top: 16px;">
+            <label class="form-label">Change Profile Picture</label>
+            <input type="file" id="avatarFileInput" accept="image/*" style="font-size: 0.85rem; margin-bottom: 8px; width: 100%;">
+            
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <input type="url" id="avatarUrlInput" class="form-control" placeholder="Or paste image URL" style="font-size: 0.85rem;">
+              <button id="uploadAvatarUrlBtn" class="btn-pill-outline" style="font-size: 0.8rem; padding: 4px 10px;">Set</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Personal Information & Bookmarks -->
+      <div>
+        
+        <!-- Edit Profile Form -->
+        <div class="card-checkout" style="margin-bottom: 32px;">
+          <h3>Personal Information</h3>
+          <form id="editProfileForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="profileInputName" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="profileInputPhone" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Age</label>
+                <input type="number" id="profileInputAge" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" id="profileInputDob" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select id="profileInputGender" class="form-control">
+                  <option value="Unspecified">Unspecified</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-Binary">Non-Binary</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">National ID / Passport</label>
+                <input type="text" id="profileInputNationalId" class="form-control">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shipping / Billing Address</label>
+              <textarea id="profileInputAddress" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn-pill-blue" style="padding: 10px 28px;">
+              Save Profile Changes
+            </button>
+          </form>
+        </div>
+
+        <!-- Saved Bookmarks (FR-11) -->
+        <div class="card-checkout" style="margin-bottom: 32px;">
+          <h3>Saved Bookmarks</h3>
+          <div id="bookmarksContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+            <!-- Populated by profile.js -->
+          </div>
+        </div>
+
+        <!-- In-App Notifications History (FR-33, FR-34) -->
+        <div class="card-checkout">
+          <h3>Recent Notifications</h3>
+          <ul id="profileNotificationsList" style="list-style: none; margin: 0; padding: 0;">
+            <!-- Populated by profile.js -->
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p>Customer data is strictly encrypted and protected.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>

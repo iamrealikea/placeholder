@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Gate Scanner - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/index.html" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/event.html" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
+            <li><a href="/scanner.html" class="nav-link active">Scanner</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
+          🔍
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          🔔
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          👤
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Access Denied Guard -->
+  <div id="scannerGuard" class="container" style="display: none;"></div>
+
+  <!-- Staff Gate Scanner Main Area -->
+  <main id="scannerContent" class="container" style="display: none; padding-top: 32px; padding-bottom: 64px;">
+    
+    <!-- Portal Consolidation Banner -->
+    <div class="portal-banner" style="background: #EBF1FD; border: 2px solid #1D56CF; border-radius: 16px; padding: 18px 24px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 12px rgba(29, 86, 207, 0.08);">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 2rem;">ℹ️</span>
+        <div>
+          <strong style="color: #1D56CF; font-size: 1.05rem; display: block; margin-bottom: 2px;">Portal Integration Notice</strong>
+          <span style="color: #374151; font-size: 0.95rem;">
+            The Gate Admission Scanner is now consolidated into the Staff &amp; Admin Operations Portal.
+          </span>
+        </div>
+      </div>
+      <a href="/admin.html?tab=scanner" class="btn-pill-blue" style="font-size: 0.95rem; padding: 10px 22px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        Open Operations Portal Scanner &rarr;
+      </a>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">Gate Admission Scanner</h1>
+      <p style="color: #6B7280;">Validate attendee electronic tickets via camera stream, file upload, or manual code entry.</p>
+    </div>
+
+    <!-- Scanner Layout Grid -->
+    <div class="scanner-grid">
+      
+      <!-- Left Column: Camera Viewport & Manual Entry -->
+      <div>
+        
+        <!-- Live Camera Viewport -->
+        <div class="card-checkout" style="padding: 16px;">
+          <div class="camera-viewport">
+            <video id="cameraVideo" playsinline></video>
+            <div class="scanner-crosshair"></div>
+          </div>
+
+          <div id="cameraErrorMsg" style="display: none; color: #DC2626; font-size: 0.85rem; margin-top: 10px; text-align: center;"></div>
+
+          <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center;">
+            <button id="startCameraBtn" class="btn-pill-blue" style="font-size: 0.95rem;">
+              📷 Start Camera Stream
+            </button>
+            <button id="stopCameraBtn" class="btn-pill-outline" style="display: none; font-size: 0.95rem;">
+              ⏹ Stop Camera
+            </button>
+          </div>
+        </div>
+
+        <!-- Manual Ticket Code Input -->
+        <div class="card-checkout">
+          <h3>Manual Code Input</h3>
+          <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">Type or scan barcode ticket code directly:</p>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="manualTicketCode" class="form-control" placeholder="e.g. TKT-BKG1-A1-1234">
+            <button id="validateCodeBtn" class="btn-pill-blue" style="white-space: nowrap;">
+              Validate Ticket
+            </button>
+          </div>
+
+          <div style="margin-top: 16px; border-top: 1px dashed #E5E7EB; padding-top: 14px;">
+            <label class="form-label">Or Upload QR Ticket Image</label>
+            <input type="file" id="qrFileInput" accept="image/*" style="font-size: 0.85rem;">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Scan Result Alert & Audit History -->
+      <div>
+        
+        <!-- Dynamic Scan Result Area -->
+        <div id="scanResultArea">
+          <div style="background: #FFFFFF; border: 2px dashed #D1D5DB; border-radius: 16px; padding: 36px 20px; text-align: center; color: #9CA3AF; margin-bottom: 24px;">
+            <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">📡</span>
+            <strong style="color: #4B5563;">Scanner Idle</strong>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Point camera at attendee QR code or submit code on the left.</p>
+          </div>
+        </div>
+
+        <!-- Session Scan Audit Log (FR-30, FR-31) -->
+        <div class="card-checkout">
+          <h3>Session Scan Audit Log</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Ticket Code</th>
+                  <th>Attendee</th>
+                  <th>Seat</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody id="scanAuditLogBody">
+                <tr>
+                  <td colspan="5" style="text-align: center; color: #9CA3AF; padding: 18px;">
+                    No tickets scanned in this session yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Staff Gate Terminal &copy; 2026</p>
+      <p>Single-use security enforcement with fraud warning alerts.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/scanner.js"></script>
+</body>
+</html>

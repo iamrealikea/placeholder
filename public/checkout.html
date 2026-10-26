@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/index.html" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/event.html" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
+            <li><a href="/support.html" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
+          🔍
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          🔔
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          👤
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    <div style="margin: 32px 0 16px;">
+      <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">Checkout & Payment</h1>
+      <p style="color: #6B7280;">Complete payment within 10 minutes to secure your tickets.</p>
+    </div>
+
+    <!-- 10-Minute Seat Hold Countdown Timer (MM:SS) -->
+    <div id="countdownBox" class="countdown-box">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 1.75rem;">⏳</span>
+        <div>
+          <strong style="color: #FF0800; font-size: 1.05rem;">Seat Hold Lock Active</strong>
+          <div style="font-size: 0.85rem; color: #6B7280;">Seats will be released if not paid within:</div>
+        </div>
+      </div>
+      <div id="countdownTimer" class="countdown-timer-text">
+        10:00
+      </div>
+    </div>
+
+    <!-- Checkout Grid -->
+    <div class="checkout-grid">
+      
+      <!-- Left Column: Payment Methods & Simulators -->
+      <div>
+        <div class="card-checkout">
+          <h3>Select Payment Method</h3>
+          <p style="font-size: 0.9rem; color: #6B7280; margin-bottom: 16px;">
+            Choose from 6 verified Thai payment simulator gateways:
+          </p>
+
+          <div class="payment-methods-grid">
+            <div class="payment-method-card active" data-method="PROMPTPAY">
+              <span class="payment-method-icon">📱</span>
+              <span class="payment-method-name">PromptPay QR</span>
+            </div>
+            <div class="payment-method-card" data-method="CREDIT_CARD">
+              <span class="payment-method-icon">💳</span>
+              <span class="payment-method-name">Credit Card</span>
+            </div>
+            <div class="payment-method-card" data-method="DEBIT_CARD">
+              <span class="payment-method-icon">🏧</span>
+              <span class="payment-method-name">Debit Card</span>
+            </div>
+            <div class="payment-method-card" data-method="KBANK">
+              <span class="payment-method-icon">🟢</span>
+              <span class="payment-method-name">KBank K PLUS</span>
+            </div>
+            <div class="payment-method-card" data-method="KRUNGTHAI">
+              <span class="payment-method-icon">🔵</span>
+              <span class="payment-method-name">Krungthai NEXT</span>
+            </div>
+            <div class="payment-method-card" data-method="TRUEMONEY">
+              <span class="payment-method-icon">🟠</span>
+              <span class="payment-method-name">TrueMoney</span>
+            </div>
+          </div>
+
+          <!-- Interactive Simulator Display -->
+          <div id="paymentSimulatorContainer" class="payment-simulator-form">
+            <!-- Populated by checkout.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary, Discounts, Financial Breakdown -->
+      <div>
+        
+        <!-- Booking Overview -->
+        <div class="card-checkout">
+          <h3>Booking Overview</h3>
+          <div id="checkoutEventTitle" style="font-size: 1.25rem; font-weight: 700; color: #111827; margin-bottom: 6px;">
+            Loading Event...
+          </div>
+          <div id="checkoutRound" style="font-size: 0.95rem; color: #4B5563; margin-bottom: 6px;">
+            📅 Loading Round...
+          </div>
+          <div id="checkoutSeats" style="font-size: 0.95rem; color: #1D56CF; font-weight: 600;">
+            🪑 Loading Seats...
+          </div>
+        </div>
+
+        <!-- Promo Code & Points Redemption -->
+        <div class="card-checkout">
+          <h3>Promotions & Rewards</h3>
+          
+          <div class="form-group">
+            <label class="form-label">Promotional Code</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="promoCodeInput" class="form-control" placeholder="e.g. TICKETHUB10">
+              <button id="applyPromoBtn" class="btn-pill-outline" style="white-space: nowrap;">Apply</button>
+            </div>
+            <small style="color: #6B7280; font-size: 0.8rem;">Try codes: <strong>TICKETHUB10</strong> (10% off) or <strong>WELCOME200</strong> (200 THB off)</small>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">Loyalty Points (Balance: <span id="userAvailablePoints">0</span> pts)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="redeemPointsInput" class="form-control" placeholder="100 pts = 10 THB" min="100" step="100">
+              <button id="redeemPointsBtn" class="btn-pill-outline" style="white-space: nowrap;">Redeem</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financial Breakdown (UI-11, FR-24) -->
+        <div class="card-checkout">
+          <h3>Payment Breakdown</h3>
+          <table class="breakdown-table">
+            <tbody>
+              <tr>
+                <td>Ticket Subtotal</td>
+                <td id="breakdownSubtotal" class="text-right">0 THB</td>
+              </tr>
+              <tr>
+                <td>Service Fee (40 THB/seat, non-refundable)</td>
+                <td id="breakdownServiceFee" class="text-right">0 THB</td>
+              </tr>
+              <tr id="breakdownDiscountRow" style="display: none; color: #10B981;">
+                <td>Discount Applied</td>
+                <td id="breakdownDiscount" class="text-right">-0 THB</td>
+              </tr>
+              <tr>
+                <td>Total Amount</td>
+                <td id="breakdownTotal" class="text-right">0 THB</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 24px;">
+            <button id="confirmPaymentBtn" class="btn-pill-red" style="width: 100%; font-size: 1.15rem; padding: 14px;">
+              Confirm Payment
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p>Secure SSL encryption & atomic database transactions guarantee safe booking.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/checkout.js"></script>
+</body>
+</html>

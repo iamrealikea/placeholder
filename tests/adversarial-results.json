@@ -1,19 +1,19 @@
 {
   "total": 44,
-  "passedCount": 39,
-  "failedCount": 5,
+  "passedCount": 44,
+  "failedCount": 0,
   "results": [
     {
       "suite": "Concurrency",
       "name": "TC-1.1: Concurrent duplicate email registration race condition",
-      "passed": false,
-      "details": "Out of 5 concurrent requests: 5 returned 201, 0 rejected. Users in DB: 5. Statuses: [201, 201, 201, 201, 201]"
+      "passed": true,
+      "details": "Out of 5 concurrent requests: 1 returned 201, 4 rejected. Users in DB: 1. Statuses: [201, 400, 400, 400, 400]"
     },
     {
       "suite": "Concurrency",
       "name": "TC-1.2: Concurrent duplicate National ID registration race condition",
-      "passed": false,
-      "details": "Out of 5 concurrent requests: 5 returned 201. Users in DB: 5. Statuses: [201, 201, 201, 201, 201]"
+      "passed": true,
+      "details": "Out of 5 concurrent requests: 1 returned 201. Users in DB: 1. Statuses: [201, 409, 409, 409, 409]"
     },
     {
       "suite": "Concurrency",
@@ -54,8 +54,8 @@
     {
       "suite": "Validation",
       "name": "TC-2.5a: Numeric password handling (graceful, no unhandled 500)",
-      "passed": false,
-      "details": "Status: 500"
+      "passed": true,
+      "details": "Status: 400"
     },
     {
       "suite": "Validation",
@@ -66,14 +66,14 @@
     {
       "suite": "Validation",
       "name": "TC-2.5c: Object password (injection) rejected with 400 (not 500)",
-      "passed": false,
-      "details": "Status: 500"
+      "passed": true,
+      "details": "Status: 400"
     },
     {
       "suite": "Validation",
       "name": "TC-2.5d: Array password rejected with 400 (not 500)",
-      "passed": false,
-      "details": "Status: 500"
+      "passed": true,
+      "details": "Status: 400"
     },
     {
       "suite": "Validation",
@@ -193,7 +193,7 @@
       "suite": "PrivilegeEscalation",
       "name": "TC-4.3: User ID mutation via PUT /profile is blocked",
       "passed": true,
-      "details": "DB ID: usr-a45f76a8"
+      "details": "DB ID: usr-379d4ee5"
     },
     {
       "suite": "PrivilegeEscalation",
@@ -223,7 +223,7 @@
       "suite": "AvatarUpload",
       "name": "TC-5.3: Path traversal and dangerous extension neutralized to safe /uploads/avatar-*.png",
       "passed": true,
-      "details": "AvatarUrl assigned: /uploads/avatar-1792989290507-5189bbc7.png"
+      "details": "AvatarUrl assigned: /uploads/avatar-1793004611580-cdcd6ee8.png"
     },
     {
       "suite": "AvatarUpload",

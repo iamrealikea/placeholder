@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicketHub - Discover & Book Live Events</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/index.html" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link active">Home</a></li>
+            <li><a href="/event.html" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
+            <li><a href="/support.html" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" id="navSearchTrigger" title="Search Events">
+          🔍
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          🔔
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          👤
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner (UI-01, UI-03) - Full-Width Screen Background with Centered Interactive Card -->
+  <section class="hero-section" id="heroSection">
+    <div class="container">
+      <div id="heroBanner" class="hero-banner">
+        <div class="hero-top">
+          <span class="badge-pill-red">Feature Event</span>
+        </div>
+        <div class="hero-content">
+          <h1 class="hero-title">Forza Horizon Somethings Live Festival</h1>
+          <p class="hero-desc">The ultimate audio-visual festival experience featuring premier artists and world-class stage production.</p>
+          <div class="hero-meta">
+            <span>📍 Impact Arena, Exhibition Hall 1</span>
+            <span>•</span>
+            <span>📅 11 Nov 2026</span>
+          </div>
+        </div>
+        <div class="hero-bottom">
+          <a href="/event.html?id=evt-1" class="btn-pill-red">Buy Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Search & Filter Bar (FR-08, FR-09) - Below Menu -->
+    <section class="filter-bar" id="filterBar">
+      <div class="filter-input-group">
+        <span class="filter-input-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by event, artist, or venue...">
+      </div>
+      <div class="filter-selects">
+        <select id="categoryFilter" class="filter-select">
+          <option value="">All Categories</option>
+          <option value="Concert">Concerts</option>
+          <option value="Seminar">Seminars</option>
+          <option value="Festival">Festivals</option>
+          <option value="Exhibition">Exhibitions</option>
+        </select>
+        <select id="statusFilter" class="filter-select">
+          <option value="">All Statuses</option>
+          <option value="On Sale">On Sale</option>
+          <option value="Coming Soon">Coming Soon</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Popular Section (Red Heading, 3px Red Border Cards) -->
+    <section class="section-popular">
+      <div class="section-header">
+        <h2 class="section-title-red">Popular</h2>
+        <div class="carousel-nav-arrows">
+          <button class="carousel-btn" data-target="popularContainer" data-direction="left" aria-label="Previous">◀</button>
+          <button class="carousel-btn" data-target="popularContainer" data-direction="right" aria-label="Next">▶</button>
+        </div>
+      </div>
+      <div id="popularContainer" class="event-horizontal-grid">
+        <!-- Dynamically populated by index.js -->
+      </div>
+    </section>
+
+    <!-- Soon Section (Blue Heading, 3px Blue Border Cards) -->
+    <section class="section-soon">
+      <div class="section-header">
+        <h2 class="section-title-blue">Soon</h2>
+        <div class="carousel-nav-arrows">
+          <button class="carousel-btn" data-target="soonContainer" data-direction="left" aria-label="Previous">◀</button>
+          <button class="carousel-btn" data-target="soonContainer" data-direction="right" aria-label="Next">▶</button>
+        </div>
+      </div>
+      <div id="soonContainer" class="event-horizontal-grid">
+        <!-- Dynamically populated by index.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026. All Rights Reserved.</p>
+      <p>Secure ticketing, atomic seat locks, and transparent pricing in Oat Milk, Monday Blue, and Candy Apple Red.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/index.js"></script>
+</body>
+</html>

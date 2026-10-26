@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Seats - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/index.html" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/index.html" class="nav-link">Home</a></li>
+            <li><a href="/event.html" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
+            <li><a href="/support.html" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
+          🔍
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          🔔
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          👤
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Monday Blue Booking Page Header (UI-13) -->
+  <section class="booking-header">
+    <div class="container booking-header-inner">
+      <div>
+        <h1 id="bookingEventTitle" style="font-size: 2rem; font-weight: 800; margin-bottom: 4px;">Loading Event...</h1>
+        <div id="bookingVenue" style="font-size: 1rem; opacity: 0.9;">📍 Impact Arena</div>
+      </div>
+      <div>
+        <a href="/event.html" class="btn-pill-outline" style="border-color: #FFFFFF; color: #FFFFFF;">
+          Change Event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Booking Area -->
+  <main class="container">
+
+    <!-- Round Selector -->
+    <div style="margin-bottom: 16px;">
+      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">Select Show Round</h3>
+      <div id="roundSelector" class="round-selector-wrap">
+        <!-- Populated by booking.js -->
+      </div>
+    </div>
+
+    <!-- Zone Tabs & Live Counts (UI-07, FR-20, FR-21, FR-22) -->
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">Filter by Zone</h3>
+      <div id="zoneTabs" class="zone-tabs-wrap">
+        <!-- Populated by booking.js -->
+      </div>
+    </div>
+
+    <!-- Interactive Seating Matrix Container (UI-04, UI-05, UI-06) -->
+    <div id="seatMatrixContainer" class="seating-matrix-container">
+      <!-- Generated seat rows -->
+    </div>
+
+    <!-- Seat Legend -->
+    <div class="seat-legend" style="margin-bottom: 32px;">
+      <div class="legend-item">
+        <div class="seat available" style="width: 26px; height: 26px; font-size: 9px; cursor: default;">01</div>
+        <span>Available (UI-04)</span>
+      </div>
+      <div class="legend-item">
+        <div class="seat booked" style="width: 26px; height: 26px; cursor: default;"></div>
+        <span>Booked / Reserved (UI-05)</span>
+      </div>
+      <div class="legend-item">
+        <div class="seat selected" style="width: 26px; height: 26px; cursor: default;"></div>
+        <span>Selected (UI-06)</span>
+      </div>
+    </div>
+
+    <!-- Sticky Selection Summary Bar (UI-11) -->
+    <div class="booking-summary-bar">
+      <div class="booking-summary-info">
+        <div class="booking-summary-item">
+          <small>Seats Selected</small>
+          <strong id="summarySeatCount">0</strong>
+        </div>
+        <div class="booking-summary-item">
+          <small>Seat Numbers</small>
+          <strong id="summarySeatsList" style="font-size: 1.05rem;">None selected</strong>
+        </div>
+        <div class="booking-summary-item">
+          <small>Ticket Subtotal</small>
+          <strong id="summarySubtotal">0 THB</strong>
+        </div>
+        <div class="booking-summary-item">
+          <small>Total (inc. 40 THB fee/seat)</small>
+          <strong id="summaryTotal" style="color: #1D56CF;">0 THB</strong>
+        </div>
+      </div>
+
+      <div>
+        <button id="proceedCheckoutBtn" class="btn-pill-red" style="font-size: 1.1rem; padding: 12px 32px;" disabled>
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p>All seat holds are locked atomically for 10 minutes to guarantee double-booking prevention.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/booking.js"></script>
+</body>
+</html>

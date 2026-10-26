@@ -1,6 +1,7 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const { store } = require('../store/jsonStore');
-const { requireRole, requireAuth } = require('../middleware/auth');
+const { requireRole, requireAuth, sanitizeUser } = require('../middleware/auth');
 const { buildSeatsForEvent } = require('../store/seed');
 
 const router = express.Router();
@@ -113,11 +114,15 @@ router.put('/events/:id/seating', requireRole(['admin']), (req, res) => {
   const tempEvt = { ...event, zones: updatedZones };
   const newSeats = buildSeatsForEvent(tempEvt);
 
+  const seatsToInsert = [];
   for (const ns of newSeats) {
     const existing = store.findOne('seats', (s) => s.id === ns.id);
     if (!existing) {
-      store.insert('seats', ns);
+      seatsToInsert.push(ns);
     }
+  }
+  if (seatsToInsert.length > 0) {
+    store.insertMany('seats', seatsToInsert);
   }
 
   return res.json({
@@ -174,6 +179,99 @@ router.put('/notifications/:id/read', requireAuth, (req, res) => {
   }
   const updated = store.update('notifications', notif.id, { isRead: true });
   return res.json({ message: 'Marked as read', notification: updated });
+});
+
+/**
+ * R1: User & Role Management — GET /api/admin/users
+ * Returns all registered users sanitized (no passwordHash) and role counts.
+ * Supports optional ?role= (admin, staff, customer) and ?search= query filters.
+ */
+router.get('/users', requireRole(['admin']), (req, res) => {
+  const allUsers = store.getAll('users');
+
+  const counts = {
+    total: allUsers.length,
+    admin: allUsers.filter((u) => u.role === 'admin').length,
+    staff: allUsers.filter((u) => u.role === 'staff').length,
+    customer: allUsers.filter((u) => u.role === 'customer').length
+  };
+
+  let filtered = allUsers;
+
+  const { role, search } = req.query;
+
+  if (role && typeof role === 'string' && role.trim().toLowerCase() !== 'all') {
+    const targetRole = role.trim().toLowerCase();
+    filtered = filtered.filter((u) => u.role && u.role.toLowerCase() === targetRole);
+  }
+
+  if (search && typeof search === 'string' && search.trim()) {
+    const q = search.trim().toLowerCase();
+    filtered = filtered.filter((u) => {
+      const nameMatch = u.name && typeof u.name === 'string' && u.name.toLowerCase().includes(q);
+      const emailMatch = u.email && typeof u.email === 'string' && u.email.toLowerCase().includes(q);
+      const phoneMatch = u.phone && typeof u.phone === 'string' && u.phone.toLowerCase().includes(q);
+      return Boolean(nameMatch || emailMatch || phoneMatch);
+    });
+  }
+
+  const sanitizedUsers = filtered.map((u) => sanitizeUser(u));
+
+  return res.json({
+    counts,
+    users: sanitizedUsers
+  });
+});
+
+/**
+ * R1: User & Role Management — PUT /api/admin/users/:id/role
+ * Updates target user's role ('customer' | 'staff' | 'admin').
+ * Enforces role validation, 404 on missing user, self-demotion prevention,
+ * notifications dispatch, and returns sanitized updated user.
+ */
+router.put('/users/:id/role', requireRole(['admin']), (req, res) => {
+  const { role } = req.body || {};
+
+  const ALLOWED_ROLES = ['customer', 'staff', 'admin'];
+  if (!role || typeof role !== 'string' || !ALLOWED_ROLES.includes(role.trim().toLowerCase())) {
+    return res.status(400).json({
+      error: 'Invalid role. Role must be one of: customer, staff, admin.'
+    });
+  }
+
+  const requestedRole = role.trim().toLowerCase();
+
+  const targetUser = store.findById('users', req.params.id);
+  if (!targetUser) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+
+  // Self-demotion guard
+  if (targetUser.id === req.user.id && requestedRole !== 'admin') {
+    return res.status(400).json({
+      error: 'Cannot demote your own currently active administrator account.'
+    });
+  }
+
+  const updatedUser = store.update('users', targetUser.id, { role: requestedRole });
+
+  // Create ROLE_UPDATED notification in notifications.json
+  store.insert('notifications', {
+    id: `ntf-${uuidv4().slice(0, 8)}`,
+    userId: targetUser.id,
+    channel: 'BOTH',
+    type: 'ROLE_UPDATED',
+    subject: 'Account Role Updated',
+    message: `Your account role has been updated to "${requestedRole}".`,
+    emailTo: targetUser.email || '',
+    isRead: false,
+    createdAt: new Date().toISOString()
+  });
+
+  return res.json({
+    message: 'User role updated successfully.',
+    user: sanitizeUser(updatedUser)
+  });
 });
 
 module.exports = router;

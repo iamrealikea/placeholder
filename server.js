@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const { store } = require('./src/store/jsonStore');
 const { generateSeedData, ensureTicketQrCodes } = require('./src/store/seed');
+const { requireAuth } = require('./src/middleware/auth');
 
 const authRoutes = require('./src/routes/auth.routes');
 const eventsRoutes = require('./src/routes/events.routes');
@@ -39,6 +40,32 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/support', supportRoutes);
+
+// Customer notification endpoints (FR-35, FR-36)
+const notificationsRouter = express.Router();
+const getNotificationsHandler = (req, res) => {
+  const notifs = store.find('notifications', (n) => n.userId === req.user.id);
+  notifs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return res.json({
+    total: notifs.length,
+    notifications: notifs
+  });
+};
+const markReadHandler = (req, res) => {
+  const notif = store.findById('notifications', req.params.id);
+  if (!notif || notif.userId !== req.user.id) {
+    return res.status(404).json({ error: 'Notification not found.' });
+  }
+  const updated = store.update('notifications', notif.id, { isRead: true });
+  return res.json({ message: 'Marked as read', notification: updated });
+};
+
+notificationsRouter.get('/', requireAuth, getNotificationsHandler);
+notificationsRouter.get('/notifications', requireAuth, getNotificationsHandler);
+notificationsRouter.put('/:id/read', requireAuth, markReadHandler);
+notificationsRouter.put('/notifications/:id/read', requireAuth, markReadHandler);
+
+app.use('/api/notifications', notificationsRouter);
 
 // System health endpoint
 app.get('/api/health', (_req, res) => {
