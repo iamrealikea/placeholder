@@ -1,0 +1,92 @@
+[
+  {
+    "id": "bkg-demo-1",
+    "userId": "usr-customer-1",
+    "eventId": "evt-1",
+    "roundId": "rnd-1a",
+    "seatIds": [
+      "seat-evt-1-rnd-1a-zone-vip-A1",
+      "seat-evt-1-rnd-1a-zone-vip-A2"
+    ],
+    "seatNumbers": [
+      "A1",
+      "A2"
+    ],
+    "zoneName": "VIP Stage Front",
+    "subtotal": 9000,
+    "serviceFee": 80,
+    "discountAmount": 0,
+    "pointsUsed": 0,
+    "pointsEarned": 90,
+    "totalAmount": 9080,
+    "paymentMethod": "PROMPTPAY",
+    "status": "PAID",
+    "holdExpiresAt": null,
+    "createdAt": "2026-10-15T14:20:00.000Z"
+  },
+  {
+    "id": "bkg-hist-1",
+    "userId": "usr-customer-1",
+    "eventId": "evt-2",
+    "roundId": "rnd-2a",
+    "seatIds": [],
+    "seatNumbers": [
+      "B1",
+      "B2"
+    ],
+    "zoneName": "VIP Ring",
+    "subtotal": 7000,
+    "serviceFee": 80,
+    "discountAmount": 0,
+    "pointsUsed": 0,
+    "pointsEarned": 70,
+    "totalAmount": 7080,
+    "paymentMethod": "CREDIT_CARD",
+    "status": "PAID",
+    "holdExpiresAt": null,
+    "createdAt": "2026-07-12T11:00:00.000Z"
+  },
+  {
+    "id": "bkg-hist-2",
+    "userId": "usr-customer-1",
+    "eventId": "evt-3",
+    "roundId": "rnd-3a",
+    "seatIds": [],
+    "seatNumbers": [
+      "A3"
+    ],
+    "zoneName": "Executive Front Row",
+    "subtotal": 2500,
+    "serviceFee": 40,
+    "discountAmount": 0,
+    "pointsUsed": 0,
+    "pointsEarned": 25,
+    "totalAmount": 2540,
+    "paymentMethod": "KBANK",
+    "status": "PAID",
+    "holdExpiresAt": null,
+    "createdAt": "2026-08-19T16:30:00.000Z"
+  },
+  {
+    "id": "bkg-hist-3",
+    "userId": "usr-customer-1",
+    "eventId": "evt-1",
+    "roundId": "rnd-1b",
+    "seatIds": [],
+    "seatNumbers": [
+      "C1",
+      "C2"
+    ],
+    "zoneName": "Zone A (Monday Blue)",
+    "subtotal": 5600,
+    "serviceFee": 80,
+    "discountAmount": 0,
+    "pointsUsed": 0,
+    "pointsEarned": 56,
+    "totalAmount": 5680,
+    "paymentMethod": "TRUEMONEY",
+    "status": "PAID",
+    "holdExpiresAt": null,
+    "createdAt": "2026-09-22T18:15:00.000Z"
+  }
+]
