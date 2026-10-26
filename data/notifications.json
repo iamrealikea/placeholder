@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ntf-1",
+    "userId": "usr-customer-1",
+    "channel": "BOTH",
+    "type": "PAYMENT_SUCCESS",
+    "subject": "Payment Confirmed: Forza Horizon Somethings Live Festival",
+    "message": "Your payment of 9,080 THB via PromptPay was successful. Tickets TKT-FH26-VIP-A1 and TKT-FH26-VIP-A2 are ready in My Tickets.",
+    "emailTo": "user@ticket.com",
+    "isRead": false,
+    "createdAt": "2026-10-15T14:21:05.000Z"
+  },
+  {
+    "id": "ntf-2",
+    "userId": "usr-customer-1",
+    "channel": "BOTH",
+    "type": "BOOKMARK_ALERT",
+    "subject": "Bookmarked Event Reminder: Kawaii Mascot & Plushie Wonderland",
+    "message": "An event in your Bookmarks (Event #23 : Kawaii Mascot & Plushie Wonderland) opens for sale on 1 Dec 2026 at 10:00.",
+    "emailTo": "user@ticket.com",
+    "isRead": false,
+    "createdAt": "2026-10-20T09:00:00.000Z"
+  }
+]

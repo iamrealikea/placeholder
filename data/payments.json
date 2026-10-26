@@ -1,0 +1,50 @@
+[
+  {
+    "id": "pay-demo-1",
+    "bookingId": "bkg-demo-1",
+    "userId": "usr-customer-1",
+    "method": "PROMPTPAY",
+    "amount": 9080,
+    "referenceCode": "TH-PP-20261015-001",
+    "status": "SUCCESS",
+    "refundAmount": 0,
+    "paidAt": "2026-10-15T14:21:00.000Z",
+    "refundedAt": null
+  },
+  {
+    "id": "pay-hist-1",
+    "bookingId": "bkg-hist-1",
+    "userId": "usr-customer-1",
+    "method": "CREDIT_CARD",
+    "amount": 7080,
+    "referenceCode": "TH-CC-20260712-002",
+    "status": "SUCCESS",
+    "refundAmount": 0,
+    "paidAt": "2026-07-12T11:01:00.000Z",
+    "refundedAt": null
+  },
+  {
+    "id": "pay-hist-2",
+    "bookingId": "bkg-hist-2",
+    "userId": "usr-customer-1",
+    "method": "KBANK",
+    "amount": 2540,
+    "referenceCode": "TH-KB-20260819-003",
+    "status": "SUCCESS",
+    "refundAmount": 0,
+    "paidAt": "2026-08-19T16:31:00.000Z",
+    "refundedAt": null
+  },
+  {
+    "id": "pay-hist-3",
+    "bookingId": "bkg-hist-3",
+    "userId": "usr-customer-1",
+    "method": "TRUEMONEY",
+    "amount": 5680,
+    "referenceCode": "TH-TM-20260922-004",
+    "status": "SUCCESS",
+    "refundAmount": 0,
+    "paidAt": "2026-09-22T18:16:00.000Z",
+    "refundedAt": null
+  }
+]
