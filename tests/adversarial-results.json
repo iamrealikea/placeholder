@@ -13,7 +13,7 @@
       "suite": "Concurrency",
       "name": "TC-1.2: Concurrent duplicate National ID registration race condition",
       "passed": true,
-      "details": "Out of 5 concurrent requests: 1 returned 201. Users in DB: 1. Statuses: [201, 409, 409, 409, 409]"
+      "details": "Out of 5 concurrent requests: 1 returned 201. Users in DB: 1. Statuses: [409, 409, 409, 409, 201]"
     },
     {
       "suite": "Concurrency",
@@ -193,7 +193,7 @@
       "suite": "PrivilegeEscalation",
       "name": "TC-4.3: User ID mutation via PUT /profile is blocked",
       "passed": true,
-      "details": "DB ID: usr-379d4ee5"
+      "details": "DB ID: usr-c07dd9fb"
     },
     {
       "suite": "PrivilegeEscalation",
@@ -223,7 +223,7 @@
       "suite": "AvatarUpload",
       "name": "TC-5.3: Path traversal and dangerous extension neutralized to safe /uploads/avatar-*.png",
       "passed": true,
-      "details": "AvatarUrl assigned: /uploads/avatar-1793004611580-cdcd6ee8.png"
+      "details": "AvatarUrl assigned: /uploads/avatar-1793005148160-e40a125f.png"
     },
     {
       "suite": "AvatarUpload",

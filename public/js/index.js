@@ -31,9 +31,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const round = (featured.rounds && featured.rounds[0]) || {};
     const dateStr = round.date ? `${round.date} • ${round.time || ''}` : 'Upcoming 2026';
-    const bgImage = featured.posterUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1400&q=80';
+    const bgImage = featured.posterUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1920&q=80';
 
-    heroBanner.style.background = `linear-gradient(180deg, rgba(17, 24, 39, 0.4) 0%, rgba(17, 24, 39, 0.88) 100%), url('${bgImage}') center/cover no-repeat`;
+    // Update full-width hero section background so it fills the screen width
+    const heroSection = document.getElementById('heroSection') || heroBanner.closest('.hero-section') || heroBanner;
+    if (heroSection) {
+      heroSection.style.background = `linear-gradient(180deg, rgba(17, 24, 39, 0.35) 0%, rgba(17, 24, 39, 0.85) 100%), url('${bgImage}') center/cover no-repeat`;
+    }
+    heroBanner.style.background = 'rgba(17, 24, 39, 0.3)';
+    heroBanner.style.backdropFilter = 'blur(2px)';
+    heroBanner.style.webkitBackdropFilter = 'blur(2px)';
 
     heroBanner.innerHTML = `
       <div class="hero-top">
@@ -173,6 +180,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchInput.addEventListener('input', () => filterAndRenderEvents());
   categoryFilter.addEventListener('change', () => filterAndRenderEvents());
   statusFilter.addEventListener('change', () => filterAndRenderEvents());
+
+  const navSearchTrigger = document.getElementById('navSearchTrigger');
+  if (navSearchTrigger && searchInput) {
+    navSearchTrigger.addEventListener('click', () => {
+      searchInput.focus();
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
 
   // Bookmark toggle
   window.toggleBookmark = async (eventId, btn) => {
