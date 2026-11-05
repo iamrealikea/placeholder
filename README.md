@@ -108,6 +108,7 @@
 | FR-47 | Promotion | Promotion | ระบบรองรับ Promotion และส่วนลด |
 | FR-48 | Ticket Sale | Sale Period | Admin สามารถกำหนดวันเริ่มและสิ้นสุดการขายบัตร |
 | FR-49 | Ticket Sale | Sale Restriction | ระบบไม่อนุญาตให้จองบัตรนอกช่วงเวลาที่กำหนด |
+| FR-50 | Booking | Ticket Holder Name | ผู้ใช้งานสามารถใส่ชื่อ-สกุลลงในบัตรของแต่ละใบได้ |
 
 ## Non-Functional Requirements
 
