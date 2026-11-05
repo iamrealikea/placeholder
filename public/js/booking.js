@@ -143,51 +143,122 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // Group seats by row
-    const rowMap = {};
-    for (const s of seatsToDisplay) {
-      const rowName = s.row || (s.seatNumber ? s.seatNumber.charAt(0) : 'A');
-      if (!rowMap[rowName]) rowMap[rowName] = [];
-      rowMap[rowName].push(s);
-    }
-
-    // Sort rows alphabetically
-    const sortedRows = Object.keys(rowMap).sort();
+    const useCoordinateLayout = seatsToDisplay.every(
+      (s) => typeof s.x === 'number' && typeof s.y === 'number'
+    ) && seatsToDisplay.some(
+      (s) =>
+        s.layout === 'custom' ||
+        (eventData &&
+          Array.isArray(eventData.zones) &&
+          eventData.zones.some(
+            (z) => z.layout === 'custom' || z.layout === 'template' || (Array.isArray(z.seats) && z.seats.length > 0)
+          ))
+    );
 
     let matrixHtml = `
       <div class="stage-banner">STAGE / SCREEN</div>
     `;
 
-    for (const row of sortedRows) {
-      const rowSeats = rowMap[row].sort((a, b) => a.col - b.col);
-      matrixHtml += `<div class="seat-row">`;
-      matrixHtml += `<div class="row-label">${row}</div>`;
+    if (useCoordinateLayout) {
+      const maxX = Math.max(760, ...seatsToDisplay.map((s) => (typeof s.x === 'number' ? s.x + 60 : 0)));
+      const maxY = Math.max(420, ...seatsToDisplay.map((s) => (typeof s.y === 'number' ? s.y + 60 : 0)));
+      matrixHtml += `<div class="seat-coordinate-canvas" style="position:relative; width:${maxX}px; height:${maxY}px; margin:0 auto;">`;
 
-      for (const seat of rowSeats) {
+      for (const seat of seatsToDisplay) {
         let statusClass = 'available';
-        let isClickable = true;
-
         if (seat.status === 'BOOKED' || seat.status === 'HELD') {
           statusClass = 'booked';
-          isClickable = false;
         } else if (selectedSeatIds.has(seat.id)) {
           statusClass = 'selected';
         }
 
+        const accentColor = seat.seatColor || seat.zoneColor || '';
+        const accentClass = accentColor ? 'has-accent' : '';
+        const xPos = typeof seat.x === 'number' ? seat.x : 40;
+        const yPos = typeof seat.y === 'number' ? seat.y : 40;
+        const styleStr = `position:absolute; left:${xPos}px; top:${yPos}px; transform:translate(-50%, -50%);${accentColor ? ` --seat-accent:${accentColor}; box-shadow: 0 0 0 3px ${accentColor}, 0 2px 4px rgba(0,0,0,0.25);` : ''}`;
+
         matrixHtml += `
-          <div class="seat ${statusClass}" 
-               data-id="${seat.id}" 
-               data-number="${seat.seatNumber}" 
+          <div class="seat ${statusClass} ${accentClass}"
+               style="${styleStr}"
+               data-id="${seat.id}"
+               data-number="${seat.seatNumber}"
                data-price="${seat.price}"
                data-zone="${seat.zoneName}"
+               data-accent="${accentColor}"
                title="${seat.zoneName} - Seat ${seat.seatNumber} (${seat.price} THB)">
             ${statusClass === 'available' ? seat.seatNumber : ''}
           </div>
         `;
       }
 
-      matrixHtml += `<div class="row-label" style="text-align:left; margin-left:8px; margin-right:0;">${row}</div>`;
       matrixHtml += `</div>`;
+    } else {
+      // Group seats by zone first (when viewing ALL zones), then by row so zones do not collide on row 'A'
+      const zonesOrder = (eventData && Array.isArray(eventData.zones) && eventData.zones.length > 0)
+        ? eventData.zones.filter((z) => activeZoneFilter === 'ALL' || z.id === activeZoneFilter)
+        : [{ id: 'default', name: 'Seating', color: '#1D56CF' }];
+
+      for (const z of zonesOrder) {
+        const zoneSeats = z.id === 'default'
+          ? seatsToDisplay
+          : seatsToDisplay.filter((s) => s.zoneId === z.id);
+        if (zoneSeats.length === 0) continue;
+
+        if (activeZoneFilter === 'ALL' && zonesOrder.length > 1) {
+          matrixHtml += `
+            <div style="margin: 18px 0 8px; font-weight: 800; font-size: 0.9rem; color: #374151; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span class="zone-color-indicator" style="background-color: ${z.color || '#1D56CF'};"></span>
+              <span>${z.name} (${(z.price || zoneSeats[0].price || 0).toLocaleString()} THB)</span>
+            </div>
+          `;
+        }
+
+        const rowMap = {};
+        for (const s of zoneSeats) {
+          const rowName = s.row || (s.seatNumber ? s.seatNumber.charAt(0) : 'A');
+          if (!rowMap[rowName]) rowMap[rowName] = [];
+          rowMap[rowName].push(s);
+        }
+
+        const sortedRows = Object.keys(rowMap).sort();
+
+        for (const row of sortedRows) {
+          const rowSeats = rowMap[row].sort((a, b) => a.col - b.col);
+          matrixHtml += `<div class="seat-row">`;
+          matrixHtml += `<div class="row-label">${row}</div>`;
+
+          for (const seat of rowSeats) {
+            let statusClass = 'available';
+
+            if (seat.status === 'BOOKED' || seat.status === 'HELD') {
+              statusClass = 'booked';
+            } else if (selectedSeatIds.has(seat.id)) {
+              statusClass = 'selected';
+            }
+
+            const accentColor = seat.seatColor || seat.zoneColor || '';
+            const accentClass = accentColor ? 'has-accent' : '';
+            const styleStr = accentColor ? `--seat-accent:${accentColor}; box-shadow: 0 0 0 3px ${accentColor}, 0 2px 4px rgba(0,0,0,0.25);` : '';
+
+            matrixHtml += `
+              <div class="seat ${statusClass} ${accentClass}" 
+                   style="${styleStr}"
+                   data-id="${seat.id}" 
+                   data-number="${seat.seatNumber}" 
+                   data-price="${seat.price}"
+                   data-zone="${seat.zoneName}"
+                   data-accent="${accentColor}"
+                   title="${seat.zoneName} - Seat ${seat.seatNumber} (${seat.price} THB)">
+                ${statusClass === 'available' ? seat.seatNumber : ''}
+              </div>
+            `;
+          }
+
+          matrixHtml += `<div class="row-label" style="text-align:left; margin-left:8px; margin-right:0;">${row}</div>`;
+          matrixHtml += `</div>`;
+        }
+      }
     }
 
     seatMatrixContainer.innerHTML = matrixHtml;
@@ -196,9 +267,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     seatMatrixContainer.querySelectorAll('.seat.available, .seat.selected').forEach((seatEl) => {
       seatEl.addEventListener('click', () => {
         const id = seatEl.dataset.id;
+        const hasAccent = seatEl.dataset.accent ? ' has-accent' : '';
         if (selectedSeatIds.has(id)) {
           selectedSeatIds.delete(id);
-          seatEl.className = 'seat available';
+          seatEl.className = `seat available${hasAccent}`;
           seatEl.textContent = seatEl.dataset.number;
         } else {
           if (selectedSeatIds.size >= MAX_SEATS) {
@@ -206,7 +278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
           }
           selectedSeatIds.add(id);
-          seatEl.className = 'seat selected';
+          seatEl.className = `seat selected${hasAccent}`;
           seatEl.textContent = '';
         }
         updateSummary();

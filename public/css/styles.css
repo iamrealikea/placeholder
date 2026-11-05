@@ -1635,3 +1635,760 @@ button, input, select, textarea {
     flex-direction: column;
   }
 }
+
+
+/* ==========================================================================
+   Admin Event Page & Interactive Seat Builder (FR-13, FR-14, FR-15, FR-40, FR-41)
+   Adheres strictly to AGENTS.md:
+   - Lato font family
+   - Oat Milk (#FDF9F2) backgrounds
+   - Monday Blue (#1D56CF) primary branding and toolbar active pills
+   - Candy Apple Red (#FF0800) primary CTAs and danger accents
+   - UI-04: Available seat: Black circle with white border & seat number
+   - UI-05: Booked / held seat: Greyed background with red cross mark ✕
+   - UI-06: Selected seat: Monday Blue circle with white check mark ✓
+   - Custom Zone/Seat color: Outer accent ring via box-shadow: 0 0 0 3px <color>
+   ========================================================================== */
+
+/* Page Container & Top Header */
+.admin-event-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.builder-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.builder-breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breadcrumb-link {
+  color: var(--monday-blue);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-link:hover {
+  color: var(--monday-blue-dark);
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: var(--border-strong);
+}
+
+.builder-page-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+
+.builder-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Layout Lock Warning Banner (FR-14, FR-18)
+   -------------------------------------------------------------------------- */
+.layout-lock-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #EFF6FF;
+  border: 2px solid var(--monday-blue);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(29, 86, 207, 0.12);
+}
+
+.layout-lock-banner.hidden {
+  display: none !important;
+}
+
+.lock-banner-icon {
+  font-size: 1.6rem;
+  color: var(--monday-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-banner-content {
+  flex: 1;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.lock-banner-content strong {
+  color: var(--monday-blue);
+  font-weight: 800;
+  margin-right: 6px;
+}
+
+.lock-banner-badge {
+  background: var(--monday-blue);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   3-Pane Layout Grid
+   -------------------------------------------------------------------------- */
+.event-builder-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1300px) {
+  .event-builder-layout {
+    grid-template-columns: 340px 1fr 300px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .event-builder-layout {
+    grid-template-columns: 320px 1fr;
+  }
+  .side-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 800px) {
+  .event-builder-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Panel Card Base Styles */
+.panel-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  position: relative;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--monday-blue);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Pane 1: Event Details Form Controls
+   -------------------------------------------------------------------------- */
+.required-asterisk {
+  color: var(--candy-apple);
+  font-weight: 900;
+}
+
+.form-row-dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rounds-manager-section {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.rounds-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rounds-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.round-card-item {
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  position: relative;
+}
+
+.round-card-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.round-card-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 4px;
+  font-size: 0.9rem;
+  transition: color var(--transition-fast);
+}
+
+.round-card-remove-btn:hover {
+  color: var(--candy-apple);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-delete-danger {
+  color: var(--candy-apple);
+  border-color: var(--candy-apple);
+  background: transparent;
+}
+
+.btn-delete-danger:hover {
+  background-color: var(--candy-apple-light);
+  border-color: var(--candy-apple-dark);
+}
+
+/* --------------------------------------------------------------------------
+   Pane 2: Canvas Toolbar & Mode Selector
+   -------------------------------------------------------------------------- */
+.canvas-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+}
+
+.mode-pills-group {
+  display: inline-flex;
+  background: #E5E7EB;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  gap: 4px;
+}
+
+.mode-pill {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-pill:hover:not(.active):not(:disabled) {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.mode-pill.active {
+  background: var(--monday-blue);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(29, 86, 207, 0.3);
+}
+
+.mode-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.template-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Matrix Controls Sub-Bar */
+.matrix-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  margin-bottom: 16px;
+}
+
+.matrix-controls-bar.hidden {
+  display: none !important;
+}
+
+.matrix-input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.matrix-input-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.matrix-input-group input {
+  width: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.matrix-input-group input:focus {
+  border-color: var(--monday-blue);
+  box-shadow: 0 0 0 2px var(--monday-blue-light);
+}
+
+/* --------------------------------------------------------------------------
+   Canvas Viewport, Marquee & Stage Banner
+   -------------------------------------------------------------------------- */
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 620px;
+  background-color: #FAFAFA;
+  background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  overflow: auto;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.builder-stage-banner {
+  background: linear-gradient(180deg, var(--monday-blue) 0%, var(--monday-blue-dark) 100%);
+  color: #FFFFFF;
+  text-align: center;
+  padding: 12px 28px;
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 16px auto;
+  max-width: 480px;
+  box-shadow: 0 4px 14px rgba(29, 86, 207, 0.3);
+  pointer-events: none;
+  z-index: 10;
+}
+
+#seat-canvas {
+  display: block;
+  background: transparent;
+}
+
+.seat-elements-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Marquee Drag-Selection Box */
+.marquee-selection {
+  position: absolute;
+  border: 2px dashed var(--monday-blue);
+  background-color: rgba(29, 86, 207, 0.15);
+  pointer-events: none;
+  border-radius: var(--radius-sm);
+  z-index: 50;
+  display: none;
+}
+
+.canvas-footer-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--bg-surface-alt);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.canvas-mode-helper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.canvas-mode-helper i {
+  color: var(--monday-blue);
+}
+
+/* --------------------------------------------------------------------------
+   Seat States & Custom Zone/Seat Color Accent Ring (AGENTS.md + FR-40/41)
+   -------------------------------------------------------------------------- */
+.builder-seat {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  user-select: none;
+  cursor: grab;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+}
+
+.builder-seat:active {
+  cursor: grabbing;
+}
+
+/* UI-04: Available seat: Black circle with white border & seat number */
+.builder-seat.available {
+  background-color: #000000;
+  border: 2px solid #FFFFFF;
+  color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.builder-seat.available:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  border-color: var(--monday-blue);
+}
+
+/* UI-05: Booked / held seat: Grey background with cross mark ✕ */
+.builder-seat.booked,
+.builder-seat.held {
+  background-color: #D1D5DB;
+  border: 2px solid #9CA3AF;
+  color: transparent;
+  cursor: not-allowed;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.builder-seat.booked::after,
+.builder-seat.held::after {
+  content: "✕";
+  color: #DC2626;
+  font-size: 16px;
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* UI-06: Selected seat: Monday Blue circle with white check mark ✓ */
+.builder-seat.selected {
+  background-color: var(--monday-blue);
+  border: 2px solid #FFFFFF;
+  color: transparent;
+  box-shadow: 0 0 10px rgba(29, 86, 207, 0.7);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.builder-seat.selected::after {
+  content: "✓";
+  color: #FFFFFF;
+  font-size: 17px;
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Custom Zone / Seat Color Ring (box-shadow outer accent ring) */
+.seat.has-accent,
+.seat[style*="--seat-accent"],
+.builder-seat.has-accent,
+.builder-seat[style*="--seat-accent"] {
+  box-shadow: 0 0 0 3px var(--seat-accent, transparent), 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.seat.available.has-accent,
+.seat.available[style*="--seat-accent"],
+.builder-seat.available.has-accent,
+.builder-seat.available[style*="--seat-accent"] {
+  box-shadow: 0 0 0 3px var(--seat-accent, transparent), 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.seat.selected.has-accent,
+.seat.selected[style*="--seat-accent"],
+.builder-seat.selected.has-accent,
+.builder-seat.selected[style*="--seat-accent"] {
+  box-shadow: 0 0 0 3px var(--seat-accent, transparent), 0 0 12px rgba(29, 86, 207, 0.8);
+}
+
+/* Read-Only State when Layout is Locked */
+.seat-canvas-panel.locked .canvas-toolbar {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.seat-canvas-panel.locked .matrix-controls-bar {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.seat-canvas-panel.locked .canvas-wrapper {
+  cursor: not-allowed;
+}
+
+.seat-canvas-panel.locked .builder-seat {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Pane 3: Side Panel (Zone Config & Pricing)
+   -------------------------------------------------------------------------- */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.selection-status-card {
+  background: var(--monday-blue-light);
+  border: 1px solid var(--monday-blue-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.selection-count-badge {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--monday-blue);
+  line-height: 1;
+}
+
+.selection-status-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.selection-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.btn-link-action {
+  background: none;
+  border: none;
+  color: var(--monday-blue);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-link-action:hover {
+  text-decoration: underline;
+}
+
+.new-zone-box {
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.color-picker-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-picker-input {
+  width: 44px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+}
+
+.color-hex-input {
+  flex: 1;
+  font-family: monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.color-swatch-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 0 2px var(--border-strong);
+  flex-shrink: 0;
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.zones-summary-section {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+}
+
+.zones-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.zones-summary-table th {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 2px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.zones-summary-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.zone-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   Danger Box & Modal Error Styling
+   -------------------------------------------------------------------------- */
+.danger-warning-box {
+  background: var(--candy-apple-light);
+  border: 1px solid var(--candy-apple-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  color: var(--candy-apple-dark);
+}
+
+.modal-error-alert {
+  background: var(--candy-apple-light);
+  border: 1px solid var(--candy-apple-border);
+  color: var(--candy-apple-dark);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+
+.btn-xs {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+}
+
+.form-control-sm {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}

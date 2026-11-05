@@ -275,6 +275,108 @@ async function payBooking(req, res) {
 }
 
 /**
+ * Reusable helper: Cancels a booking, releases seats, cancels tickets,
+ * processes refund (for paid bookings), and dispatches notifications.
+ *
+ * @param {Object} booking - Booking object from BookingModel
+ * @param {Object} [options={}]
+ * @param {string} [options.reason='EVENT_CANCELLED'] - 'EVENT_CANCELLED' | 'USER_CANCELLED'
+ * @param {boolean} [options.notify=true] - Whether to send notification
+ * @param {string} [options.customMessage] - Optional custom message
+ * @returns {Object} Result summary
+ */
+function cancelAndRefundBooking(booking, options = {}) {
+  if (!booking) return null;
+  const reason = options.reason || 'EVENT_CANCELLED';
+  const shouldNotify = options.notify !== false;
+
+  const serviceFee = typeof booking.serviceFee === 'number'
+    ? booking.serviceFee
+    : ((booking.seatIds || []).length * (BookingModel.SERVICE_FEE_PER_TICKET || 40));
+
+  // 1. Release seats back to AVAILABLE if any seats associated
+  if (Array.isArray(booking.seatIds) && booking.seatIds.length > 0) {
+    SeatModel.releaseSeats(booking.seatIds);
+  }
+
+  // 2. Handle PAID bookings
+  if (booking.status === 'PAID') {
+    // Refund: Ticket Subtotal - Discount (Service fee 40 THB/seat is NON-REFUNDABLE per FR-39)
+    const refundableAmount = Math.max(0, (booking.subtotal || 0) - (booking.discountAmount || 0));
+
+    // Cancel all electronic tickets issued for this booking
+    TicketModel.cancelByBookingId(booking.id);
+
+    // Update payment record to REFUNDED with refund amount and reason
+    PaymentModel.markRefunded(booking.id, refundableAmount, reason);
+
+    // Update booking status
+    BookingModel.update(booking.id, {
+      status: 'CANCELLED',
+      cancellationReason: reason,
+      cancelledAt: new Date().toISOString()
+    });
+
+    // Dispatch notification
+    if (shouldNotify) {
+      const isEventCancelled = reason === 'EVENT_CANCELLED';
+      const subject = isEventCancelled
+        ? `Event Cancelled & Refund Issued: ${booking.eventTitle}`
+        : `Booking Cancelled & Refunded: ${booking.eventTitle}`;
+      const message = options.customMessage || (isEventCancelled
+        ? `The event "${booking.eventTitle}" has been cancelled. A refund of ${refundableAmount.toLocaleString()} THB for booking ${booking.id} has been processed to your payment method (Service fee of ${serviceFee} THB retained per policy).`
+        : `Your booking ${booking.id} has been cancelled. A refund of ${refundableAmount.toLocaleString()} THB has been issued to your payment method (Service fee of ${serviceFee} THB was non-refundable).`);
+
+      NotificationModel.create({
+        userId: booking.userId,
+        channel: 'BOTH',
+        type: isEventCancelled ? 'EVENT_CANCELLED' : 'REFUND',
+        subject,
+        message,
+        ...(booking.userEmail ? { emailTo: booking.userEmail } : {})
+      });
+    }
+
+    return {
+      bookingId: booking.id,
+      status: 'CANCELLED',
+      wasPaid: true,
+      refundableAmount,
+      nonRefundableFee: serviceFee,
+      originalTotal: booking.totalAmount
+    };
+  }
+
+  // 3. Handle non-paid bookings (PENDING, HELD, etc.)
+  BookingModel.update(booking.id, {
+    status: 'CANCELLED',
+    holdExpiresAt: null,
+    cancellationReason: reason,
+    cancelledAt: new Date().toISOString()
+  });
+
+  if (shouldNotify && reason === 'EVENT_CANCELLED') {
+    NotificationModel.create({
+      userId: booking.userId,
+      channel: 'BOTH',
+      type: 'EVENT_CANCELLED',
+      subject: `Event Cancelled: ${booking.eventTitle}`,
+      message: `The event "${booking.eventTitle}" has been cancelled. Your pending seat reservation has been released.`,
+      ...(booking.userEmail ? { emailTo: booking.userEmail } : {})
+    });
+  }
+
+  return {
+    bookingId: booking.id,
+    status: 'CANCELLED',
+    wasPaid: false,
+    refundableAmount: 0,
+    nonRefundableFee: 0,
+    originalTotal: booking.totalAmount || 0
+  };
+}
+
+/**
  * FR-38, FR-39: Cancel Ticket / Booking & Process Refund
  * POST /api/bookings/:id/cancel
  */
@@ -295,35 +397,13 @@ function cancelBooking(req, res) {
     return res.status(400).json({ error: 'This event does not allow ticket cancellations.' });
   }
 
-  // Calculate refund amount: Ticket Subtotal - Discount (Service fee is NON-REFUNDABLE per FR-39)
-  const refundableAmount = Math.max(0, booking.subtotal - (booking.discountAmount || 0));
-
-  // Release seats back to AVAILABLE (FR-38)
-  SeatModel.releaseSeats(booking.seatIds);
-
-  // Cancel Tickets
-  TicketModel.cancelByBookingId(booking.id);
-
-  // Update Booking status
-  BookingModel.update(booking.id, { status: 'CANCELLED' });
-
-  // Update Payment record
-  PaymentModel.markRefunded(booking.id, refundableAmount);
-
-  // Dispatch cancellation notification
-  NotificationModel.create({
-    userId: booking.userId,
-    channel: 'BOTH',
-    type: 'REFUND',
-    subject: `Booking Cancelled & Refunded: ${booking.eventTitle}`,
-    message: `Your booking ${booking.id} has been cancelled. A refund of ${refundableAmount.toLocaleString()} THB has been issued to your payment method (Service fee of ${booking.serviceFee} THB was non-refundable).`
-  });
+  const result = cancelAndRefundBooking(booking, { reason: 'USER_CANCELLED' });
 
   return res.json({
     message: 'Booking cancelled successfully. Refund processed according to policy.',
-    refundableAmount,
-    nonRefundableFee: booking.serviceFee,
-    originalTotal: booking.totalAmount
+    refundableAmount: result.refundableAmount,
+    nonRefundableFee: result.nonRefundableFee,
+    originalTotal: result.originalTotal
   });
 }
 
@@ -333,5 +413,6 @@ module.exports = {
   getSummary,
   applyDiscount,
   payBooking,
-  cancelBooking
+  cancelBooking,
+  cancelAndRefundBooking
 };

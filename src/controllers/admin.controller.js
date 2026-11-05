@@ -8,6 +8,7 @@ const {
   NotificationModel
 } = require('../models');
 const { sanitizeUser } = require('../middleware/auth');
+const { validateEventPayload, isLayoutModified } = require('./event.controller');
 
 /**
  * FR-42, FR-43, FR-44: Admin Dashboard & Monthly Sales Dataset
@@ -102,22 +103,53 @@ function updateEventSeating(req, res) {
     return res.status(400).json({ error: 'At least one zone configuration is required.' });
   }
 
-  const updatedZones = zones.map((z, idx) => ({
-    id: z.id || `zone-${idx + 1}`,
-    name: z.name,
-    color: z.color || '#1D56CF',
-    price: Number(z.price),
-    rows: Number(z.rows || 4),
-    cols: Number(z.cols || 8)
-  }));
+  const validation = validateEventPayload({ zones }, { isUpdate: true });
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
 
-  EventModel.update(event.id, { zones: updatedZones });
-  SeatModel.regenerateForEvent(event, updatedZones);
-
-  return res.json({
-    message: 'Seating plan and zones updated successfully.',
-    zones: updatedZones
+  const updatedZones = zones.map((z, idx) => {
+    const existingZone = Array.isArray(event.zones)
+      ? event.zones.find(
+          (ez) => ez && typeof ez === 'object' && ((z.id && ez.id === z.id) || (z.name && ez.name === z.name))
+        )
+      : null;
+    return EventModel.normalizeZone(z, idx, existingZone);
   });
+
+  const finalZones = (event.zones || []).map((ez) => {
+    const match = updatedZones.find((uz) => (uz.id && uz.id === ez.id) || (uz.name && uz.name === ez.name));
+    return match ? { ...ez, ...match } : ez;
+  });
+  for (const uz of updatedZones) {
+    if (!finalZones.some((fz) => (fz.id && fz.id === uz.id) || (fz.name && fz.name === uz.name))) {
+      finalZones.push(uz);
+    }
+  }
+
+  const layoutModified = isLayoutModified(event.zones, finalZones);
+
+  if (layoutModified) {
+    if (SeatModel.hasNonAvailableSeats(event.id)) {
+      return res.status(409).json({
+        error: 'Cannot modify seating layout while active bookings or seat holds exist.',
+        code: 'LAYOUT_LOCKED'
+      });
+    }
+    EventModel.update(event.id, { zones: finalZones });
+    SeatModel.regenerateForEvent(event, finalZones);
+    return res.json({
+      message: 'Seating plan and zones updated successfully.',
+      zones: finalZones
+    });
+  } else {
+    EventModel.update(event.id, { zones: finalZones });
+    SeatModel.propagateZoneUpdates(event.id, finalZones);
+    return res.json({
+      message: 'Seating plan and zones updated successfully.',
+      zones: finalZones
+    });
+  }
 }
 
 /**

@@ -27,6 +27,10 @@ class BookingModel {
     return bookings;
   }
 
+  static findByEventId(eventId) {
+    return store.find('bookings', (b) => b.eventId === eventId);
+  }
+
   static findPaidByEventId(eventId) {
     return store.find('bookings', (b) => b.eventId === eventId && b.status === 'PAID');
   }

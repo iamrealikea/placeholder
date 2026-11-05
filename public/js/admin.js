@@ -382,7 +382,10 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   function bindEventsTabEvents() {
     if (createEventBtn) {
-      createEventBtn.addEventListener('click', () => openCreateEventModal());
+      createEventBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '/admin-event.html?mode=create';
+      });
     }
   }
 
@@ -402,30 +405,17 @@ document.addEventListener('DOMContentLoaded', async () => {
               <td>${e.venue}</td>
               <td>${e.totalAvailableSeats || 0}</td>
               <td>
-                <button class="btn-edit-zones btn-pill-outline" data-id="${e.id}" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">Seating</button>
-                <button class="btn-delete-event btn-pill-outline" data-id="${e.id}" style="padding:4px 10px; font-size:0.8rem; color:#FF0800; border-color:#FF0800;">Delete</button>
+                <a href="/admin-event.html?id=${encodeURIComponent(e.id)}" class="btn-edit-event btn-pill-outline" data-id="${e.id}" style="padding:4px 10px; font-size:0.8rem; margin-right:4px; text-decoration:none; display:inline-block;">Edit</a>
+                <button class="btn-delete-event btn-pill-outline" data-id="${e.id}" data-title="${(e.title || '').replace(/"/g, '&quot;')}" style="padding:4px 10px; font-size:0.8rem; color:#FF0800; border-color:#FF0800;">Delete</button>
               </td>
             </tr>
           `
         )
         .join('');
 
-      adminEventsTableBody.querySelectorAll('.btn-edit-zones').forEach((btn) => {
-        btn.addEventListener('click', () => openSeatingModal(btn.dataset.id));
-      });
-
       adminEventsTableBody.querySelectorAll('.btn-delete-event').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-          if (confirm('Delete this event? All associated data will be removed.')) {
-            try {
-              await API.events.delete(btn.dataset.id);
-              alert('Event deleted');
-              await loadEvents();
-              await loadDashboardData();
-            } catch (err) {
-              alert(err.message || 'Cannot delete event');
-            }
-          }
+        btn.addEventListener('click', () => {
+          openDeleteEventModal(btn.dataset.id, btn.dataset.title || btn.dataset.id);
         });
       });
     } catch (err) {
@@ -433,156 +423,75 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function openCreateEventModal() {
+  function openDeleteEventModal(eventId, eventTitle) {
+    const existing = document.getElementById('adminDeleteEventModal');
+    if (existing) existing.remove();
+
     const modal = document.createElement('div');
+    modal.id = 'adminDeleteEventModal';
     modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(17,24,39,0.65); display:flex; align-items:center; justify-content:center; z-index:9999;';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header">
-          <h3>Create New Event</h3>
+      <div class="modal-content" style="max-width: 480px; width: 92%; background:#FFFFFF; border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.25);">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="margin:0; color:#FF0800;"><i class="fa-solid fa-triangle-exclamation"></i> Permanently Delete Event</h3>
           <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
-          <form id="createEventForm">
-            <div class="form-group">
-              <label class="form-label">Event Title *</label>
-              <input type="text" id="ceTitle" class="form-control" required placeholder="Symphony of Lights">
+          <p style="font-size:0.9rem; color:#374151; margin-bottom:14px;">
+            You are deleting <strong>${eventTitle}</strong> (<code>${eventId}</code>). Any paid bookings will be automatically cancelled and refunded (retaining the 40 THB service fee per ticket).
+          </p>
+          <form id="deleteEventPasswordForm">
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Type event title to confirm *</label>
+              <input type="text" id="delConfirmTitle" class="form-control" required placeholder="${eventTitle}" autocomplete="off">
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-              <div class="form-group">
-                <label class="form-label">Artist / Performer</label>
-                <input type="text" id="ceArtist" class="form-control" placeholder="Orchestra">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Category</label>
-                <select id="ceCategory" class="form-control">
-                  <option value="Concert">Concert</option>
-                  <option value="Seminar">Seminar</option>
-                  <option value="Festival">Festival</option>
-                  <option value="Exhibition">Exhibition</option>
-                </select>
-              </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Administrator Password *</label>
+              <input type="password" id="delAdminPassword" class="form-control" required placeholder="Enter admin password" autocomplete="current-password">
             </div>
-            <div class="form-group">
-              <label class="form-label">Venue *</label>
-              <input type="text" id="ceVenue" class="form-control" required placeholder="Impact Arena">
+            <div id="delErrorBox" style="display:none; color:#DC2626; background:#FEE2E2; padding:8px 12px; border-radius:8px; font-size:0.85rem; font-weight:700; margin-bottom:12px;"></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+              <button type="button" class="btn-pill-outline modal-cancel-btn">Cancel</button>
+              <button type="submit" id="confirmDeleteSubmitBtn" class="btn-pill-red">Permanently Delete</button>
             </div>
-            <div class="form-group">
-              <label class="form-label">Description</label>
-              <textarea id="ceDesc" class="form-control" rows="3"></textarea>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-              <div class="form-group">
-                <label class="form-label">Show Date</label>
-                <input type="date" id="ceDate" class="form-control" value="2026-11-20">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Show Time</label>
-                <input type="time" id="ceTime" class="form-control" value="19:00">
-              </div>
-            </div>
-            <button type="submit" class="btn-pill-blue" style="width:100%; margin-top:12px; padding:12px;">Create Event</button>
           </form>
         </div>
       </div>
     `;
 
     document.body.appendChild(modal);
-    modal.querySelector('.modal-close-btn').onclick = () => modal.remove();
+    const close = () => modal.remove();
+    modal.querySelector('.modal-close-btn').onclick = close;
+    modal.querySelector('.modal-cancel-btn').onclick = close;
 
-    modal.querySelector('#createEventForm').onsubmit = async (e) => {
+    modal.querySelector('#deleteEventPasswordForm').onsubmit = async (e) => {
       e.preventDefault();
-      try {
-        const title = modal.querySelector('#ceTitle').value;
-        const artist = modal.querySelector('#ceArtist').value;
-        const category = modal.querySelector('#ceCategory').value;
-        const venue = modal.querySelector('#ceVenue').value;
-        const description = modal.querySelector('#ceDesc').value;
-        const date = modal.querySelector('#ceDate').value;
-        const time = modal.querySelector('#ceTime').value;
+      const typedTitle = modal.querySelector('#delConfirmTitle').value.trim();
+      const password = modal.querySelector('#delAdminPassword').value;
+      const errorBox = modal.querySelector('#delErrorBox');
+      const submitBtn = modal.querySelector('#confirmDeleteSubmitBtn');
 
-        const rounds = [{ id: 'rnd-1', date, time, label: 'Standard Round' }];
-        const zones = [
-          { id: 'zone-vip', name: 'VIP Zone', color: '#FF0800', price: 3500, rows: 2, cols: 6 },
-          { id: 'zone-a', name: 'Zone A', color: '#1D56CF', price: 2000, rows: 3, cols: 6 }
-        ];
-
-        await API.events.create({
-          title,
-          artist,
-          category,
-          status: 'On Sale',
-          venue,
-          description,
-          rounds,
-          zones,
-          organizer: 'TicketHub Admin',
-          saleStartAt: new Date().toISOString(),
-          saleEndAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString()
-        });
-
-        alert('Event created successfully!');
-        modal.remove();
-        await loadEvents();
-        await loadDashboardData();
-      } catch (err) {
-        alert(err.message || 'Error creating event');
+      if (typedTitle !== eventTitle.trim()) {
+        errorBox.textContent = 'Event title confirmation does not match.';
+        errorBox.style.display = 'block';
+        return;
       }
-    };
-  }
 
-  function openSeatingModal(eventId) {
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-      <div class="modal-content" style="max-width: 500px;">
-        <div class="modal-header">
-          <h3>Configure Zones &amp; Pricing</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size:0.85rem; color:#6B7280; margin-bottom:16px;">
-            Update zone prices and dimensions for event <strong>${eventId}</strong>:
-          </p>
-          <div class="form-group">
-            <label class="form-label">VIP Zone Price (THB)</label>
-            <input type="number" id="zoneVipPrice" class="form-control" value="3800">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Zone A Price (THB)</label>
-            <input type="number" id="zoneAPrice" class="form-control" value="2500">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Zone B Price (THB)</label>
-            <input type="number" id="zoneBPrice" class="form-control" value="1500">
-          </div>
-          <button id="saveZonesBtn" class="btn-pill-blue" style="width:100%; margin-top:12px; padding:12px;">Save &amp; Regenerate Matrix</button>
-        </div>
-      </div>
-    `;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Deleting...';
+      errorBox.style.display = 'none';
 
-    document.body.appendChild(modal);
-    modal.querySelector('.modal-close-btn').onclick = () => modal.remove();
-
-    modal.querySelector('#saveZonesBtn').onclick = async () => {
       try {
-        const vipPrice = Number(modal.querySelector('#zoneVipPrice').value);
-        const aPrice = Number(modal.querySelector('#zoneAPrice').value);
-        const bPrice = Number(modal.querySelector('#zoneBPrice').value);
-
-        const zones = [
-          { id: 'zone-vip', name: 'VIP Zone', color: '#FF0800', price: vipPrice, rows: 2, cols: 6 },
-          { id: 'zone-a', name: 'Zone A', color: '#1D56CF', price: aPrice, rows: 3, cols: 6 },
-          { id: 'zone-b', name: 'Zone B', color: '#0D9488', price: bPrice, rows: 3, cols: 6 }
-        ];
-
-        await API.admin.updateSeating(eventId, { zones });
-        alert('Seating plan updated successfully!');
-        modal.remove();
+        await API.events.delete(eventId, password);
+        close();
         await loadEvents();
         await loadDashboardData();
       } catch (err) {
-        alert(err.message || 'Error updating seating');
+        errorBox.textContent = err.message || 'Failed to delete event.';
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Permanently Delete';
       }
     };
   }

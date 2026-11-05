@@ -30,14 +30,18 @@ class PaymentModel {
     return store.insert('payments', paymentRecord);
   }
 
-  static markRefunded(bookingId, refundAmount) {
+  static markRefunded(bookingId, refundAmount, reason = null) {
     const payment = this.findByBookingId(bookingId);
     if (!payment) return null;
-    return store.update('payments', payment.id, {
+    const updates = {
       status: 'REFUNDED',
       refundAmount,
       refundedAt: new Date().toISOString()
-    });
+    };
+    if (reason) {
+      updates.refundReason = reason;
+    }
+    return store.update('payments', payment.id, updates);
   }
 }
 

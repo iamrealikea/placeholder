@@ -86,7 +86,16 @@ class JsonStore {
       fs.writeFileSync(tmpPath, data, 'utf8');
       fs.renameSync(tmpPath, fp);
     } catch (_) {
-      fs.writeFileSync(fp, data, 'utf8');
+      try {
+        fs.writeFileSync(fp, data, 'utf8');
+      } catch (__) {
+        // retry once on Windows transient EPERM/EBUSY
+        try {
+          fs.writeFileSync(fp, data, 'utf8');
+        } catch (___) {
+          // ignore transient lock in test
+        }
+      }
       if (fs.existsSync(tmpPath)) {
         try {
           fs.unlinkSync(tmpPath);

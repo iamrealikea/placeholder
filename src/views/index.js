@@ -11,7 +11,8 @@ const VIEW_FILES = {
   profile: 'profile.html',
   scanner: 'scanner.html',
   support: 'support.html',
-  admin: 'admin.html'
+  admin: 'admin.html',
+  adminEvent: 'admin-event.html'
 };
 
 function resolveViewPath(viewName) {

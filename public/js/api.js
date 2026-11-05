@@ -69,10 +69,11 @@ const API = {
       return API.request(`/events${q ? `?${q}` : ''}`);
     },
     getById: (id) => API.request(`/events/${id}`),
+    templates: () => API.request('/events/templates'),
     toggleBookmark: (id) => API.request(`/events/${id}/bookmark`, { method: 'POST' }),
     create: (body) => API.request('/events', { method: 'POST', body: JSON.stringify(body) }),
     update: (id, body) => API.request(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-    delete: (id) => API.request(`/events/${id}`, { method: 'DELETE' })
+    delete: (id, password) => API.request(`/events/${id}`, { method: 'DELETE', body: JSON.stringify(typeof password === 'object' && password !== null ? password : { password }) })
   },
 
   booking: {

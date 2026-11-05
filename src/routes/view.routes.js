@@ -13,5 +13,6 @@ router.get('/profile.html', viewController.renderProfile);
 router.get('/scanner.html', viewController.renderScanner);
 router.get('/support.html', viewController.renderSupport);
 router.get('/admin.html', viewController.renderAdmin);
+router.get('/admin-event.html', viewController.renderAdminEvent);
 
 module.exports = router;

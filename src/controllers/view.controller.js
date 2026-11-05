@@ -36,6 +36,10 @@ function renderAdmin(_req, res) {
   return renderView(res, 'admin');
 }
 
+function renderAdminEvent(_req, res) {
+  return renderView(res, 'adminEvent');
+}
+
 function getHealth(_req, res) {
   return res.json({
     status: 'ok',
@@ -54,5 +58,6 @@ module.exports = {
   renderScanner,
   renderSupport,
   renderAdmin,
+  renderAdminEvent,
   getHealth
 };

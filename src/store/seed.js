@@ -1,36 +1,60 @@
 const bcrypt = require('bcryptjs');
 const QRCode = require('qrcode');
 
-function buildSeatsForEvent(event) {
-  const seats = [];
-  for (const round of event.rounds) {
-    for (const zone of event.zones) {
-      const rowLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.slice(0, zone.rows || 4).split('');
-      const cols = zone.cols || 8;
-      for (let r = 0; r < rowLetters.length; r++) {
-        for (let c = 1; c <= cols; c++) {
-          const seatNumber = `${rowLetters[r]}${c}`;
-          const id = `seat-${event.id}-${round.id}-${zone.id}-${seatNumber}`;
-          let status = 'AVAILABLE';
-          let bookingId = null;
+function getDemoSeatStatus(event, round, zone, seatNumber) {
+  let status = 'AVAILABLE';
+  let bookingId = null;
 
-          if (event.status === 'Sold Out') {
-            status = 'BOOKED';
-          } else if (
-            event.id === 'evt-1' &&
-            round.id === 'rnd-1a' &&
-            zone.id === 'zone-vip' &&
-            (seatNumber === 'A1' || seatNumber === 'A2')
-          ) {
-            status = 'BOOKED';
-            bookingId = 'bkg-demo-1';
-          } else if (
-            event.id === 'evt-1' &&
-            round.id === 'rnd-1a' &&
-            (seatNumber === 'B3' || seatNumber === 'B4' || seatNumber === 'C5')
-          ) {
-            status = 'BOOKED';
-          }
+  if (event.status === 'Sold Out') {
+    status = 'BOOKED';
+  } else if (
+    event.id === 'evt-1' &&
+    round.id === 'rnd-1a' &&
+    zone.id === 'zone-vip' &&
+    (seatNumber === 'A1' || seatNumber === 'A2')
+  ) {
+    status = 'BOOKED';
+    bookingId = 'bkg-demo-1';
+  } else if (
+    event.id === 'evt-1' &&
+    round.id === 'rnd-1a' &&
+    (seatNumber === 'B3' || seatNumber === 'B4' || seatNumber === 'C5')
+  ) {
+    status = 'BOOKED';
+  }
+
+  return { status, bookingId };
+}
+
+function buildSeatsForEvent(event) {
+  if (!event || typeof event !== 'object') return [];
+  const seats = [];
+  const rounds = Array.isArray(event.rounds) ? event.rounds : [];
+  const zones = Array.isArray(event.zones) ? event.zones : [];
+
+  for (const round of rounds) {
+    if (!round || typeof round !== 'object') continue;
+    for (const zone of zones) {
+      if (!zone || typeof zone !== 'object') continue;
+      if (Array.isArray(zone.seats) && zone.seats.length > 0) {
+        // Explicit custom or template coordinates
+        for (let idx = 0; idx < zone.seats.length; idx++) {
+          const s = zone.seats[idx];
+          if (!s || typeof s !== 'object') continue;
+          const seatNumber = String(s.label || s.seatNumber || `S${idx + 1}`).trim();
+          const id = `seat-${event.id}-${round.id}-${zone.id}-${seatNumber}`;
+
+          const match = seatNumber.match(/^([A-Za-z]+)(\d+)$/);
+          const row = s.row || (match ? match[1].toUpperCase() : 'A');
+          const col = typeof s.col === 'number' ? s.col : (match ? parseInt(match[2], 10) : idx + 1);
+
+          const { status, bookingId } = getDemoSeatStatus(event, round, zone, seatNumber);
+
+          const x = (s.x !== undefined && s.x !== null) ? Number(s.x) : null;
+          const y = (s.y !== undefined && s.y !== null) ? Number(s.y) : null;
+          const rawColor = s.color || s.seatColor || null;
+          const seatColor = (rawColor && /^#[0-9a-fA-F]{6}$/.test(rawColor)) ? rawColor : null;
+          const price = typeof s.price === 'number' ? s.price : zone.price;
 
           seats.push({
             id,
@@ -39,15 +63,61 @@ function buildSeatsForEvent(event) {
             zoneId: zone.id,
             zoneName: zone.name,
             zoneColor: zone.color,
-            row: rowLetters[r],
-            col: c,
+            seatColor,
+            row,
+            col,
             seatNumber,
-            price: zone.price,
+            x,
+            y,
+            price,
             status,
             heldByUserId: null,
             holdExpiresAt: null,
             bookingId
           });
+        }
+      } else {
+        // Matrix grid loop
+        const rowLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.slice(0, zone.rows || 4).split('');
+        const cols = zone.cols || 8;
+        const hasOrigin =
+          zone.originX !== undefined &&
+          zone.originX !== null &&
+          zone.originY !== undefined &&
+          zone.originY !== null;
+        const originX = hasOrigin ? Number(zone.originX) : null;
+        const originY = hasOrigin ? Number(zone.originY) : null;
+
+        for (let r = 0; r < rowLetters.length; r++) {
+          for (let c = 1; c <= cols; c++) {
+            const seatNumber = `${rowLetters[r]}${c}`;
+            const id = `seat-${event.id}-${round.id}-${zone.id}-${seatNumber}`;
+
+            const { status, bookingId } = getDemoSeatStatus(event, round, zone, seatNumber);
+
+            const x = hasOrigin ? originX + (c - 1) * 44 : null;
+            const y = hasOrigin ? originY + r * 44 : null;
+
+            seats.push({
+              id,
+              eventId: event.id,
+              roundId: round.id,
+              zoneId: zone.id,
+              zoneName: zone.name,
+              zoneColor: zone.color,
+              seatColor: null,
+              row: rowLetters[r],
+              col: c,
+              seatNumber,
+              x,
+              y,
+              price: zone.price,
+              status,
+              heldByUserId: null,
+              holdExpiresAt: null,
+              bookingId
+            });
+          }
         }
       }
     }

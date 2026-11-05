@@ -5,6 +5,7 @@ const eventController = require('../controllers/event.controller');
 const router = express.Router();
 
 router.get('/', optionalAuth, eventController.listEvents);
+router.get('/templates', requireRole(['admin']), eventController.getTemplates);
 router.get('/:id', optionalAuth, eventController.getEventById);
 router.post('/:id/bookmark', requireAuth, eventController.toggleBookmark);
 router.post('/', requireRole(['admin']), eventController.createEvent);
