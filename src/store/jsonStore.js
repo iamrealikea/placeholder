@@ -82,8 +82,19 @@ class JsonStore {
     const fp = this.filePath(collection);
     const tmpPath = `${fp}.tmp`;
     const data = JSON.stringify(this.cache[collection] || [], null, 2);
-    fs.writeFileSync(tmpPath, data, 'utf8');
-    fs.renameSync(tmpPath, fp);
+    try {
+      fs.writeFileSync(tmpPath, data, 'utf8');
+      fs.renameSync(tmpPath, fp);
+    } catch (_) {
+      fs.writeFileSync(fp, data, 'utf8');
+      if (fs.existsSync(tmpPath)) {
+        try {
+          fs.unlinkSync(tmpPath);
+        } catch (__) {
+          // ignore cleanup error
+        }
+      }
+    }
   }
 
   getAll(collection) {

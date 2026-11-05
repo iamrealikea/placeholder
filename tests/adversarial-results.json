@@ -193,7 +193,7 @@
       "suite": "PrivilegeEscalation",
       "name": "TC-4.3: User ID mutation via PUT /profile is blocked",
       "passed": true,
-      "details": "DB ID: usr-2c98f604"
+      "details": "DB ID: usr-54483d19"
     },
     {
       "suite": "PrivilegeEscalation",
@@ -223,7 +223,7 @@
       "suite": "AvatarUpload",
       "name": "TC-5.3: Path traversal and dangerous extension neutralized to safe /uploads/avatar-*.png",
       "passed": true,
-      "details": "AvatarUrl assigned: /uploads/avatar-1793005334971-fc9bf266.png"
+      "details": "AvatarUrl assigned: /uploads/avatar-1793863412365-cdf56f65.png"
     },
     {
       "suite": "AvatarUpload",

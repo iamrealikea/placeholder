@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { store } = require('../store/jsonStore');
+const UserModel = require('../models/user.model');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tickethub-secret-key-2026';
 
@@ -41,7 +41,7 @@ function optionalAuth(req, res, next) {
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = store.findById('users', decoded.id);
+    const user = UserModel.findById(decoded.id);
     req.user = user || null;
   } catch (_) {
     req.user = null;
@@ -56,7 +56,7 @@ function requireAuth(req, res, next) {
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = store.findById('users', decoded.id);
+    const user = UserModel.findById(decoded.id);
     if (!user) {
       return res.status(401).json({ error: 'User account no longer exists.' });
     }
