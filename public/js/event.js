@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderEvent(event) {
     document.title = `${event.title} - TicketHub`;
     if (eventTitleEl) eventTitleEl.textContent = event.title;
-    if (eventVenueEl) eventVenueEl.textContent = `📍 ${event.venue}`;
+    if (eventVenueEl) eventVenueEl.innerHTML = `<i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${event.venue}`;
 
     const defaultImg1 = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1000&q=80';
     const defaultImg2 = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1000&q=80';
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Bookmark status
     if (bookmarkBtn) {
-      bookmarkBtn.innerHTML = event.isBookmarked ? '❤️ Bookmarked' : '🤍 Add to Bookmarks';
+      bookmarkBtn.innerHTML = event.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i> Bookmarked' : '<i class="fa-regular fa-heart"></i> Add to Bookmarks';
       bookmarkBtn.onclick = async () => {
         if (!Auth.isLoggedIn()) {
           Auth.openAuthModal();
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         try {
           const bRes = await API.events.toggleBookmark(event.id);
-          bookmarkBtn.innerHTML = bRes.isBookmarked ? '❤️ Bookmarked' : '🤍 Add to Bookmarks';
+          bookmarkBtn.innerHTML = bRes.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i> Bookmarked' : '<i class="fa-regular fa-heart"></i> Add to Bookmarks';
         } catch (bErr) {
           alert(bErr.message);
         }
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="background:#FFFFFF; border:1px solid #E5E7EB; border-radius:12px; padding:12px 18px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <strong>${r.label || 'Round'}</strong>
-                <div style="font-size:0.85rem; color:#6B7280;">📅 ${r.date} &nbsp; ⏰ ${r.time}</div>
+                <div style="font-size:0.85rem; color:#6B7280;"><i class="fa-solid fa-calendar-days" style="margin-right: 3px;"></i> ${r.date} &nbsp; <i class="fa-solid fa-clock" style="margin-right: 3px;"></i> ${r.time}</div>
               </div>
               <span class="badge-pill-blue" style="font-size:0.8rem;">Available</span>
             </div>

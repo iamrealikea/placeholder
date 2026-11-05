@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await API.events.getById(eventId);
       eventData = res.event;
       bookingEventTitleEl.textContent = eventData.title;
-      bookingVenueEl.textContent = `📍 ${eventData.venue}`;
+      bookingVenueEl.innerHTML = `<i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${eventData.venue}`;
 
       // Pick first round if not specified
       if (!selectedRoundId && eventData.rounds && eventData.rounds.length > 0) {
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       .map(
         (r) => `
           <button class="round-btn ${r.id === selectedRoundId ? 'active' : ''}" data-id="${r.id}">
-            📅 ${r.date} • ${r.time} (${r.label || 'Round'})
+            <i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${r.date} • ${r.time} (${r.label || 'Round'})
           </button>
         `
       )

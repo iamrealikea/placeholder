@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     scanResultArea.innerHTML = `
       <div style="background: #ECFDF5; border: 2px solid #10B981; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <span style="font-size: 2rem;">✅</span>
+          <span style="font-size: 2rem; color: #10B981;"><i class="fa-solid fa-circle-check"></i></span>
           <div>
             <h3 style="color: #065F46; font-size: 1.5rem; margin: 0;">ADMISSION GRANTED</h3>
             <span style="color: #047857; font-weight: 700; font-size: 0.85rem;">Ticket Status: CHECKED_IN</span>
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       scanResultArea.innerHTML = `
         <div class="fraud-warning-alert">
           <h3>
-            <span>🚨</span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
+            <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
           </h3>
           <p style="font-size: 1.1rem; font-weight: 700; margin: 12px 0; line-height: 1.4;">
             ${err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.'}
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       scanResultArea.innerHTML = `
         <div style="background: #FEF2F2; border: 2px solid #EF4444; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <span style="font-size: 2rem;">❌</span>
+            <span style="font-size: 2rem; color: #EF4444;"><i class="fa-solid fa-circle-xmark"></i></span>
             <div>
               <h3 style="color: #991B1B; font-size: 1.35rem; margin: 0;">INVALID TICKET</h3>
               <span style="color: #B91C1C; font-weight: 700; font-size: 0.85rem;">

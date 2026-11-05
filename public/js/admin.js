@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       adminGuardEl.style.display = 'block';
       adminGuardEl.innerHTML = `
         <div style="text-align:center; padding: 48px; background:#FFFFFF; border-radius:16px; max-width:540px; margin:40px auto; border:2px solid #FF0800; box-shadow: 0 10px 25px rgba(255, 8, 0, 0.1);">
-          <span style="font-size: 3rem; display: block; margin-bottom: 12px;">🔒</span>
+          <span style="font-size: 3rem; display: block; margin-bottom: 12px; color: #FF0800;"><i class="fa-solid fa-lock"></i></span>
           <h2 style="color: #FF0800; margin-bottom: 12px;">Operational Privileges Required</h2>
           <p style="color: #4B5563; margin-bottom: 24px; line-height: 1.5;">${msg}</p>
           <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header">
           <h3>Create New Event</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <form id="createEventForm">
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
           <h3>Configure Zones &amp; Pricing</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <p style="font-size:0.85rem; color:#6B7280; margin-bottom:16px;">
@@ -697,7 +697,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       scanResultArea.innerHTML = `
         <div style="background: #ECFDF5; border: 2px solid #10B981; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <span style="font-size: 2rem;">✅</span>
+            <span style="font-size: 2rem; color: #10B981;"><i class="fa-solid fa-circle-check"></i></span>
             <div>
               <h3 style="color: #065F46; font-size: 1.5rem; margin: 0;">ADMISSION GRANTED</h3>
               <span style="color: #047857; font-weight: 700; font-size: 0.85rem;">Ticket Status: CHECKED_IN</span>
@@ -748,7 +748,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         scanResultArea.innerHTML = `
           <div class="fraud-warning-alert">
             <h3>
-              <span>🚨</span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
+              <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
             </h3>
             <p style="font-size: 1.1rem; font-weight: 700; margin: 12px 0; line-height: 1.4;">
               ${err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.'}
@@ -763,7 +763,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         scanResultArea.innerHTML = `
           <div style="background: #FEF2F2; border: 2px solid #EF4444; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-              <span style="font-size: 2rem;">❌</span>
+              <span style="font-size: 2rem; color: #EF4444;"><i class="fa-solid fa-circle-xmark"></i></span>
               <div>
                 <h3 style="color: #991B1B; font-size: 1.35rem; margin: 0;">INVALID TICKET</h3>
                 <span style="color: #B91C1C; font-weight: 700; font-size: 0.85rem;">
@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <td>${u.email}</td>
               <td>${u.phone || '—'}</td>
               <td>
-                <span style="font-weight:700; color:#1D56CF;">★ ${u.points || 0}</span>
+                <span style="font-weight:700; color:#1D56CF;"><i class="fa-solid fa-star" style="color: #1D56CF; margin-right: 2px;"></i> ${u.points || 0}</span>
               </td>
               <td>
                 <select class="user-role-select form-control" data-user-id="${u.id}" data-current-role="${userRole}" style="padding:6px 12px; font-size:0.85rem; font-weight:700; border-radius:9999px; min-width:120px;">
@@ -1035,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="modal-content" style="max-width: 480px;">
         <div class="modal-header">
           <h3>Reply to Customer Inquiry</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">

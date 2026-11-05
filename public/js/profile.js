@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               </div>
               <div class="card-body" style="padding: 16px;">
                 <h4 style="font-size: 1.1rem; margin-bottom: 6px;">${e.title}</h4>
-                <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">📍 ${e.venue}</div>
+                <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;"><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${e.venue}</div>
                 <div style="display: flex; gap: 8px;">
                   <a href="/event.html?id=${e.id}" class="btn-pill-red" style="font-size: 0.85rem; padding: 6px 16px; flex: 1; text-align: center;">View</a>
                   <button class="btn-pill-outline btn-remove-bm" data-id="${e.id}" style="padding: 6px 12px; font-size: 0.85rem;">Remove</button>

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -30,14 +31,14 @@
 
       <div class="nav-actions">
         <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
-          🔍
+          <i class="fa-solid fa-magnifying-glass"></i>
         </button>
         <button class="notification-bell-btn" title="Notifications">
-          🔔
+          <i class="fa-solid fa-bell"></i>
           <span class="notification-badge" style="display: none;">0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
-          👤
+          <i class="fa-solid fa-user"></i>
         </div>
       </div>
     </div>
@@ -52,7 +53,7 @@
     <!-- Portal Consolidation Banner -->
     <div class="portal-banner" style="background: #EBF1FD; border: 2px solid #1D56CF; border-radius: 16px; padding: 18px 24px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 12px rgba(29, 86, 207, 0.08);">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <span style="font-size: 2rem;">ℹ️</span>
+        <span style="font-size: 2rem; color: #1D56CF;"><i class="fa-solid fa-circle-info"></i></span>
         <div>
           <strong style="color: #1D56CF; font-size: 1.05rem; display: block; margin-bottom: 2px;">Portal Integration Notice</strong>
           <span style="color: #374151; font-size: 0.95rem;">
@@ -87,10 +88,10 @@
 
           <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center;">
             <button id="startCameraBtn" class="btn-pill-blue" style="font-size: 0.95rem;">
-              📷 Start Camera Stream
+              <i class="fa-solid fa-camera" style="margin-right: 6px;"></i> Start Camera Stream
             </button>
             <button id="stopCameraBtn" class="btn-pill-outline" style="display: none; font-size: 0.95rem;">
-              ⏹ Stop Camera
+              <i class="fa-solid fa-stop" style="margin-right: 6px;"></i> Stop Camera
             </button>
           </div>
         </div>
@@ -120,7 +121,7 @@
         <!-- Dynamic Scan Result Area -->
         <div id="scanResultArea">
           <div style="background: #FFFFFF; border: 2px dashed #D1D5DB; border-radius: 16px; padding: 36px 20px; text-align: center; color: #9CA3AF; margin-bottom: 24px;">
-            <span style="font-size: 2.5rem; display: block; margin-bottom: 8px;">📡</span>
+            <span style="font-size: 2.5rem; display: block; margin-bottom: 8px; color: var(--monday-blue);"><i class="fa-solid fa-tower-broadcast"></i></span>
             <strong style="color: #4B5563;">Scanner Idle</strong>
             <p style="font-size: 0.85rem; margin-top: 4px;">Point camera at attendee QR code or submit code on the left.</p>
           </div>

@@ -74,7 +74,7 @@ const Auth = {
         this.toggleUserMenu(avatarPill);
       };
     } else {
-      avatarPill.innerHTML = `👤`;
+      avatarPill.innerHTML = `<i class="fa-solid fa-user"></i>`;
       avatarPill.title = 'Sign In';
       avatarPill.onclick = () => this.openAuthModal();
     }
@@ -113,7 +113,7 @@ const Auth = {
         <div style="font-size: 0.8rem; color: #6B7280;">${this.currentUser.email}</div>
         <div style="margin-top: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
           <span style="font-size: 0.75rem; font-weight: 700; color: #1D56CF; background: #EBF1FD; padding: 2px 8px; border-radius: 9999px;">
-            ★ ${points} Points
+            <i class="fa-solid fa-star" style="color: #1D56CF; margin-right: 2px;"></i> ${points} Points
           </span>
           <span class="${roleBadgeClass}" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase;">
             ${roleBadgeText}
@@ -170,7 +170,7 @@ const Auth = {
       <div class="modal-content" style="max-width: 440px;">
         <div class="modal-header">
           <h3 id="authModalTitle" style="font-size: 1.35rem; font-weight: 800; color: #1D56CF;">Sign In to TicketHub</h3>
-          <button id="closeAuthModal" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#6B7280;">✕</button>
+          <button id="closeAuthModal" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #E5E7EB; padding-bottom: 8px;">
@@ -239,10 +239,10 @@ const Auth = {
               Select a simulated provider to instantly authenticate without password:
             </p>
             <button id="btnSocialGoogle" class="btn-pill-outline" style="width:100%; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:8px;">
-              <span>🔴</span> Sign in with Google (Gmail)
+              <i class="fa-brands fa-google" style="color: #EA4335;"></i> Sign in with Google (Gmail)
             </button>
             <button id="btnSocialFB" class="btn-pill-outline" style="width:100%; margin-bottom:10px; display:flex; align-items:center; justify-content:center; gap:8px; border-color:#1D56CF; color:#1D56CF;">
-              <span>🔵</span> Sign in with Facebook
+              <i class="fa-brands fa-facebook" style="color: #1877F2;"></i> Sign in with Facebook
             </button>
             <div style="border-top:1px dashed #E5E7EB; margin:16px 0;"></div>
             <div class="form-group" style="text-align:left;">

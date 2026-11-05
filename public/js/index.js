@@ -46,16 +46,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="hero-top">
         <span class="badge-pill-red">Feature Event</span>
         <button class="btn-icon" style="color: #FFFFFF; background: rgba(0,0,0,0.4);" onclick="toggleBookmark('${featured.id}', this)" title="Bookmark event">
-          ${featured.isBookmarked ? '❤️' : '🤍'}
+          ${featured.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i>' : '<i class="fa-regular fa-heart"></i>'}
         </button>
       </div>
       <div class="hero-content">
         <h1 class="hero-title">${featured.title}</h1>
         <p class="hero-desc">${(featured.description || '').slice(0, 150)}...</p>
         <div class="hero-meta">
-          <span>📍 ${featured.venue || 'Bangkok Arena'}</span>
+          <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${featured.venue || 'Bangkok Arena'}</span>
           <span>•</span>
-          <span>📅 ${dateStr}</span>
+          <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${dateStr}</span>
         </div>
       </div>
       <div class="hero-bottom">
@@ -111,9 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="card-subtitle">${e.artist || 'Special Performance'}</div>
               <h3 class="card-title">${e.title}</h3>
               <div class="card-meta">
-                <span>📍 ${e.venue}</span>
+                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${e.venue}</span>
                 <span>•</span>
-                <span>📅 ${round.date || 'TBD'}</span>
+                <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${round.date || 'TBD'}</span>
               </div>
               <div class="card-footer">
                 <div class="card-price">
@@ -156,9 +156,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="card-subtitle">${e.artist || 'Special Exhibition'}</div>
               <h3 class="card-title">${e.title}</h3>
               <div class="card-meta">
-                <span>📍 ${e.venue}</span>
+                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${e.venue}</span>
                 <span>•</span>
-                <span>📅 ${round.date || 'Announcing Soon'}</span>
+                <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${round.date || 'Announcing Soon'}</span>
               </div>
               <div class="card-footer">
                 <div class="card-price">
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     try {
       const res = await API.events.toggleBookmark(eventId);
-      btn.textContent = res.isBookmarked ? '❤️' : '🤍';
+      btn.innerHTML = res.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i>' : '<i class="fa-regular fa-heart"></i>';
     } catch (err) {
       alert(err.message);
     }

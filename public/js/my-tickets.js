@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (ticketsList.length === 0) {
       ticketCarouselArea.innerHTML = `
         <div style="text-align: center; padding: 48px; background: #FFFFFF; border-radius: 20px; box-shadow: var(--shadow-sm); max-width: 440px; margin: 0 auto;">
-          <span style="font-size: 3rem;">🎟️</span>
+          <span style="font-size: 3rem; color: var(--monday-blue); display: inline-block; margin-bottom: 8px;"><i class="fa-solid fa-ticket"></i></span>
           <h3 style="margin: 12px 0 6px;">No Active Tickets</h3>
           <p style="color: #6B7280; font-size: 0.9rem; margin-bottom: 20px;">You haven't booked any event tickets yet.</p>
           <a href="/index.html" class="btn-pill-red">Browse Events</a>
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (ticketEventTitle) ticketEventTitle.textContent = t.eventTitle || 'Live Event';
-    if (ticketRound) ticketRound.textContent = `📅 ${t.roundLabel || 'Show Round'}`;
+    if (ticketRound) ticketRound.innerHTML = `<i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${t.roundLabel || 'Show Round'}`;
     if (ticketSeat) ticketSeat.textContent = `Seat ${t.seatNumber} (${t.zoneName})`;
     if (ticketHolder) ticketHolder.textContent = t.holderName || (Auth.currentUser && Auth.currentUser.name) || 'Alex Rivers';
     if (ticketCode) ticketCode.textContent = t.ticketCode;
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="modal-content" style="max-width: 480px;">
         <div class="modal-header">
           <h3 style="color: #FF0800; font-size: 1.25rem;">Cancel Booking & Request Refund</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">✕</button>
+          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <p style="margin-bottom: 16px; color: #374151;">

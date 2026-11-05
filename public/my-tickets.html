@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
 </head>
 <body style="background-color: var(--oat-milk);">
 
@@ -30,14 +31,14 @@
 
       <div class="nav-actions">
         <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
-          🔍
+          <i class="fa-solid fa-magnifying-glass"></i>
         </button>
         <button class="notification-bell-btn" title="Notifications">
-          🔔
+          <i class="fa-solid fa-bell"></i>
           <span class="notification-badge" style="display: none;">0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
-          👤
+          <i class="fa-solid fa-user"></i>
         </div>
       </div>
     </div>
@@ -62,7 +63,7 @@
         
         <!-- Red Previous Arrow ◀ -->
         <button id="prevTicketBtn" class="carousel-arrow-btn" aria-label="Previous Ticket" disabled>
-          ◀
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
 
         <!-- E-Ticket Card with Real QR Image -->
@@ -70,7 +71,7 @@
           <div class="eticket-header">
             <span id="ticketStatusBadge" class="badge-pill-red" style="font-size: 0.75rem;">VALID</span>
             <h3 id="ticketEventTitle" style="font-size: 1.35rem; margin-top: 8px;">Forza Horizon Live</h3>
-            <div id="ticketRound" style="font-size: 0.9rem; opacity: 0.9;">📅 11 Nov 2026 • 19:00</div>
+            <div id="ticketRound" style="font-size: 0.9rem; opacity: 0.9;"><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> 11 Nov 2026 • 19:00</div>
           </div>
 
           <div class="eticket-body">
@@ -97,7 +98,7 @@
 
         <!-- Red Next Arrow ▶ -->
         <button id="nextTicketBtn" class="carousel-arrow-btn" aria-label="Next Ticket" disabled>
-          ▶
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
 
       </div>

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -30,14 +31,14 @@
 
       <div class="nav-actions">
         <button class="btn-icon" onclick="window.location.href='/index.html'" title="Search Events">
-          🔍
+          <i class="fa-solid fa-magnifying-glass"></i>
         </button>
         <button class="notification-bell-btn" title="Notifications">
-          🔔
+          <i class="fa-solid fa-bell"></i>
           <span class="notification-badge" style="display: none;">0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
-          👤
+          <i class="fa-solid fa-user"></i>
         </div>
       </div>
     </div>
@@ -52,7 +53,7 @@
         <h1 id="eventTitle">Loading Event...</h1>
       </div>
       <div class="event-detail-location" id="eventVenue">
-        📍 Impact Arena
+        <i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> Impact Arena
       </div>
     </div>
 
@@ -83,7 +84,7 @@
 
         <div class="event-actions-bar">
           <button id="bookmarkBtn" class="btn-pill-outline" style="display: flex; align-items: center; gap: 8px;">
-            🤍 Add to Bookmarks
+            <i class="fa-regular fa-heart"></i> Add to Bookmarks
           </button>
         </div>
       </div>
@@ -92,7 +93,7 @@
       <div>
         <div class="info-card">
           <div class="info-card-header">
-            <span>ℹ️</span> Information
+            <span><i class="fa-solid fa-circle-info" style="color: var(--monday-blue); margin-right: 6px;"></i></span> Information
           </div>
 
           <div class="info-row">

@@ -61,8 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderBookingDetails(data) {
     const b = data.booking;
     if (eventTitleEl) eventTitleEl.textContent = b.eventTitle;
-    if (roundLabelEl) roundLabelEl.textContent = `📅 ${b.roundLabel || 'General Admission'}`;
-    if (seatsListEl) seatsListEl.textContent = `🪑 ${b.zoneName} - Seats: ${(b.seatNumbers || []).join(', ')}`;
+    if (roundLabelEl) roundLabelEl.innerHTML = `<i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${b.roundLabel || 'General Admission'}`;
+    if (seatsListEl) seatsListEl.innerHTML = `<i class="fa-solid fa-chair" style="margin-right: 4px;"></i> ${b.zoneName} - Seats: ${(b.seatNumbers || []).join(', ')}`;
 
     if (subtotalEl) subtotalEl.textContent = `${b.subtotal.toLocaleString()} THB`;
     if (serviceFeeEl) serviceFeeEl.textContent = `${b.serviceFee.toLocaleString()} THB`;
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <input type="text" id="simKbankPhone" class="form-control" placeholder="081-xxx-xxxx" value="${bookingData ? bookingData.userPhone || '0812345678' : '0812345678'}">
           </div>
           <div style="font-size: 0.8rem; background: #ECFDF5; color: #065F46; padding: 8px 12px; border-radius: 8px;">
-            ✓ Instant push confirmation ready
+            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Instant push confirmation ready
           </div>
         </div>
       `;
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <input type="text" id="simKtPhone" class="form-control" placeholder="081-xxx-xxxx" value="${bookingData ? bookingData.userPhone || '0812345678' : '0812345678'}">
           </div>
           <div style="font-size: 0.8rem; background: #E0F2FE; color: #075985; padding: 8px 12px; border-radius: 8px;">
-            ✓ Seamless single-step approval enabled
+            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Seamless single-step approval enabled
           </div>
         </div>
       `;
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <input type="text" id="simTmPhone" class="form-control" placeholder="089-xxx-xxxx" value="${bookingData ? bookingData.userPhone || '0891234567' : '0891234567'}">
           </div>
           <div style="font-size: 0.8rem; background: #FFF7ED; color: #9A3412; padding: 8px 12px; border-radius: 8px;">
-            ✓ Wallet OTP simulation verified
+            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Wallet OTP simulation verified
           </div>
         </div>
       `;
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         const res = await API.booking.pay(bookingId, payload);
-        alert('🎉 Payment successful! Electronic tickets have been issued.');
+        alert('Payment successful! Electronic tickets have been issued.');
         window.location.href = '/my-tickets.html';
       } catch (err) {
         confirmPaymentBtn.disabled = false;
