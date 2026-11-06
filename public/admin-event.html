@@ -7,9 +7,11 @@
   <!-- Google Fonts Lato Preconnect & Stylesheet (AGENTS.md) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
-  <!-- Core Stylesheet -->
-  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <!-- Shared, page, and responsive styles -->
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
   <!-- FontAwesome Icons -->
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
 </head>
@@ -84,17 +86,17 @@
       <span class="lock-banner-badge">LOCKED</span>
     </div>
 
-    <!-- Responsive 3-Pane Layout -->
+    <!-- Responsive Stacked + Side-by-Side Workspace Layout -->
     <div class="event-builder-layout">
 
       <!-- ================================================================= -->
-      <!-- PANE 1: Event Details Form (Left)                                  -->
+      <!-- PANE 1: Event Details Form (Top — Full Width Vertical Stack)      -->
       <!-- ================================================================= -->
       <section id="event-form-section" class="panel-card event-form-panel">
         <div class="panel-header">
           <h2 class="panel-title"><i class="fa-solid fa-calendar-day"></i> Event Details</h2>
         </div>
-        <form id="event-form">
+        <form id="event-form" class="event-form-grid">
           <!-- Title -->
           <div class="form-group">
             <label class="form-label" for="event-title">Title <span class="required-asterisk">*</span></label>
@@ -139,12 +141,6 @@
             </select>
           </div>
 
-          <!-- Description -->
-          <div class="form-group">
-            <label class="form-label" for="event-description">Description</label>
-            <textarea id="event-description" name="description" class="form-control" rows="3" placeholder="Overview of the event..."></textarea>
-          </div>
-
           <!-- Poster Image URL -->
           <div class="form-group">
             <label class="form-label" for="event-poster-url">Poster Image URL</label>
@@ -158,8 +154,14 @@
             <input type="text" id="event-gallery" name="galleryUrls" class="form-control" placeholder="https://img1.jpg, https://img2.jpg">
           </div>
 
+          <!-- Gate Open Time -->
+          <div class="form-group">
+            <label class="form-label" for="event-gate-time">Gate Open Time</label>
+            <input type="text" id="event-gate-time" name="gateOpenTime" class="form-control" placeholder="e.g. 17:30 (1 hour before show)">
+          </div>
+
           <!-- Sale Window Dual Row -->
-          <div class="form-row-dual">
+          <div class="form-row-dual form-col-span-2">
             <div class="form-group">
               <label class="form-label" for="event-sale-start">Sale Start</label>
               <input type="datetime-local" id="event-sale-start" name="saleStartDate" class="form-control">
@@ -170,14 +172,14 @@
             </div>
           </div>
 
-          <!-- Gate Open Time -->
-          <div class="form-group">
-            <label class="form-label" for="event-gate-time">Gate Open Time</label>
-            <input type="text" id="event-gate-time" name="gateOpenTime" class="form-control" placeholder="e.g. 17:30 (1 hour before show)">
+          <!-- Description -->
+          <div class="form-group form-col-span-full">
+            <label class="form-label" for="event-description">Description</label>
+            <textarea id="event-description" name="description" class="form-control" rows="2" placeholder="Overview of the event..."></textarea>
           </div>
 
           <!-- Rounds Management (≥ 1 Round Required) -->
-          <div id="rounds-container" class="rounds-manager-section">
+          <div id="rounds-container" class="rounds-manager-section form-col-span-full">
             <div class="rounds-header-row">
               <span class="form-label" style="margin-bottom: 0;">Show Rounds <span class="required-asterisk">*</span></span>
               <button type="button" id="add-round-btn" class="btn-pill-outline btn-xs"><i class="fa-solid fa-plus"></i> Add Round</button>
@@ -191,28 +193,29 @@
             <input type="hidden" id="event-show-time" name="showTime">
           </div>
 
-          <!-- Featured Checkbox -->
-          <div class="form-group form-check" style="margin-top: 14px;">
-            <label class="checkbox-label" for="event-featured">
-              <input type="checkbox" id="event-featured" name="isFeatured">
-              <span>Feature on Home Hero Carousel</span>
-            </label>
-          </div>
+          <!-- Bottom Bar: Featured Checkbox + Action Buttons -->
+          <div class="form-bottom-bar form-col-span-full">
+            <div class="form-group form-check" style="margin: 0;">
+              <label class="checkbox-label" for="event-featured">
+                <input type="checkbox" id="event-featured" name="isFeatured">
+                <span>Feature on Home Hero Carousel</span>
+              </label>
+            </div>
 
-          <!-- Action Buttons -->
-          <div class="form-action-group" style="margin-top: 24px;">
-            <button type="submit" id="save-event-btn" class="btn-pill-red" style="width: 100%; font-size: 1.05rem; padding: 12px;">
-              <i class="fa-solid fa-floppy-disk"></i> Save Event
-            </button>
-            <button type="button" id="delete-event-btn" class="btn-pill-outline btn-delete-danger" style="width: 100%; margin-top: 10px; display: none;">
-              <i class="fa-solid fa-trash"></i> Delete Event (FR-15)
-            </button>
+            <div class="form-action-group">
+              <button type="button" id="delete-event-btn" class="btn-pill-outline btn-delete-danger" style="display: none;">
+                <i class="fa-solid fa-trash"></i> Delete Event (FR-15)
+              </button>
+              <button type="submit" id="save-event-btn" class="btn-pill-red">
+                <i class="fa-solid fa-floppy-disk"></i> Save Event
+              </button>
+            </div>
           </div>
         </form>
       </section>
 
       <!-- ================================================================= -->
-      <!-- PANE 2: Seat Builder Canvas / Visual Map (Center)                  -->
+      <!-- PANE 2: Seat Builder Canvas / Visual Map (Bottom Left)            -->
       <!-- ================================================================= -->
       <section id="seat-canvas-section" class="panel-card seat-canvas-panel">
         <!-- Canvas Top Toolbar -->
@@ -230,7 +233,7 @@
             </button>
           </div>
 
-          <!-- Secondary Toolbar / Presets -->
+          <!-- Secondary Toolbar: Presets, Zoom & Alignment Controls -->
           <div class="toolbar-actions">
             <div id="template-controls" class="template-controls-group" style="display: none;">
               <select id="template-select" class="form-control form-control-sm" style="width: auto;">
@@ -242,11 +245,33 @@
                 <i class="fa-solid fa-download"></i> Load Preset
               </button>
             </div>
+
             <div id="custom-controls" style="display: none;">
               <button type="button" id="delete-seat-btn" class="btn-pill-outline btn-sm">
                 <i class="fa-solid fa-trash"></i> Delete Selected
               </button>
             </div>
+
+            <!-- Zoom & Alignment Toolbar Group -->
+            <div class="zoom-controls-group" role="group" aria-label="Canvas zoom and alignment controls">
+              <button type="button" id="zoom-out-btn" class="btn-zoom" title="Zoom Out (Ctrl + Scroll Down)" aria-label="Zoom Out">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+              </button>
+              <button type="button" id="zoom-reset-btn" class="btn-zoom zoom-level-pill" title="Reset Zoom to 100%" aria-label="Reset Zoom">
+                100%
+              </button>
+              <button type="button" id="zoom-in-btn" class="btn-zoom" title="Zoom In (Ctrl + Scroll Up)" aria-label="Zoom In">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+              </button>
+              <button type="button" id="zoom-fit-btn" class="btn-zoom" title="Fit Canvas to Viewport" aria-label="Fit Canvas to Viewport">
+                <i class="fa-solid fa-expand"></i>
+              </button>
+            </div>
+
+            <button type="button" id="align-seats-btn" class="btn-pill-outline btn-sm" title="Snap & center seats in symmetric rows under stage">
+              <i class="fa-solid fa-align-center"></i> Align &amp; Center
+            </button>
+
             <button type="button" id="clear-canvas-btn" class="btn-pill-outline btn-sm" title="Clear all seats from canvas">
               <i class="fa-solid fa-rotate-left"></i> Clear
             </button>
@@ -265,11 +290,11 @@
           </div>
           <div class="matrix-input-group">
             <label for="matrix-origin-x">X:</label>
-            <input type="number" id="matrix-origin-x" value="100" step="20">
+            <input type="number" id="matrix-origin-x" value="282" step="22">
           </div>
           <div class="matrix-input-group">
             <label for="matrix-origin-y">Y:</label>
-            <input type="number" id="matrix-origin-y" value="80" step="20">
+            <input type="number" id="matrix-origin-y" value="96" step="22">
           </div>
           <button type="button" id="matrix-generate-btn" class="btn-pill-blue btn-sm">
             <i class="fa-solid fa-plus"></i> Add Matrix Grid
@@ -278,21 +303,23 @@
         </div>
 
         <!-- Interactive Canvas Viewport -->
-        <div id="seat-canvas-container" class="seat-builder seat-map canvas-wrapper">
-          <div class="builder-stage-banner">STAGE / SCREEN / PODIUM</div>
-          <!-- HTML5 Canvas layer -->
-          <canvas id="seat-canvas" width="1000" height="700"></canvas>
-          <!-- DOM Interactive Seat Layer -->
-          <div id="seat-elements-layer" class="seat-elements-layer"></div>
-          <!-- Marquee Drag-Selection Rectangle -->
-          <div id="marquee-box" class="marquee-selection"></div>
+        <div id="seat-canvas-container" class="seat-builder seat-map canvas-wrapper" tabindex="0" role="region" aria-label="Interactive seat map canvas">
+          <div class="builder-stage-banner" aria-hidden="true">STAGE / SCREEN / PODIUM</div>
+          <div class="canvas-stage-surface">
+            <!-- HTML5 Canvas layer -->
+            <canvas id="seat-canvas" width="1000" height="700"></canvas>
+            <!-- DOM Interactive Seat Layer -->
+            <div id="seat-elements-layer" class="seat-elements-layer"></div>
+            <!-- Marquee Drag-Selection Rectangle -->
+            <div id="marquee-box" class="marquee-selection"></div>
+          </div>
         </div>
 
         <!-- Canvas Footer: Instructions & Metrics -->
         <div class="canvas-footer-bar">
           <div id="canvas-mode-helper" class="canvas-mode-helper">
             <i class="fa-solid fa-circle-info"></i>
-            <span id="canvas-helper-text">Matrix mode: Configure rows and columns, then click "Add Matrix Grid".</span>
+            <span id="canvas-helper-text">Matrix mode: Configure rows and columns, then click "Add Matrix Grid". Hold Ctrl+Scroll to zoom or Space+Drag to pan.</span>
           </div>
           <div class="canvas-seat-stats">
             Total Seats: <strong id="canvas-total-seats" style="color: var(--monday-blue);">0</strong>
@@ -321,7 +348,7 @@
       </section>
 
       <!-- ================================================================= -->
-      <!-- PANE 3: Zone Configuration & Pricing Side Panel (Right)           -->
+      <!-- PANE 3: Zone Configuration & Pricing Side Panel (Bottom Right)    -->
       <!-- ================================================================= -->
       <section id="side-panel-section" class="panel-card side-panel">
         <div class="panel-header">
