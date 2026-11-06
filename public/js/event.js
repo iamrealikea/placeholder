@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         buyNowBtn.disabled = false;
         buyNowBtn.textContent = 'Buy Now';
         buyNowBtn.onclick = () => {
-          window.location.href = `/booking.html?eventId=${event.id}`;
+          window.location.href = `/booking?eventId=${event.id}`;
         };
       }
     }

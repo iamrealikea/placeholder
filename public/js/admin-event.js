@@ -267,7 +267,7 @@
               <div style="text-align:center; padding: 48px; background:#FFFFFF; border-radius:16px; max-width:540px; margin:60px auto; border:2px solid #FF0800;">
                 <h2 style="color: #FF0800;">Operational Privileges Required</h2>
                 <p style="color: #4B5563; margin: 16px 0 24px;">Administrator access is required to access the Seat Builder.</p>
-                <a href="/admin.html" class="btn-pill-blue" style="padding:10px 20px; text-decoration:none; border-radius:8px; display:inline-block;">Return to Portal</a>
+                <a href="/admin" class="btn-pill-blue" style="padding:10px 20px; text-decoration:none; border-radius:8px; display:inline-block;">Return to Portal</a>
               </div>
             `;
           }
@@ -2047,7 +2047,7 @@
           showToast('Event deleted and bookings auto-refunded successfully', 'success');
           closeModal();
           setTimeout(() => {
-            window.location.href = '/admin.html';
+            window.location.href = '/admin';
           }, 1200);
         } catch (err) {
           if (errorEl) {
@@ -2261,7 +2261,7 @@
         }
 
         setTimeout(() => {
-          window.location.href = '/admin.html';
+          window.location.href = '/admin';
         }, 1200);
       } catch (err) {
         if (err.status === 409 || (err.data && err.data.code === 'LAYOUT_LOCKED')) {

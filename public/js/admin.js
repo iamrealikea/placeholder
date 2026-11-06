@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p style="color: #4B5563; margin-bottom: 24px; line-height: 1.5;">${msg}</p>
           <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-pill-blue" onclick="Auth.openAuthModal()">Sign in with Staff/Admin Account</button>
-            <a href="/index.html" class="btn-pill-outline" style="text-decoration:none; padding:10px 20px;">Return Home</a>
+            <a href="/home" class="btn-pill-outline" style="text-decoration:none; padding:10px 20px;">Return Home</a>
           </div>
         </div>
       `;
@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (createEventBtn) {
       createEventBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = '/admin-event.html?mode=create';
+        window.location.href = '/admin-event?mode=create';
       });
     }
   }
@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <td>${e.venue}</td>
               <td>${e.totalAvailableSeats || 0}</td>
               <td>
-                <a href="/admin-event.html?id=${encodeURIComponent(e.id)}" class="btn-edit-event btn-pill-outline" data-id="${e.id}" style="padding:4px 10px; font-size:0.8rem; margin-right:4px; text-decoration:none; display:inline-block;">Edit</a>
+                <a href="/admin-event?id=${encodeURIComponent(e.id)}" class="btn-edit-event btn-pill-outline" data-id="${e.id}" style="padding:4px 10px; font-size:0.8rem; margin-right:4px; text-decoration:none; display:inline-block;">Edit</a>
                 <button class="btn-delete-event btn-pill-outline" data-id="${e.id}" data-title="${(e.title || '').replace(/"/g, '&quot;')}" style="padding:4px 10px; font-size:0.8rem; color:#FF0800; border-color:#FF0800;">Delete</button>
               </td>
             </tr>

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!bookingId) {
     alert('No active booking found. Redirecting to home.');
-    window.location.href = '/index.html';
+    window.location.href = '/home';
     return;
   }
 
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
       console.error('Failed to load summary:', err);
       alert(err.message || 'Error loading booking summary.');
-      window.location.href = '/index.html';
+      window.location.href = '/home';
     }
   }
 
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (countdownTimerEl) countdownTimerEl.textContent = '00:00';
     if (confirmPaymentBtn) confirmPaymentBtn.disabled = true;
     alert('Your 10-minute seat reservation has expired. The held seats have been released back to available inventory. Please re-select your seats.');
-    window.location.href = `/booking.html?eventId=${bookingData ? bookingData.eventId : 'evt-1'}`;
+    window.location.href = `/booking?eventId=${bookingData ? bookingData.eventId : 'evt-1'}`;
   }
 
   // Promo Code Application
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const res = await API.booking.pay(bookingId, payload);
         alert('Payment successful! Electronic tickets have been issued.');
-        window.location.href = '/my-tickets.html';
+        window.location.href = '/my-tickets';
       } catch (err) {
         confirmPaymentBtn.disabled = false;
         confirmPaymentBtn.textContent = `Confirm & Pay ${bookingData ? bookingData.totalAmount.toLocaleString() : ''} THB`;

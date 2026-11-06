@@ -23,7 +23,7 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-app.use(express.static(publicDir));
+app.use(express.static(publicDir, { index: false }));
 app.use('/uploads', express.static(uploadDir));
 
 // Mount MVC API & View routes

@@ -1,32 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TicketHub - Discover & Book Live Events</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
 
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
       <div style="display: flex; align-items: center; gap: 32px;">
-        <a href="/index.html" class="nav-brand">
+        <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
         <nav>
           <ul class="nav-links">
-            <li><a href="/index.html" class="nav-link active">Home</a></li>
-            <li><a href="/event.html" class="nav-link">Event</a></li>
-            <li><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
-            <li><a href="/support.html" class="nav-link">Support</a></li>
+            <li><a href="/home" class="nav-link active">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
           </ul>
         </nav>
       </div>
@@ -55,15 +58,17 @@
         </div>
         <div class="hero-content">
           <h1 class="hero-title">Forza Horizon Somethings Live Festival</h1>
-          <p class="hero-desc">The ultimate audio-visual festival experience featuring premier artists and world-class stage production.</p>
+          <p class="hero-desc">The ultimate audio-visual festival experience featuring premier artists and world-class
+            stage production.</p>
           <div class="hero-meta">
-            <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> Impact Arena, Exhibition Hall 1</span>
+            <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> Impact
+              Arena, Exhibition Hall 1</span>
             <span>•</span>
             <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> 11 Nov 2026</span>
           </div>
         </div>
         <div class="hero-bottom">
-          <a href="/event.html?id=evt-1" class="btn-pill-red">Buy Now</a>
+          <a href="/event?id=evt-1" class="btn-pill-red">Buy Now</a>
         </div>
       </div>
     </div>
@@ -99,8 +104,10 @@
       <div class="section-header">
         <h2 class="section-title-red">Popular</h2>
         <div class="carousel-nav-arrows">
-          <button class="carousel-btn" data-target="popularContainer" data-direction="left" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="carousel-btn" data-target="popularContainer" data-direction="right" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="carousel-btn" data-target="popularContainer" data-direction="left" aria-label="Previous"><i
+              class="fa-solid fa-chevron-left"></i></button>
+          <button class="carousel-btn" data-target="popularContainer" data-direction="right" aria-label="Next"><i
+              class="fa-solid fa-chevron-right"></i></button>
         </div>
       </div>
       <div id="popularContainer" class="event-horizontal-grid">
@@ -113,8 +120,10 @@
       <div class="section-header">
         <h2 class="section-title-blue">Soon</h2>
         <div class="carousel-nav-arrows">
-          <button class="carousel-btn" data-target="soonContainer" data-direction="left" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="carousel-btn" data-target="soonContainer" data-direction="right" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="carousel-btn" data-target="soonContainer" data-direction="left" aria-label="Previous"><i
+              class="fa-solid fa-chevron-left"></i></button>
+          <button class="carousel-btn" data-target="soonContainer" data-direction="right" aria-label="Next"><i
+              class="fa-solid fa-chevron-right"></i></button>
         </div>
       </div>
       <div id="soonContainer" class="event-horizontal-grid">
@@ -125,10 +134,13 @@
   </main>
 
   <!-- Footer -->
-  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer
+    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026. All Rights Reserved.</p>
-      <p><i class="fa-solid fa-check" style="color: #1D56CF; margin-right: 4px;"></i> Secure ticketing, atomic seat locks, and transparent pricing in Oat Milk, Monday Blue, and Candy Apple Red.</p>
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026. All Rights Reserved.
+      </p>
+      <p><i class="fa-solid fa-check" style="color: #1D56CF; margin-right: 4px;"></i> Secure ticketing, atomic seat
+        locks, and transparent pricing in Oat Milk, Monday Blue, and Candy Apple Red.</p>
     </div>
   </footer>
 
@@ -138,4 +150,5 @@
   <script src="/js/notifications.js"></script>
   <script src="/js/index.js"></script>
 </body>
+
 </html>

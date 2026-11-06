@@ -120,15 +120,15 @@ const Auth = {
           </span>
         </div>
       </div>
-      <a href="/profile.html" style="display: block; padding: 10px 18px; color: #111827; font-weight: 600; text-decoration: none;">My Profile</a>
-      <a href="/my-tickets.html" style="display: block; padding: 10px 18px; color: #111827; font-weight: 600; text-decoration: none;">My Tickets</a>
-      <a href="/support.html" style="display: block; padding: 10px 18px; color: #111827; font-weight: 600; text-decoration: none;">Help & Support</a>
+      <a href="/profile" style="display: block; padding: 10px 18px; color: #111827; font-weight: 600; text-decoration: none;">My Profile</a>
+      <a href="/my-tickets" style="display: block; padding: 10px 18px; color: #111827; font-weight: 600; text-decoration: none;">My Tickets</a>
+      <a href="/support" style="display: block; padding: 10px 18px; color: #111827; font-weight: 600; text-decoration: none;">Help & Support</a>
       ${isUserAdmin ? `
-        <a href="/admin.html" style="display: block; padding: 10px 18px; color: #1D56CF; font-weight: 700; text-decoration: none;">Staff & Admin Portal</a>
-        <a href="/admin.html?tab=scanner" style="display: block; padding: 10px 18px; color: #0D9488; font-weight: 700; text-decoration: none;">Gate Scanner</a>
+        <a href="/admin" style="display: block; padding: 10px 18px; color: #1D56CF; font-weight: 700; text-decoration: none;">Staff & Admin Portal</a>
+        <a href="/admin?tab=scanner" style="display: block; padding: 10px 18px; color: #0D9488; font-weight: 700; text-decoration: none;">Gate Scanner</a>
       ` : (isUserStaff ? `
-        <a href="/admin.html" style="display: block; padding: 10px 18px; color: #1D56CF; font-weight: 700; text-decoration: none;">Staff Operations Portal</a>
-        <a href="/admin.html?tab=scanner" style="display: block; padding: 10px 18px; color: #0D9488; font-weight: 700; text-decoration: none;">Gate Scanner</a>
+        <a href="/admin" style="display: block; padding: 10px 18px; color: #1D56CF; font-weight: 700; text-decoration: none;">Staff Operations Portal</a>
+        <a href="/admin?tab=scanner" style="display: block; padding: 10px 18px; color: #0D9488; font-weight: 700; text-decoration: none;">Gate Scanner</a>
       ` : '')}
       <div style="border-top: 1px solid #E5E7EB; margin-top: 6px;"></div>
       <button id="logoutBtn" style="width: 100%; text-align: left; background: none; border: none; padding: 10px 18px; color: #FF0800; font-weight: 700; cursor: pointer;">

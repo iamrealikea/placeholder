@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span style="font-size: 3rem; color: var(--monday-blue); display: inline-block; margin-bottom: 8px;"><i class="fa-solid fa-ticket"></i></span>
           <h3 style="margin: 12px 0 6px;">No Active Tickets</h3>
           <p style="color: #6B7280; font-size: 0.9rem; margin-bottom: 20px;">You haven't booked any event tickets yet.</p>
-          <a href="/index.html" class="btn-pill-red">Browse Events</a>
+          <a href="/home" class="btn-pill-red">Browse Events</a>
         </div>
       `;
       return;

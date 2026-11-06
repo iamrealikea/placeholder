@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       // Redirect to checkout with booking ID
-      window.location.href = `/checkout.html?bookingId=${res.booking.id}`;
+      window.location.href = `/checkout?bookingId=${res.booking.id}`;
     } catch (err) {
       proceedCheckoutBtn.disabled = false;
       proceedCheckoutBtn.textContent = 'Proceed to Checkout';

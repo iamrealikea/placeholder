@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
       <div class="hero-bottom">
-        <a href="/event.html?id=${featured.id}" class="btn-pill-red" style="font-size: 1.1rem; padding: 12px 32px;">
+        <a href="/event?id=${featured.id}" class="btn-pill-red" style="font-size: 1.1rem; padding: 12px 32px;">
           Buy Now
         </a>
       </div>
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                   <small>Starts from</small><br>
                   ${minPrice.toLocaleString()} THB
                 </div>
-                <a href="/event.html?id=${e.id}" class="btn-pill-red">
+                <a href="/event?id=${e.id}" class="btn-pill-red">
                   Buy Now
                 </a>
               </div>
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                   <small>Expected from</small><br>
                   ${minPrice.toLocaleString()} THB
                 </div>
-                <a href="/event.html?id=${e.id}" class="btn-pill-blue">
+                <a href="/event?id=${e.id}" class="btn-pill-blue">
                   Soon
                 </a>
               </div>
