@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Select Seats - TicketHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
+
 <body>
 
   <!-- Navigation Bar -->
@@ -51,7 +55,8 @@
     <div class="container booking-header-inner">
       <div>
         <h1 id="bookingEventTitle" style="font-size: 2rem; font-weight: 800; margin-bottom: 4px;">Loading Event...</h1>
-        <div id="bookingVenue" style="font-size: 1rem; opacity: 0.9;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> Impact Arena</div>
+        <div id="bookingVenue" style="font-size: 1rem; opacity: 0.9;"><i class="fa-solid fa-location-dot"
+            style="margin-right: 4px;"></i> Impact Arena</div>
       </div>
       <div>
         <a href="/event" class="btn-pill-outline" style="border-color: #FFFFFF; color: #FFFFFF;">
@@ -66,7 +71,8 @@
 
     <!-- Round Selector -->
     <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">Select Show Round</h3>
+      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">
+        Select Show Round</h3>
       <div id="roundSelector" class="round-selector-wrap">
         <!-- Populated by booking.js -->
       </div>
@@ -74,7 +80,8 @@
 
     <!-- Zone Tabs & Live Counts (UI-07, FR-20, FR-21, FR-22) -->
     <div style="margin-bottom: 24px;">
-      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">Filter by Zone</h3>
+      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">
+        Filter by Zone</h3>
       <div id="zoneTabs" class="zone-tabs-wrap">
         <!-- Populated by booking.js -->
       </div>
@@ -132,7 +139,8 @@
   </main>
 
   <!-- Footer -->
-  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer
+    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
     <div class="container">
       <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
       <p>All seat holds are locked atomically for 10 minutes to guarantee double-booking prevention.</p>
@@ -145,4 +153,5 @@
   <script src="/js/notifications.js"></script>
   <script src="/js/booking.js"></script>
 </body>
+
 </html>

@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Staff & Admin Operations Portal - TicketHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     .portal-tabs-nav {
       display: flex;
@@ -20,6 +23,7 @@
       overflow-x: auto;
       padding-bottom: 8px;
     }
+
     .portal-tab-btn {
       background: transparent;
       color: #4B5563;
@@ -36,22 +40,27 @@
       align-items: center;
       gap: 8px;
     }
+
     .portal-tab-btn:hover {
       border-color: #1D56CF;
       color: #1D56CF;
     }
+
     .portal-tab-btn.active {
       background: #1D56CF;
       color: #FFFFFF;
       border-color: #1D56CF;
       box-shadow: 0 4px 12px rgba(29, 86, 207, 0.25);
     }
+
     .portal-tab-pane {
       display: none;
     }
+
     .portal-tab-pane.active {
       display: block;
     }
+
     .role-kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -60,6 +69,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Navigation Bar -->
@@ -100,13 +110,16 @@
 
   <!-- Unified Operations Portal Content -->
   <main id="adminContent" class="container" style="display: none; padding-top: 32px; padding-bottom: 64px;">
-    
+
     <!-- Portal Header with Dynamic Role Badge -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 16px;">
+    <div
+      style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 16px;">
       <div>
-        <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 6px;">
+        <h1
+          style="font-size: 2.25rem; font-weight: 800; color: #111827; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 6px;">
           Staff &amp; Admin Operations Portal
-          <span id="portalRoleBadge" class="badge-pill-red" style="font-size: 0.85rem; padding: 4px 14px; text-transform: uppercase;">ADMIN</span>
+          <span id="portalRoleBadge" class="badge-pill-red"
+            style="font-size: 0.85rem; padding: 4px 14px; text-transform: uppercase;">ADMIN</span>
         </h1>
         <p id="portalSubtitle" style="color: #6B7280; margin: 0; font-size: 1rem;">
           Real-time sales performance, seating layouts, user role administration, and operational management.
@@ -182,13 +195,16 @@
          ========================================================================= -->
     <div id="tabContentEvents" class="portal-tab-pane" data-tab-content="events">
       <div class="card-checkout" style="margin-bottom: 32px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div>
             <h3 style="margin: 0 0 4px;">Active Events &amp; Seating Layouts</h3>
-            <p style="font-size: 0.85rem; color: #6B7280; margin: 0;">Configure zone pricing and manage event matrix.</p>
+            <p style="font-size: 0.85rem; color: #6B7280; margin: 0;">Configure zone pricing and manage event matrix.
+            </p>
           </div>
           <div>
-            <a id="createEventBtn" href="/admin-event?mode=create" class="btn-pill-red" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">+ Create Event</a>
+            <a id="createEventBtn" href="/admin-event?mode=create" class="btn-pill-red"
+              style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">+ Create Event</a>
           </div>
         </div>
         <div class="table-responsive">
@@ -216,8 +232,10 @@
          ========================================================================= -->
     <div id="tabContentScanner" class="portal-tab-pane" data-tab-content="scanner">
       <div style="margin-bottom: 20px;">
-        <h2 style="font-size: 1.75rem; font-weight: 800; color: #111827; margin: 0 0 6px;">Gate Admission Scanner Terminal</h2>
-        <p style="color: #6B7280; margin: 0;">Validate attendee electronic tickets via camera stream, file upload, or manual code entry.</p>
+        <h2 style="font-size: 1.75rem; font-weight: 800; color: #111827; margin: 0 0 6px;">Gate Admission Scanner
+          Terminal</h2>
+        <p style="color: #6B7280; margin: 0;">Validate attendee electronic tickets via camera stream, file upload, or
+          manual code entry.</p>
       </div>
 
       <!-- Scanner Layout Grid -->
@@ -231,7 +249,8 @@
               <div class="scanner-crosshair"></div>
             </div>
 
-            <div id="cameraErrorMsg" style="display: none; color: #DC2626; font-size: 0.85rem; margin-top: 10px; text-align: center;"></div>
+            <div id="cameraErrorMsg"
+              style="display: none; color: #DC2626; font-size: 0.85rem; margin-top: 10px; text-align: center;"></div>
 
             <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center;">
               <button id="startCameraBtn" class="btn-pill-blue" style="font-size: 0.95rem;">
@@ -246,7 +265,8 @@
           <!-- Manual Ticket Code Input -->
           <div class="card-checkout" style="margin-top: 20px;">
             <h3>Manual Code Input</h3>
-            <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">Type or scan barcode ticket code directly:</p>
+            <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">Type or scan barcode ticket code
+              directly:</p>
             <div style="display: flex; gap: 8px;">
               <input type="text" id="manualTicketCode" class="form-control" placeholder="e.g. TKT-BKG1-A1-1234">
               <button id="validateCodeBtn" class="btn-pill-blue" style="white-space: nowrap;">
@@ -265,10 +285,13 @@
         <div>
           <!-- Dynamic Scan Result Area -->
           <div id="scanResultArea">
-            <div style="background: #FFFFFF; border: 2px dashed #D1D5DB; border-radius: 16px; padding: 36px 20px; text-align: center; color: #9CA3AF; margin-bottom: 24px;">
-              <span style="font-size: 2.5rem; display: block; margin-bottom: 8px; color: var(--monday-blue);"><i class="fa-solid fa-tower-broadcast"></i></span>
+            <div
+              style="background: #FFFFFF; border: 2px dashed #D1D5DB; border-radius: 16px; padding: 36px 20px; text-align: center; color: #9CA3AF; margin-bottom: 24px;">
+              <span style="font-size: 2.5rem; display: block; margin-bottom: 8px; color: var(--monday-blue);"><i
+                  class="fa-solid fa-tower-broadcast"></i></span>
               <strong style="color: #4B5563;">Scanner Idle</strong>
-              <p style="font-size: 0.85rem; margin-top: 4px;">Point camera at attendee QR code or submit code on the left.</p>
+              <p style="font-size: 0.85rem; margin-top: 4px;">Point camera at attendee QR code or submit code on the
+                left.</p>
             </div>
           </div>
 
@@ -320,7 +343,8 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-title">Customers</div>
-          <div id="userCountCustomer" class="kpi-value" style="color: #10B981;"><span id="roleCustomerCount">0</span></div>
+          <div id="userCountCustomer" class="kpi-value" style="color: #10B981;"><span id="roleCustomerCount">0</span>
+          </div>
         </div>
       </div>
 
@@ -329,7 +353,8 @@
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: flex-end;">
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label" for="userSearchInput">Search Registered Users</label>
-            <input type="text" id="userSearchInput" class="form-control" placeholder="Search by name, email, or phone...">
+            <input type="text" id="userSearchInput" class="form-control"
+              placeholder="Search by name, email, or phone...">
           </div>
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label" for="userRoleFilter">Filter by Role</label>
@@ -348,7 +373,8 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <div>
             <h3 style="margin: 0 0 4px;">User Accounts &amp; Access Roles</h3>
-            <p style="font-size: 0.85rem; color: #6B7280; margin: 0;">Assign staff operational privileges or promote administrators.</p>
+            <p style="font-size: 0.85rem; color: #6B7280; margin: 0;">Assign staff operational privileges or promote
+              administrators.</p>
           </div>
           <div id="userResultsCount" style="font-size: 0.85rem; font-weight: 700; color: #1D56CF;"></div>
         </div>
@@ -424,9 +450,11 @@
   </main>
 
   <!-- Footer -->
-  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer
+    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Staff &amp; Administrator Portal &copy; 2026</p>
+      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Staff &amp; Administrator Portal &copy;
+        2026</p>
       <p>Authorized access only. Single-use gate admission &amp; enterprise operations management.</p>
     </div>
   </footer>
@@ -437,4 +465,5 @@
   <script src="/js/notifications.js"></script>
   <script src="/js/admin.js"></script>
 </body>
+
 </html>

@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Profile - TicketHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
+
 <body>
 
   <!-- Navigation Bar -->
@@ -48,20 +52,21 @@
 
   <!-- Main Container -->
   <main class="container">
-    
+
     <div style="margin: 32px 0 24px;">
       <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">Account & Profile</h1>
     </div>
 
     <!-- Profile Grid Layout -->
     <div class="profile-grid">
-      
+
       <!-- Left Column: User Card, Avatar Upload, Points & Red "My Ticket" Pill -->
       <div>
         <div class="profile-card">
           <div class="avatar-large">
             <img id="profileAvatarImg" src="" alt="Profile Avatar" style="display: none;">
-            <div id="avatarInitials" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #1D56CF;">
+            <div id="avatarInitials"
+              style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #1D56CF;">
               U
             </div>
           </div>
@@ -72,8 +77,10 @@
 
           <!-- Loyalty Points Card (FR-46) -->
           <div class="points-pill-card">
-            <div style="font-size: 0.85rem; font-weight: 700; color: #1D56CF; text-transform: uppercase;">TicketHub Points</div>
-            <div id="loyaltyPointsCount" style="font-size: 2rem; font-weight: 900; color: #1D56CF; margin: 4px 0;">650</div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #1D56CF; text-transform: uppercase;">TicketHub
+              Points</div>
+            <div id="loyaltyPointsCount" style="font-size: 2rem; font-weight: 900; color: #1D56CF; margin: 4px 0;">650
+            </div>
             <small style="color: #4B5563;">Earn 1 pt / 100 THB • Redeem 100 pt = 10 THB</small>
           </div>
 
@@ -87,11 +94,14 @@
           <!-- Avatar Upload Form -->
           <div style="margin-top: 24px; text-align: left; border-top: 1px solid #E5E7EB; padding-top: 16px;">
             <label class="form-label">Change Profile Picture</label>
-            <input type="file" id="avatarFileInput" accept="image/*" style="font-size: 0.85rem; margin-bottom: 8px; width: 100%;">
-            
+            <input type="file" id="avatarFileInput" accept="image/*"
+              style="font-size: 0.85rem; margin-bottom: 8px; width: 100%;">
+
             <div style="display: flex; gap: 6px; margin-top: 8px;">
-              <input type="url" id="avatarUrlInput" class="form-control" placeholder="Or paste image URL" style="font-size: 0.85rem;">
-              <button id="uploadAvatarUrlBtn" class="btn-pill-outline" style="font-size: 0.8rem; padding: 4px 10px;">Set</button>
+              <input type="url" id="avatarUrlInput" class="form-control" placeholder="Or paste image URL"
+                style="font-size: 0.85rem;">
+              <button id="uploadAvatarUrlBtn" class="btn-pill-outline"
+                style="font-size: 0.8rem; padding: 4px 10px;">Set</button>
             </div>
           </div>
         </div>
@@ -99,7 +109,7 @@
 
       <!-- Right Column: Personal Information & Bookmarks -->
       <div>
-        
+
         <!-- Edit Profile Form -->
         <div class="card-checkout" style="margin-bottom: 32px;">
           <h3>Personal Information</h3>
@@ -148,7 +158,8 @@
         <!-- Saved Bookmarks (FR-11) -->
         <div class="card-checkout" style="margin-bottom: 32px;">
           <h3>Saved Bookmarks</h3>
-          <div id="bookmarksContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+          <div id="bookmarksContainer"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
             <!-- Populated by profile.js -->
           </div>
         </div>
@@ -168,7 +179,8 @@
   </main>
 
   <!-- Footer -->
-  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer
+    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
     <div class="container">
       <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
       <p>Customer data is strictly encrypted and protected.</p>
@@ -181,4 +193,5 @@
   <script src="/js/notifications.js"></script>
   <script src="/js/profile.js"></script>
 </body>
+
 </html>

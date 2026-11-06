@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Tickets - TicketHub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
 </head>
+
 <body style="background-color: var(--oat-milk);">
 
   <!-- Navigation Bar -->
@@ -48,7 +52,7 @@
 
   <!-- Main Container on Oat Milk Background (UI-12) -->
   <main class="container tickets-container">
-    
+
     <div style="text-align: center; margin-bottom: 24px;">
       <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">My Electronic Tickets</h1>
       <p style="color: #6B7280;">Present this QR code at venue entrance for fast check-in.</p>
@@ -56,13 +60,13 @@
 
     <!-- Active Ticket Carousel (UI-12) -->
     <div id="ticketCarouselArea">
-      
+
       <div style="text-align: center; margin-bottom: 8px;">
         <span id="ticketIndexBadge" class="badge-pill-blue" style="font-size: 0.85rem;">Ticket 1 of 1</span>
       </div>
 
       <div class="eticket-carousel-wrap">
-        
+
         <!-- Red Previous Arrow ◀ -->
         <button id="prevTicketBtn" class="carousel-arrow-btn" aria-label="Previous Ticket" disabled>
           <i class="fa-solid fa-chevron-left"></i>
@@ -73,7 +77,8 @@
           <div class="eticket-header">
             <span id="ticketStatusBadge" class="badge-pill-red" style="font-size: 0.75rem;">VALID</span>
             <h3 id="ticketEventTitle" style="font-size: 1.35rem; margin-top: 8px;">Forza Horizon Live</h3>
-            <div id="ticketRound" style="font-size: 0.9rem; opacity: 0.9;"><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> 11 Nov 2026 • 19:00</div>
+            <div id="ticketRound" style="font-size: 0.9rem; opacity: 0.9;"><i class="fa-solid fa-calendar-days"
+                style="margin-right: 4px;"></i> 11 Nov 2026 • 19:00</div>
           </div>
 
           <div class="eticket-body">
@@ -83,7 +88,8 @@
             </div>
 
             <div id="ticketCode" class="eticket-code">TKT-XXXX-0000</div>
-            <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 16px;">Scan via gate scanner for single-entry admission</div>
+            <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 16px;">Scan via gate scanner for single-entry
+              admission</div>
 
             <table class="eticket-details-table">
               <tr>
@@ -109,8 +115,9 @@
 
     <!-- Purchase History Section (FR-32) -->
     <div style="margin-top: 48px;">
-      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; color: #111827;">Purchase & Booking History</h2>
-      
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; color: #111827;">Purchase & Booking History
+      </h2>
+
       <div class="table-responsive">
         <table class="data-table">
           <thead>
@@ -134,7 +141,8 @@
   </main>
 
   <!-- Footer -->
-  <footer style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer
+    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
     <div class="container">
       <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
       <p>Single-use authenticated QR tickets with anti-reuse protection.</p>
@@ -147,4 +155,5 @@
   <script src="/js/notifications.js"></script>
   <script src="/js/my-tickets.js"></script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,14 +8,17 @@
   <!-- Google Fonts Lato Preconnect & Stylesheet (AGENTS.md) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
   <!-- Shared, page, and responsive styles -->
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <!-- FontAwesome Icons -->
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
+
 <body class="bg-oat-milk">
 
   <!-- Global Brand Navbar (AGENTS.md Invariant) -->
@@ -81,7 +85,8 @@
       </div>
       <div class="lock-banner-content">
         <strong>Layout Locked:</strong>
-        <span>This event has active bookings or held seats. Seat coordinates, additions, deletions, and layout modes are locked to prevent double-booking. Event details, prices, and colors can still be updated.</span>
+        <span>This event has active bookings or held seats. Seat coordinates, additions, deletions, and layout modes are
+          locked to prevent double-booking. Event details, prices, and colors can still be updated.</span>
       </div>
       <span class="lock-banner-badge">LOCKED</span>
     </div>
@@ -100,7 +105,8 @@
           <!-- Title -->
           <div class="form-group">
             <label class="form-label" for="event-title">Title <span class="required-asterisk">*</span></label>
-            <input type="text" id="event-title" name="title" class="form-control" required placeholder="e.g. Symphony of Lights 2026">
+            <input type="text" id="event-title" name="title" class="form-control" required
+              placeholder="e.g. Symphony of Lights 2026">
           </div>
 
           <!-- Category (Strictly Concert or Seminar per validateEventPayload) -->
@@ -115,19 +121,22 @@
           <!-- Venue -->
           <div class="form-group">
             <label class="form-label" for="event-venue">Venue <span class="required-asterisk">*</span></label>
-            <input type="text" id="event-venue" name="venue" class="form-control" required placeholder="e.g. Impact Arena, Hall 1">
+            <input type="text" id="event-venue" name="venue" class="form-control" required
+              placeholder="e.g. Impact Arena, Hall 1">
           </div>
 
           <!-- Artist / Performer -->
           <div class="form-group">
             <label class="form-label" for="event-artist">Artist / Speaker</label>
-            <input type="text" id="event-artist" name="artist" class="form-control" placeholder="e.g. Bangkok Philharmonic">
+            <input type="text" id="event-artist" name="artist" class="form-control"
+              placeholder="e.g. Bangkok Philharmonic">
           </div>
 
           <!-- Organizer -->
           <div class="form-group">
             <label class="form-label" for="event-organizer">Organizer</label>
-            <input type="text" id="event-organizer" name="organizer" class="form-control" placeholder="e.g. Siam Entertainment">
+            <input type="text" id="event-organizer" name="organizer" class="form-control"
+              placeholder="e.g. Siam Entertainment">
           </div>
 
           <!-- Status -->
@@ -144,20 +153,23 @@
           <!-- Poster Image URL -->
           <div class="form-group">
             <label class="form-label" for="event-poster-url">Poster Image URL</label>
-            <input type="url" id="event-poster-url" name="posterUrl" class="form-control" placeholder="https://images.unsplash.com/...">
+            <input type="url" id="event-poster-url" name="posterUrl" class="form-control"
+              placeholder="https://images.unsplash.com/...">
             <input type="hidden" id="event-poster">
           </div>
 
           <!-- Gallery URLs -->
           <div class="form-group">
             <label class="form-label" for="event-gallery">Gallery URLs (comma-separated)</label>
-            <input type="text" id="event-gallery" name="galleryUrls" class="form-control" placeholder="https://img1.jpg, https://img2.jpg">
+            <input type="text" id="event-gallery" name="galleryUrls" class="form-control"
+              placeholder="https://img1.jpg, https://img2.jpg">
           </div>
 
           <!-- Gate Open Time -->
           <div class="form-group">
             <label class="form-label" for="event-gate-time">Gate Open Time</label>
-            <input type="text" id="event-gate-time" name="gateOpenTime" class="form-control" placeholder="e.g. 17:30 (1 hour before show)">
+            <input type="text" id="event-gate-time" name="gateOpenTime" class="form-control"
+              placeholder="e.g. 17:30 (1 hour before show)">
           </div>
 
           <!-- Sale Window Dual Row -->
@@ -175,14 +187,17 @@
           <!-- Description -->
           <div class="form-group form-col-span-full">
             <label class="form-label" for="event-description">Description</label>
-            <textarea id="event-description" name="description" class="form-control" rows="2" placeholder="Overview of the event..."></textarea>
+            <textarea id="event-description" name="description" class="form-control" rows="2"
+              placeholder="Overview of the event..."></textarea>
           </div>
 
           <!-- Rounds Management (≥ 1 Round Required) -->
           <div id="rounds-container" class="rounds-manager-section form-col-span-full">
             <div class="rounds-header-row">
-              <span class="form-label" style="margin-bottom: 0;">Show Rounds <span class="required-asterisk">*</span></span>
-              <button type="button" id="add-round-btn" class="btn-pill-outline btn-xs"><i class="fa-solid fa-plus"></i> Add Round</button>
+              <span class="form-label" style="margin-bottom: 0;">Show Rounds <span
+                  class="required-asterisk">*</span></span>
+              <button type="button" id="add-round-btn" class="btn-pill-outline btn-xs"><i class="fa-solid fa-plus"></i>
+                Add Round</button>
             </div>
             <div id="rounds-list" class="rounds-list-container">
               <!-- Populated dynamically by admin-event.js -->
@@ -203,7 +218,8 @@
             </div>
 
             <div class="form-action-group">
-              <button type="button" id="delete-event-btn" class="btn-pill-outline btn-delete-danger" style="display: none;">
+              <button type="button" id="delete-event-btn" class="btn-pill-outline btn-delete-danger"
+                style="display: none;">
                 <i class="fa-solid fa-trash"></i> Delete Event (FR-15)
               </button>
               <button type="submit" id="save-event-btn" class="btn-pill-red">
@@ -254,25 +270,31 @@
 
             <!-- Zoom & Alignment Toolbar Group -->
             <div class="zoom-controls-group" role="group" aria-label="Canvas zoom and alignment controls">
-              <button type="button" id="zoom-out-btn" class="btn-zoom" title="Zoom Out (Ctrl + Scroll Down)" aria-label="Zoom Out">
+              <button type="button" id="zoom-out-btn" class="btn-zoom" title="Zoom Out (Ctrl + Scroll Down)"
+                aria-label="Zoom Out">
                 <i class="fa-solid fa-magnifying-glass-minus"></i>
               </button>
-              <button type="button" id="zoom-reset-btn" class="btn-zoom zoom-level-pill" title="Reset Zoom to 100%" aria-label="Reset Zoom">
+              <button type="button" id="zoom-reset-btn" class="btn-zoom zoom-level-pill" title="Reset Zoom to 100%"
+                aria-label="Reset Zoom">
                 100%
               </button>
-              <button type="button" id="zoom-in-btn" class="btn-zoom" title="Zoom In (Ctrl + Scroll Up)" aria-label="Zoom In">
+              <button type="button" id="zoom-in-btn" class="btn-zoom" title="Zoom In (Ctrl + Scroll Up)"
+                aria-label="Zoom In">
                 <i class="fa-solid fa-magnifying-glass-plus"></i>
               </button>
-              <button type="button" id="zoom-fit-btn" class="btn-zoom" title="Fit Canvas to Viewport" aria-label="Fit Canvas to Viewport">
+              <button type="button" id="zoom-fit-btn" class="btn-zoom" title="Fit Canvas to Viewport"
+                aria-label="Fit Canvas to Viewport">
                 <i class="fa-solid fa-expand"></i>
               </button>
             </div>
 
-            <button type="button" id="align-seats-btn" class="btn-pill-outline btn-sm" title="Snap & center seats in symmetric rows under stage">
+            <button type="button" id="align-seats-btn" class="btn-pill-outline btn-sm"
+              title="Snap & center seats in symmetric rows under stage">
               <i class="fa-solid fa-align-center"></i> Align &amp; Center
             </button>
 
-            <button type="button" id="clear-canvas-btn" class="btn-pill-outline btn-sm" title="Clear all seats from canvas">
+            <button type="button" id="clear-canvas-btn" class="btn-pill-outline btn-sm"
+              title="Clear all seats from canvas">
               <i class="fa-solid fa-rotate-left"></i> Clear
             </button>
           </div>
@@ -303,7 +325,8 @@
         </div>
 
         <!-- Interactive Canvas Viewport -->
-        <div id="seat-canvas-container" class="seat-builder seat-map canvas-wrapper" tabindex="0" role="region" aria-label="Interactive seat map canvas">
+        <div id="seat-canvas-container" class="seat-builder seat-map canvas-wrapper" tabindex="0" role="region"
+          aria-label="Interactive seat map canvas">
           <div class="builder-stage-banner" aria-hidden="true">STAGE / SCREEN / PODIUM</div>
           <div class="canvas-stage-surface">
             <!-- HTML5 Canvas layer -->
@@ -319,7 +342,8 @@
         <div class="canvas-footer-bar">
           <div id="canvas-mode-helper" class="canvas-mode-helper">
             <i class="fa-solid fa-circle-info"></i>
-            <span id="canvas-helper-text">Matrix mode: Configure rows and columns, then click "Add Matrix Grid". Hold Ctrl+Scroll to zoom or Space+Drag to pan.</span>
+            <span id="canvas-helper-text">Matrix mode: Configure rows and columns, then click "Add Matrix Grid". Hold
+              Ctrl+Scroll to zoom or Space+Drag to pan.</span>
           </div>
           <div class="canvas-seat-stats">
             Total Seats: <strong id="canvas-total-seats" style="color: var(--monday-blue);">0</strong>
@@ -341,7 +365,8 @@
             <span>Selected (UI-06)</span>
           </div>
           <div class="legend-item">
-            <div class="seat available has-accent" style="width: 24px; height: 24px; font-size: 8px; cursor: default; --seat-accent: #1D56CF;">01</div>
+            <div class="seat available has-accent"
+              style="width: 24px; height: 24px; font-size: 8px; cursor: default; --seat-accent: #1D56CF;">01</div>
             <span>Zone Accent Ring</span>
           </div>
         </div>
@@ -401,8 +426,10 @@
             <label class="form-label" for="seat-color-input">Zone / Seat Accent Color</label>
             <div class="color-picker-group">
               <input type="color" id="seat-color-native" value="#1D56CF" class="color-picker-input">
-              <input type="text" id="seat-color-input" class="form-control color-hex-input" value="#1D56CF" maxlength="7">
-              <span id="color-swatch-preview" class="color-swatch-box" style="background-color: #1D56CF;" title="Color preview"></span>
+              <input type="text" id="seat-color-input" class="form-control color-hex-input" value="#1D56CF"
+                maxlength="7">
+              <span id="color-swatch-preview" class="color-swatch-box" style="background-color: #1D56CF;"
+                title="Color preview"></span>
               <!-- Legacy alias for compatibility -->
               <input type="hidden" id="zone-color" value="#1D56CF">
             </div>
@@ -413,8 +440,10 @@
           <div id="row-label-control" class="form-group" aria-live="polite">
             <label class="form-label" for="row-label-input">Selected Row Letter</label>
             <div style="display: flex; gap: 8px;">
-              <input type="text" id="row-label-input" class="form-control" maxlength="1" pattern="[A-Za-z]" placeholder="A" disabled aria-describedby="row-label-hint">
-              <button type="button" id="apply-row-label-btn" class="btn-pill-outline btn-sm" disabled>Rename Row</button>
+              <input type="text" id="row-label-input" class="form-control" maxlength="1" pattern="[A-Za-z]"
+                placeholder="A" disabled aria-describedby="row-label-hint">
+              <button type="button" id="apply-row-label-btn" class="btn-pill-outline btn-sm" disabled>Rename
+                Row</button>
             </div>
             <small id="row-label-hint" class="form-hint">Select seats from one row to rename and renumber it.</small>
           </div>
@@ -424,7 +453,8 @@
             <button type="button" id="apply-zone-btn" class="btn-pill-blue" style="width: 100%;">
               <i class="fa-solid fa-check"></i> Apply to Selection
             </button>
-            <button type="button" id="clear-selection-btn" class="btn-pill-outline" style="width: 100%; margin-top: 8px;">
+            <button type="button" id="clear-selection-btn" class="btn-pill-outline"
+              style="width: 100%; margin-top: 8px;">
               <i class="fa-solid fa-xmark"></i> Clear Selection
             </button>
           </div>
@@ -433,7 +463,8 @@
           <div class="zones-summary-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span class="form-label" style="margin-bottom: 0;">Defined Zones</span>
-              <span id="total-zones-count" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">0 zones</span>
+              <span id="total-zones-count" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">0
+                zones</span>
             </div>
             <div class="zones-table-wrapper">
               <table id="zone-summary-table" class="zones-summary-table">
@@ -447,7 +478,8 @@
                 </thead>
                 <tbody id="zones-table-body">
                   <tr>
-                    <td colspan="4" style="text-align: center; color: var(--text-light); padding: 16px;">No zones defined yet.</td>
+                    <td colspan="4" style="text-align: center; color: var(--text-light); padding: 16px;">No zones
+                      defined yet.</td>
                   </tr>
                 </tbody>
               </table>
@@ -469,7 +501,8 @@
         <h3 style="color: var(--candy-apple); display: flex; align-items: center; gap: 8px; font-weight: 800;">
           <i class="fa-solid fa-triangle-exclamation"></i> Delete Event Permanently
         </h3>
-        <button type="button" class="modal-close-btn" id="closeDeleteModal" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close">
+        <button type="button" class="modal-close-btn" id="closeDeleteModal"
+          style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -477,20 +510,23 @@
         <div class="danger-warning-box">
           <p><strong>Warning:</strong> You are about to permanently delete this event.</p>
           <p style="margin-top: 6px; font-size: 0.85rem; color: #4B5563;">
-            Existing PAID bookings will be automatically cancelled and refunded (40 THB service fee retained per booking). Affected customers will be notified. This action cannot be undone.
+            Existing PAID bookings will be automatically cancelled and refunded (40 THB service fee retained per
+            booking). Affected customers will be notified. This action cannot be undone.
           </p>
         </div>
         <div class="form-group" style="margin-top: 16px;">
           <label class="form-label" for="deleteEventTitleConfirm">
             Type event title to confirm: <strong id="deleteTargetTitle" style="color: var(--monday-blue);"></strong>
           </label>
-          <input type="text" id="deleteEventTitleConfirm" class="form-control" placeholder="Type event title exact match">
+          <input type="text" id="deleteEventTitleConfirm" class="form-control"
+            placeholder="Type event title exact match">
         </div>
         <div class="form-group">
           <label class="form-label" for="deleteAdminPassword">
             Admin Password Verification <span class="required-asterisk">*</span>
           </label>
-          <input type="password" id="deleteAdminPassword" class="form-control" placeholder="Enter your admin account password" required>
+          <input type="password" id="deleteAdminPassword" class="form-control"
+            placeholder="Enter your admin account password" required>
         </div>
         <div id="deleteModalError" class="modal-error-alert" style="display: none;"></div>
       </div>
@@ -508,4 +544,5 @@
   <script src="/js/auth.js"></script>
   <script src="/js/admin-event.js"></script>
 </body>
+
 </html>
