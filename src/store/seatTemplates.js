@@ -4,8 +4,17 @@
  * Implements F-01 (Milestone 1).
  */
 
+const SEAT_DIAMETER = 36;
+const GRID_PITCH = 44;
+
+function getCenteredStartX(canvasWidth, cols, options = {}) {
+  const { dx = GRID_PITCH, aisleCol = null, aisleWidth = GRID_PITCH } = options;
+  const totalWidth = (cols - 1) * dx + SEAT_DIAMETER + (aisleCol ? aisleWidth : 0);
+  return Math.round((canvasWidth - totalWidth) / 2);
+}
+
 function generateZoneSeats(rowLetters, cols, startX, startY, options = {}) {
-  const { dx = 44, dy = 44, aisleCol = null, aisleWidth = 44 } = options;
+  const { dx = GRID_PITCH, dy = GRID_PITCH, aisleCol = null, aisleWidth = GRID_PITCH } = options;
   const seats = [];
   for (let r = 0; r < rowLetters.length; r++) {
     const row = rowLetters[r];
@@ -45,9 +54,9 @@ const TEMPLATES = {
         layout: 'template',
         rows: 4,
         cols: 10,
-        originX: 234,
-        originY: 100,
-        seats: generateZoneSeats(['A', 'B', 'C', 'D'], 10, 234, 100)
+        originX: getCenteredStartX(900, 10),
+        originY: 96,
+        seats: generateZoneSeats(['A', 'B', 'C', 'D'], 10, getCenteredStartX(900, 10), 96)
       },
       {
         id: 'zone-lower',
@@ -57,9 +66,9 @@ const TEMPLATES = {
         layout: 'template',
         rows: 4,
         cols: 14,
-        originX: 146,
-        originY: 300,
-        seats: generateZoneSeats(['E', 'F', 'G', 'H'], 14, 146, 300)
+        originX: getCenteredStartX(900, 14),
+        originY: 296,
+        seats: generateZoneSeats(['E', 'F', 'G', 'H'], 14, getCenteredStartX(900, 14), 296)
       },
       {
         id: 'zone-upper',
@@ -69,9 +78,9 @@ const TEMPLATES = {
         layout: 'template',
         rows: 4,
         cols: 16,
-        originX: 102,
-        originY: 500,
-        seats: generateZoneSeats(['J', 'K', 'L', 'M'], 16, 102, 500)
+        originX: getCenteredStartX(900, 16),
+        originY: 496,
+        seats: generateZoneSeats(['J', 'K', 'L', 'M'], 16, getCenteredStartX(900, 16), 496)
       }
     ]
   },
@@ -92,9 +101,15 @@ const TEMPLATES = {
         layout: 'template',
         rows: 5,
         cols: 10,
-        originX: 187,
-        originY: 100,
-        seats: generateZoneSeats(['A', 'B', 'C', 'D', 'E'], 10, 187, 100, { aisleCol: 5, aisleWidth: 44 })
+        originX: getCenteredStartX(850, 10, { aisleCol: 5, aisleWidth: 44 }),
+        originY: 96,
+        seats: generateZoneSeats(
+          ['A', 'B', 'C', 'D', 'E'],
+          10,
+          getCenteredStartX(850, 10, { aisleCol: 5, aisleWidth: 44 }),
+          96,
+          { aisleCol: 5, aisleWidth: 44 }
+        )
       },
       {
         id: 'zone-balcony',
@@ -104,9 +119,15 @@ const TEMPLATES = {
         layout: 'template',
         rows: 4,
         cols: 12,
-        originX: 143,
+        originX: getCenteredStartX(850, 12, { aisleCol: 6, aisleWidth: 44 }),
         originY: 360,
-        seats: generateZoneSeats(['F', 'G', 'H', 'J'], 12, 143, 360, { aisleCol: 6, aisleWidth: 44 })
+        seats: generateZoneSeats(
+          ['F', 'G', 'H', 'J'],
+          12,
+          getCenteredStartX(850, 12, { aisleCol: 6, aisleWidth: 44 }),
+          360,
+          { aisleCol: 6, aisleWidth: 44 }
+        )
       }
     ]
   },
@@ -127,9 +148,15 @@ const TEMPLATES = {
         layout: 'template',
         rows: 2,
         cols: 8,
-        originX: 204,
-        originY: 100,
-        seats: generateZoneSeats(['A', 'B'], 8, 204, 100, { aisleCol: 4, aisleWidth: 48 })
+        originX: getCenteredStartX(800, 8, { aisleCol: 4, aisleWidth: 44 }),
+        originY: 96,
+        seats: generateZoneSeats(
+          ['A', 'B'],
+          8,
+          getCenteredStartX(800, 8, { aisleCol: 4, aisleWidth: 44 }),
+          96,
+          { aisleCol: 4, aisleWidth: 44 }
+        )
       },
       {
         id: 'zone-delegate',
@@ -139,9 +166,15 @@ const TEMPLATES = {
         layout: 'template',
         rows: 4,
         cols: 10,
-        originX: 160,
-        originY: 220,
-        seats: generateZoneSeats(['C', 'D', 'E', 'F'], 10, 160, 220, { aisleCol: 5, aisleWidth: 48 })
+        originX: getCenteredStartX(800, 10, { aisleCol: 5, aisleWidth: 44 }),
+        originY: 228,
+        seats: generateZoneSeats(
+          ['C', 'D', 'E', 'F'],
+          10,
+          getCenteredStartX(800, 10, { aisleCol: 5, aisleWidth: 44 }),
+          228,
+          { aisleCol: 5, aisleWidth: 44 }
+        )
       }
     ]
   }

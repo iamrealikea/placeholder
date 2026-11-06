@@ -1,7 +1,7 @@
 /**
  * TicketHub — Dedicated Admin Event Management & Seat Builder Engine
  * File: public/js/admin-event.js
- * Implements F-12 through F-18 (Milestone 3)
+ * Implements F-12 through F-18 (Milestone 3) + Zoomable Canvas & Symmetric Alignment
  * Conforms strictly to AGENTS.md, ORIGINAL_REQUEST.md, and implementation_plan.md
  */
 
@@ -23,14 +23,29 @@
   }
 
   // -------------------------------------------------------------------------
-  // 2. Central State Store
+  // 2. Central State Store & Geometry Constants
   // -------------------------------------------------------------------------
+  const SEAT_RADIUS = 18;
+  const SEAT_DIAMETER = 36;
+  const GRID_PITCH = 44;
+  const HALF_PITCH = 22;
+
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 2.0;
+  const ZOOM_STEP = 0.15;
+
   const State = {
     mode: 'create', // 'create' | 'edit'
     eventId: null,
     isLayoutLocked: false,
     builderMode: 'matrix', // 'matrix' | 'custom' | 'template'
     templates: [],
+
+    // Canvas Logical Dimensions & Zoom State
+    logicalWidth: 1000,
+    logicalHeight: 700,
+    zoom: 1.0,
+    isSpaceDown: false,
 
     // Event metadata
     eventData: {
@@ -62,20 +77,33 @@
     ctx: null,
     isDirty: false,
     interaction: {
-      mode: 'idle', // 'idle' | 'marquee' | 'drag-seat'
+      mode: 'idle', // 'idle' | 'marquee' | 'drag-seat' | 'pan'
       marqueeStart: { x: 0, y: 0 },
       marqueeCurrent: { x: 0, y: 0 },
       dragStart: { x: 0, y: 0 },
       draggedSeatsOrig: new Map(), // seatId -> { x, y }
+      panStart: { clientX: 0, clientY: 0, scrollLeft: 0, scrollTop: 0 },
       hoveredSeatId: null
     }
   };
 
-  const SEAT_RADIUS = 18;
-  const SEAT_DIAMETER = 36;
-  const GRID_PITCH = 44;
+  /**
+   * Computes a horizontally centered originX on the canvas for a given column count.
+   */
+  function getCenteredOriginX(cols, canvasWidth = State.logicalWidth) {
+    const c = Math.max(1, Number(cols) || 1);
+    const totalRowWidth = (c - 1) * GRID_PITCH + SEAT_DIAMETER;
+    return Math.max(40, Math.round((canvasWidth - totalRowWidth) / 2));
+  }
 
-  // Fallback Template Presets
+  /**
+   * Snaps a coordinate to the nearest clean grid increment (22px half-pitch).
+   */
+  function snapToGrid(val, step = HALF_PITCH) {
+    return Math.round(Number(val) / step) * step;
+  }
+
+  // Fallback Template Presets (Centered on Canvas)
   const FALLBACK_TEMPLATES = [
     {
       id: 'concert-arena',
@@ -92,8 +120,8 @@
           layout: 'matrix',
           rows: 5,
           cols: 14,
-          originX: 190,
-          originY: 90
+          originX: getCenteredOriginX(14, 1000),
+          originY: 96
         },
         {
           id: 'zone-lower',
@@ -103,7 +131,7 @@
           layout: 'matrix',
           rows: 4,
           cols: 16,
-          originX: 146,
+          originX: getCenteredOriginX(16, 1000),
           originY: 340
         },
         {
@@ -114,7 +142,7 @@
           layout: 'matrix',
           rows: 3,
           cols: 18,
-          originX: 102,
+          originX: getCenteredOriginX(18, 1000),
           originY: 540
         }
       ]
@@ -134,8 +162,8 @@
           layout: 'matrix',
           rows: 6,
           cols: 12,
-          originX: 234,
-          originY: 100
+          originX: getCenteredOriginX(12, 1000),
+          originY: 96
         },
         {
           id: 'zone-balcony',
@@ -145,8 +173,8 @@
           layout: 'matrix',
           rows: 4,
           cols: 14,
-          originX: 190,
-          originY: 410
+          originX: getCenteredOriginX(14, 1000),
+          originY: 404
         }
       ]
     },
@@ -165,8 +193,8 @@
           layout: 'matrix',
           rows: 6,
           cols: 8,
-          originX: 274,
-          originY: 120
+          originX: getCenteredOriginX(8, 900),
+          originY: 118
         }
       ]
     }
@@ -251,7 +279,10 @@
     // 4.2 Initialize Canvas
     State.canvas = getEl(['seat-canvas']);
     if (State.canvas) {
+      State.logicalWidth = Number(State.canvas.getAttribute('width')) || 1000;
+      State.logicalHeight = Number(State.canvas.getAttribute('height')) || 700;
       State.ctx = State.canvas.getContext('2d');
+      applyCanvasDimensions();
     }
 
     // 4.3 Load Template Catalog Presets
@@ -270,6 +301,7 @@
 
     // 4.5 Bind Event Listeners
     bindModeSwitchers();
+    bindZoomAndAlignmentControls();
     bindCanvasEvents();
     bindSidePanelEvents();
     bindFormEvents();
@@ -334,7 +366,11 @@
       { id: 'rnd-1', date: defaultDate, time: '19:00', label: 'Round 1' }
     ];
 
-    // Populate Initial Zone
+    const defaultCols = 10;
+    const defaultOriginX = getCenteredOriginX(defaultCols, State.logicalWidth);
+    const defaultOriginY = 96;
+
+    // Populate Initial Zone (Centered under stage)
     State.zones = [
       {
         id: 'zone-standard',
@@ -343,13 +379,19 @@
         price: 1500,
         layout: 'matrix',
         rows: 5,
-        cols: 10,
-        originX: 180,
-        originY: 100,
+        cols: defaultCols,
+        originX: defaultOriginX,
+        originY: defaultOriginY,
         seats: []
       }
     ];
     State.activeZoneId = 'zone-standard';
+
+    // Sync Matrix Inputs to Initial Centered Values
+    const originXEl = getEl(['matrix-origin-x']);
+    if (originXEl) originXEl.value = defaultOriginX;
+    const originYEl = getEl(['matrix-origin-y']);
+    if (originYEl) originYEl.value = defaultOriginY;
 
     // Generate Default Matrix Seats
     regenerateMatrixForZone(State.zones[0]);
@@ -391,7 +433,7 @@
 
       // Show Delete Button
       const deleteBtn = getEl(['delete-event-btn']);
-      if (deleteBtn) deleteBtn.style.display = 'block';
+      if (deleteBtn) deleteBtn.style.display = 'inline-flex';
 
       // Populate Form Fields
       populateFormFields();
@@ -437,17 +479,23 @@
         setLockBanner(false);
       }
 
-      // Compute default non-overlapping zone origins for legacy zones that lack originX/originY
-      let runningOriginY = 90;
+      // Compute default non-overlapping centered zone origins for legacy zones that lack originX/originY
+      let runningOriginY = 96;
       State.zones.forEach((z) => {
         const rows = Number(z.rows || 4);
         const cols = Number(z.cols || 8);
         if (z.originX === undefined || z.originX === null || (z.originX === 0 && z.originY === 0)) {
-          z.originX = Math.max(60, Math.round((1000 - cols * GRID_PITCH) / 2));
+          z.originX = getCenteredOriginX(cols, State.logicalWidth);
           z.originY = runningOriginY;
         }
         runningOriginY = Number(z.originY) + rows * GRID_PITCH + 36;
       });
+
+      // Dynamically expand logicalHeight if zones extend past 700px
+      if (runningOriginY + 60 > State.logicalHeight) {
+        State.logicalHeight = Math.max(700, runningOriginY + 60);
+        applyCanvasDimensions();
+      }
 
       // Populate seats on canvas
       if (seatsData.length > 0) {
@@ -457,8 +505,10 @@
           const rowStr = s.row || (s.seatNumber ? s.seatNumber.charAt(0) : 'A');
           const rIdx = Math.max(0, rowLetters.indexOf(rowStr.toUpperCase()));
           const cIdx = Math.max(1, Number(s.col) || parseInt(String(s.seatNumber || '').slice(1), 10) || 1);
-          const baseOriginX = zoneObj && zoneObj.originX !== undefined ? Number(zoneObj.originX) : 180;
-          const baseOriginY = zoneObj && zoneObj.originY !== undefined ? Number(zoneObj.originY) : 90;
+          const baseOriginX = zoneObj && zoneObj.originX !== undefined
+            ? Number(zoneObj.originX)
+            : getCenteredOriginX(zoneObj ? zoneObj.cols : 8, State.logicalWidth);
+          const baseOriginY = zoneObj && zoneObj.originY !== undefined ? Number(zoneObj.originY) : 96;
 
           const computedX = s.x !== null && s.x !== undefined ? Number(s.x) : baseOriginX + (cIdx - 1) * GRID_PITCH;
           const computedY = s.y !== null && s.y !== undefined ? Number(s.y) : baseOriginY + rIdx * GRID_PITCH;
@@ -529,6 +579,9 @@
 
     const deleteSeatBtn = getEl(['delete-seat-btn']);
     if (deleteSeatBtn) deleteSeatBtn.disabled = true;
+
+    const alignBtn = getEl(['align-seats-btn']);
+    if (alignBtn) alignBtn.disabled = true;
 
     const clearCanvasBtn = getEl(['clear-canvas-btn']);
     if (clearCanvasBtn) clearCanvasBtn.disabled = true;
@@ -636,9 +689,9 @@
 
     if (helperText) {
       if (mode === 'matrix') {
-        helperText.textContent = 'Matrix mode: Configure rows and columns, then click "Add Matrix Grid".';
+        helperText.textContent = 'Matrix mode: Configure rows and columns, then click "Add Matrix Grid". Hold Ctrl+Scroll to zoom.';
       } else if (mode === 'custom') {
-        helperText.textContent = 'Custom mode: Click empty canvas to place a seat. Drag to reposition. Delete key to remove.';
+        helperText.textContent = 'Custom mode: Click empty canvas to place a seat (snaps to grid). Drag to reposition. Delete key to remove.';
       } else if (mode === 'template') {
         helperText.textContent = 'Template mode: Select a venue preset and click "Load Preset".';
       }
@@ -648,17 +701,196 @@
   }
 
   // -------------------------------------------------------------------------
+  // 9b. Zoom Controls & Symmetric Seat Alignment
+  // -------------------------------------------------------------------------
+  function applyCanvasDimensions() {
+    if (!State.canvas) return;
+    State.canvas.width = State.logicalWidth;
+    State.canvas.height = State.logicalHeight;
+    State.canvas.style.width = `${Math.round(State.logicalWidth * State.zoom)}px`;
+    State.canvas.style.height = `${Math.round(State.logicalHeight * State.zoom)}px`;
+
+    const zoomResetBtn = getEl(['zoom-reset-btn']);
+    if (zoomResetBtn) {
+      zoomResetBtn.textContent = `${Math.round(State.zoom * 100)}%`;
+    }
+  }
+
+  function setZoom(newZoom, focusPoint = null) {
+    if (!State.canvas) return;
+    const container = getEl(['seat-canvas-container']);
+    const prevZoom = State.zoom;
+    const clamped = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(newZoom * 100) / 100));
+    if (clamped === prevZoom) return;
+
+    let ratioX = 0.5;
+    let ratioY = 0.5;
+    if (container && focusPoint) {
+      const rect = container.getBoundingClientRect();
+      ratioX = (focusPoint.clientX - rect.left + container.scrollLeft) / Math.max(1, State.logicalWidth * prevZoom);
+      ratioY = (focusPoint.clientY - rect.top + container.scrollTop) / Math.max(1, State.logicalHeight * prevZoom);
+    }
+
+    State.zoom = clamped;
+    applyCanvasDimensions();
+    renderCanvas();
+
+    if (container && focusPoint) {
+      const rect = container.getBoundingClientRect();
+      container.scrollLeft = ratioX * (State.logicalWidth * State.zoom) - (focusPoint.clientX - rect.left);
+      container.scrollTop = ratioY * (State.logicalHeight * State.zoom) - (focusPoint.clientY - rect.top);
+    }
+  }
+
+  function fitCanvasToViewport() {
+    const container = getEl(['seat-canvas-container']);
+    if (!container || !State.canvas) return;
+    const availW = Math.max(320, container.clientWidth - 40);
+    const availH = Math.max(320, container.clientHeight - 40);
+    const fitScale = Math.min(availW / State.logicalWidth, availH / State.logicalHeight, 1.25);
+    setZoom(fitScale);
+  }
+
+  /**
+   * Aligns and centers seats in neat rows and columns symmetrically under the stage.
+   * If seats are selected, aligns the zones of the selected seats; otherwise aligns all zones.
+   */
+  function alignAndCenterSeats() {
+    if (State.isLayoutLocked) return;
+    if (State.seats.length === 0) {
+      showToast('No seats on canvas to align', 'info');
+      return;
+    }
+
+    const targetZoneIds = State.selectedSeatIds.size > 0
+      ? new Set(State.seats.filter(s => State.selectedSeatIds.has(s.id)).map(s => s.zoneId))
+      : new Set(State.zones.map(z => z.id));
+
+    let currentTopY = 96;
+    State.zones.forEach((zone) => {
+      if (!targetZoneIds.has(zone.id)) {
+        const zSeats = State.seats.filter(s => s.zoneId === zone.id);
+        if (zSeats.length > 0) {
+          const maxY = Math.max(...zSeats.map(s => Number(s.y) || 0));
+          currentTopY = Math.max(currentTopY, maxY + GRID_PITCH + 24);
+        }
+        return;
+      }
+
+      const rows = getZoneRows(zone.id);
+      if (rows.length === 0) return;
+
+      rows.forEach((rowObj, rIdx) => {
+        const colsInRow = rowObj.seats.length;
+        const rowStartX = getCenteredOriginX(colsInRow, State.logicalWidth);
+        const rowY = targetZoneIds.size === State.zones.length
+          ? currentTopY + rIdx * GRID_PITCH
+          : snapToGrid(rowObj.y, HALF_PITCH);
+
+        rowObj.seats
+          .sort((a, b) => Number(a.x) - Number(b.x))
+          .forEach((seat, cIdx) => {
+            seat.x = rowStartX + cIdx * GRID_PITCH;
+            seat.y = rowY;
+          });
+      });
+
+      normalizeZoneRows(zone.id);
+      const firstRowCols = rows[0].seats.length;
+      zone.originX = getCenteredOriginX(firstRowCols, State.logicalWidth);
+      zone.originY = rows[0].seats[0] ? rows[0].seats[0].y : currentTopY;
+      currentTopY = zone.originY + rows.length * GRID_PITCH + 32;
+    });
+
+    renderCanvas();
+    showToast('Seats aligned & centered symmetrically with stage', 'success');
+  }
+
+  function bindZoomAndAlignmentControls() {
+    const zoomInBtn = getEl(['zoom-in-btn']);
+    const zoomOutBtn = getEl(['zoom-out-btn']);
+    const zoomResetBtn = getEl(['zoom-reset-btn']);
+    const zoomFitBtn = getEl(['zoom-fit-btn']);
+    const alignBtn = getEl(['align-seats-btn']);
+    const container = getEl(['seat-canvas-container']);
+
+    if (zoomInBtn) {
+      zoomInBtn.addEventListener('click', () => setZoom(State.zoom + ZOOM_STEP));
+    }
+    if (zoomOutBtn) {
+      zoomOutBtn.addEventListener('click', () => setZoom(State.zoom - ZOOM_STEP));
+    }
+    if (zoomResetBtn) {
+      zoomResetBtn.addEventListener('click', () => setZoom(1.0));
+    }
+    if (zoomFitBtn) {
+      zoomFitBtn.addEventListener('click', fitCanvasToViewport);
+    }
+    if (alignBtn) {
+      alignBtn.addEventListener('click', alignAndCenterSeats);
+    }
+
+    if (container) {
+      // Ctrl/Meta + Wheel Zooming & Shift+Wheel 2D Panning Fallback
+      container.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const delta = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
+          setZoom(State.zoom + delta, { clientX: e.clientX, clientY: e.clientY });
+          return;
+        }
+        // 2D Panning fallback when CSS scroll-axis-lock: none is not supported
+        if (!CSS.supports('scroll-axis-lock', 'none') && e.deltaX !== 0 && e.deltaY !== 0) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaX;
+          container.scrollTop += e.deltaY;
+        }
+      }, { passive: false });
+    }
+
+    // Track Spacebar for Space+Drag panning
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(e.target.tagName)) {
+        State.isSpaceDown = true;
+        if (container) container.classList.add('is-panning');
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        State.isSpaceDown = false;
+        if (container && State.interaction.mode !== 'pan') {
+          container.classList.remove('is-panning');
+        }
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // 10. Matrix Mode Grid Generation
   // -------------------------------------------------------------------------
   function bindMatrixControls() {
+    const colsInput = getEl(['matrix-cols']);
+    const originXInput = getEl(['matrix-origin-x']);
+
+    // Automatically keep Origin X centered when Cols changes unless manually overridden
+    if (colsInput && originXInput) {
+      colsInput.addEventListener('input', () => {
+        const cols = parseInt(colsInput.value, 10) || 10;
+        originXInput.value = getCenteredOriginX(cols, State.logicalWidth);
+      });
+    }
+
     const genBtn = getEl(['matrix-generate-btn', 'generate-matrix-btn']);
     if (genBtn) {
       genBtn.addEventListener('click', () => {
         if (State.isLayoutLocked) return;
         const rows = parseInt((getEl(['matrix-rows']) || { value: 6 }).value, 10) || 6;
         const cols = parseInt((getEl(['matrix-cols']) || { value: 10 }).value, 10) || 10;
-        const originX = parseInt((getEl(['matrix-origin-x']) || { value: 100 }).value, 10) || 100;
-        const originY = parseInt((getEl(['matrix-origin-y']) || { value: 80 }).value, 10) || 80;
+        const rawOriginX = parseInt((getEl(['matrix-origin-x']) || { value: 0 }).value, 10);
+        const originX = Number.isFinite(rawOriginX) && rawOriginX > 0
+          ? rawOriginX
+          : getCenteredOriginX(cols, State.logicalWidth);
+        const originY = parseInt((getEl(['matrix-origin-y']) || { value: 96 }).value, 10) || 96;
 
         if (rows * cols > 2000) {
           showToast('Zone exceeds maximum capacity of 2000 seats', 'error');
@@ -692,6 +924,13 @@
         targetZone.originX = originX;
         targetZone.originY = originY;
 
+        // Expand canvas height if needed so large matrices fit comfortably
+        const requiredHeight = originY + rows * GRID_PITCH + 60;
+        if (requiredHeight > State.logicalHeight) {
+          State.logicalHeight = requiredHeight;
+          applyCanvasDimensions();
+        }
+
         regenerateMatrixForZone(targetZone, true);
         updateSidePanelZones();
         renderCanvas();
@@ -709,8 +948,8 @@
     const rowLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const rows = zone.rows || 4;
     const cols = zone.cols || 8;
-    const originX = zone.originX !== undefined ? zone.originX : 100;
-    const originY = zone.originY !== undefined ? zone.originY : 100;
+    const originX = zone.originX !== undefined ? zone.originX : getCenteredOriginX(cols, State.logicalWidth);
+    const originY = zone.originY !== undefined ? zone.originY : 96;
 
     for (let r = 0; r < rows; r++) {
       const rowLetter = rowLetters[r] || `R${r + 1}`;
@@ -752,6 +991,11 @@
           return;
         }
 
+        // Adjust Canvas Logical Dimension if defined
+        State.logicalWidth = Number(template.canvasWidth) || 1000;
+        State.logicalHeight = Number(template.canvasHeight) || 700;
+        applyCanvasDimensions();
+
         // Load Template Zones & Seats
         State.zones = JSON.parse(JSON.stringify(template.zones));
         State.seats = [];
@@ -784,10 +1028,6 @@
           State.eventData.category = template.category;
         }
 
-        // Adjust Canvas Dimension if defined
-        if (template.canvasWidth && State.canvas) State.canvas.width = template.canvasWidth;
-        if (template.canvasHeight && State.canvas) State.canvas.height = template.canvasHeight;
-
         State.activeZoneId = State.zones[0] ? State.zones[0].id : null;
         State.selectedSeatIds.clear();
 
@@ -801,12 +1041,12 @@
   }
 
   // -------------------------------------------------------------------------
-  // 12. Canvas Hit-Testing & Coordinate Math
+  // 12. Canvas Hit-Testing & Coordinate Math (Zoom-Aware)
   // -------------------------------------------------------------------------
   function getCanvasCoords(e) {
     const rect = State.canvas.getBoundingClientRect();
-    const scaleX = State.canvas.width / rect.width;
-    const scaleY = State.canvas.height / rect.height;
+    const scaleX = State.canvas.width / Math.max(1, rect.width);
+    const scaleY = State.canvas.height / Math.max(1, rect.height);
     return {
       x: (e.clientX - rect.left) * scaleX,
       y: (e.clientY - rect.top) * scaleY
@@ -826,12 +1066,31 @@
   }
 
   // -------------------------------------------------------------------------
-  // 13. Interactive Canvas Events (Click, Drag, Snapping, Delete)
+  // 13. Interactive Canvas Events (Click, Drag, Snapping, Panning, Delete)
   // -------------------------------------------------------------------------
   function bindCanvasEvents() {
     if (!State.canvas) return;
+    const container = getEl(['seat-canvas-container']);
 
     State.canvas.addEventListener('mousedown', (e) => {
+      // Middle-mouse button or Spacebar + Left click starts 2D viewport pan
+      if (e.button === 1 || (e.button === 0 && State.isSpaceDown)) {
+        e.preventDefault();
+        if (container) {
+          State.interaction.mode = 'pan';
+          State.interaction.panStart = {
+            clientX: e.clientX,
+            clientY: e.clientY,
+            scrollLeft: container.scrollLeft,
+            scrollTop: container.scrollTop
+          };
+          container.classList.add('is-panning');
+        }
+        return;
+      }
+
+      if (e.button !== 0) return;
+
       const { x, y } = getCanvasCoords(e);
       const clickedSeat = getSeatAt(x, y);
 
@@ -854,6 +1113,8 @@
         if (!State.isLayoutLocked) {
           State.interaction.mode = 'drag-seat';
           State.interaction.dragStart = { x, y };
+          State.interaction.lastMoveX = x;
+          State.interaction.lastMoveY = y;
           State.interaction.draggedSeatsOrig.clear();
           State.selectedSeatIds.forEach(id => {
             const s = State.seats.find(st => st.id === id);
@@ -861,7 +1122,7 @@
           });
         }
       } else {
-        // Empty space clicked: start marquee rubber-band drag (in Custom mode, a Stationary click on mouseup places a seat)
+        // Empty space clicked: start marquee rubber-band drag (in Custom mode, a stationary click on mouseup places a seat)
         if (!e.shiftKey) State.selectedSeatIds.clear();
         State.interaction.mode = 'marquee';
         State.interaction.marqueeStart = { x, y };
@@ -875,6 +1136,17 @@
 
     window.addEventListener('mousemove', (e) => {
       if (!State.canvas) return;
+
+      if (State.interaction.mode === 'pan') {
+        if (container) {
+          const dx = e.clientX - State.interaction.panStart.clientX;
+          const dy = e.clientY - State.interaction.panStart.clientY;
+          container.scrollLeft = State.interaction.panStart.scrollLeft - dx;
+          container.scrollTop = State.interaction.panStart.scrollTop - dy;
+        }
+        return;
+      }
+
       const { x, y } = getCanvasCoords(e);
 
       if (State.interaction.mode === 'drag-seat') {
@@ -887,7 +1159,7 @@
           const s = State.seats.find(st => st.id === id);
           if (s && orig) {
             s.x = Math.max(0, Math.min(State.canvas.width - SEAT_DIAMETER, orig.x + dx));
-            s.y = Math.max(0, Math.min(State.canvas.height - SEAT_DIAMETER, orig.y + dy));
+            s.y = Math.max(70, Math.min(State.canvas.height - SEAT_DIAMETER, orig.y + dy));
           }
         });
         renderCanvas();
@@ -896,22 +1168,34 @@
         renderCanvas();
       } else {
         // Cursor hover feedback
-        const hoverSeat = getSeatAt(x, y);
-        State.canvas.style.cursor = hoverSeat ? 'pointer' : (State.builderMode === 'custom' ? 'crosshair' : 'default');
+        if (State.isSpaceDown) {
+          State.canvas.style.cursor = 'grab';
+        } else {
+          const hoverSeat = getSeatAt(x, y);
+          State.canvas.style.cursor = hoverSeat ? 'pointer' : (State.builderMode === 'custom' ? 'crosshair' : 'default');
+        }
       }
     });
 
     window.addEventListener('mouseup', () => {
+      if (State.interaction.mode === 'pan') {
+        State.interaction.mode = 'idle';
+        if (container && !State.isSpaceDown) {
+          container.classList.remove('is-panning');
+        }
+        return;
+      }
+
       if (State.interaction.mode === 'drag-seat') {
         const dxTotal = Math.abs(State.interaction.dragStart.x - (State.interaction.lastMoveX !== undefined ? State.interaction.lastMoveX : State.interaction.dragStart.x));
         const dyTotal = Math.abs(State.interaction.dragStart.y - (State.interaction.lastMoveY !== undefined ? State.interaction.lastMoveY : State.interaction.dragStart.y));
         const didMove = (dxTotal > 2 || dyTotal > 2);
-        // Snap final dragged positions to grid (10px snap)
+        // Snap final dragged positions to clean HALF_PITCH (22px) grid for consistent alignment
         State.selectedSeatIds.forEach(id => {
           const s = State.seats.find(st => st.id === id);
           if (s && didMove) {
-            s.x = Math.round(s.x / 10) * 10;
-            s.y = Math.round(s.y / 10) * 10;
+            s.x = snapToGrid(s.x, HALF_PITCH);
+            s.y = Math.max(74, snapToGrid(s.y, HALF_PITCH));
             const z = State.zones.find(zn => zn.id === s.zoneId);
             if (z) z.layout = 'custom';
           }
@@ -948,8 +1232,8 @@
         } else if (State.interaction.canPlaceCustomSeat) {
           const clickX = State.interaction.marqueeStart.x;
           const clickY = State.interaction.marqueeStart.y;
-          const snappedX = Math.round((clickX - SEAT_RADIUS) / 20) * 20;
-          const snappedY = Math.round((clickY - SEAT_RADIUS) / 20) * 20;
+          const snappedX = snapToGrid(clickX - SEAT_RADIUS, HALF_PITCH);
+          const snappedY = Math.max(74, snapToGrid(clickY - SEAT_RADIUS, HALF_PITCH));
           let activeZone = State.zones.find(z => z.id === State.activeZoneId) || State.zones[0];
           if (!activeZone) {
             activeZone = {
@@ -960,8 +1244,8 @@
               layout: 'custom',
               rows: 1,
               cols: 1,
-              originX: 100,
-              originY: 100,
+              originX: snappedX,
+              originY: snappedY,
               seats: []
             };
             State.zones.push(activeZone);
@@ -976,7 +1260,7 @@
             row: newLabel.charAt(0),
             col: parseInt(newLabel.slice(1), 10) || 1,
             x: Math.max(0, Math.min(State.canvas.width - SEAT_DIAMETER, snappedX)),
-            y: Math.max(0, Math.min(State.canvas.height - SEAT_DIAMETER, snappedY)),
+            y: Math.max(74, Math.min(State.canvas.height - SEAT_DIAMETER, snappedY)),
             color: activeZone.color || '#1D56CF',
             price: activeZone.price !== undefined ? activeZone.price : 1000,
             status: 'AVAILABLE'
@@ -1051,7 +1335,7 @@
     const rows = [];
 
     for (const seat of seats) {
-      const row = rows.find(candidate => Math.abs(Number(seat.y) - candidate.y) <= GRID_PITCH / 2);
+      const row = rows.find(candidate => Math.abs(Number(seat.y) - candidate.y) <= HALF_PITCH);
       if (row) {
         row.seats.push(seat);
         row.y = row.seats.reduce((total, item) => total + Number(item.y), 0) / row.seats.length;
@@ -1078,7 +1362,7 @@
       }
 
       usedLetters.add(letter);
-      const alignedY = Math.round(row.y / 20) * 20;
+      const alignedY = snapToGrid(row.y, HALF_PITCH);
       row.seats.sort((a, b) => Number(a.x) - Number(b.x)).forEach((seat, index) => {
         seat.row = letter;
         seat.col = index + 1;
@@ -1260,8 +1544,10 @@
       const zoneName = (newZoneNameInput && newZoneNameInput.value.trim()) || `Zone ${State.zones.length + 1}`;
       const newZoneId = `zone-${Date.now()}`;
 
-      const maxExistingY = State.seats.reduce((max, s) => Math.max(max, Number(s.y) || 0), 60);
-      const nextOriginY = Math.min(580, maxExistingY + 60);
+      const defaultCols = parseInt((getEl(['matrix-cols']) || { value: 10 }).value, 10) || 10;
+      const maxExistingY = State.seats.reduce((max, s) => Math.max(max, Number(s.y) || 0), 30);
+      const nextOriginY = snapToGrid(Math.min(State.logicalHeight - 120, maxExistingY + 66), HALF_PITCH);
+      const nextOriginX = getCenteredOriginX(defaultCols, State.logicalWidth);
 
       const newZone = {
         id: newZoneId,
@@ -1270,8 +1556,8 @@
         price: newPrice,
         layout: State.builderMode === 'matrix' ? 'matrix' : 'custom',
         rows: 4,
-        cols: 8,
-        originX: 180,
+        cols: defaultCols,
+        originX: nextOriginX,
         originY: nextOriginY,
         seats: []
       };
@@ -1283,6 +1569,8 @@
       if (newZoneBox) newZoneBox.style.display = 'none';
       if (toggleNewZoneBtn) toggleNewZoneBtn.textContent = '+ New Zone';
 
+      const originXEl = getEl(['matrix-origin-x']);
+      if (originXEl) originXEl.value = nextOriginX;
       const originYEl = getEl(['matrix-origin-y']);
       if (originYEl) originYEl.value = nextOriginY;
 
@@ -1444,45 +1732,83 @@
   }
 
   // -------------------------------------------------------------------------
-  // 15. Canvas Rendering Pipeline (AGENTS.md Compliance)
+  // 15. Canvas Rendering Pipeline (AGENTS.md Compliance & Symmetric Guides)
   // -------------------------------------------------------------------------
   function renderCanvas() {
     const ctx = State.ctx;
     if (!ctx || !State.canvas) return;
 
-    // Clear Canvas
-    ctx.clearRect(0, 0, State.canvas.width, State.canvas.height);
+    const W = State.canvas.width;
+    const H = State.canvas.height;
 
-    // Draw Subtle Background Grid
-    ctx.strokeStyle = '#F0F0F0';
+    // Clear Canvas
+    ctx.clearRect(0, 0, W, H);
+
+    // 15.1 Draw Subtle Alignment Grid (44px major pitch, 22px minor pitch)
+    ctx.strokeStyle = '#F3F4F6';
     ctx.lineWidth = 1;
-    for (let x = 0; x < State.canvas.width; x += GRID_PITCH) {
+    for (let x = 0; x <= W; x += GRID_PITCH) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, State.canvas.height);
+      ctx.lineTo(x, H);
       ctx.stroke();
     }
-    for (let y = 0; y < State.canvas.height; y += GRID_PITCH) {
+    for (let y = 0; y <= H; y += GRID_PITCH) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(State.canvas.width, y);
+      ctx.lineTo(W, y);
       ctx.stroke();
     }
 
-    // Draw Stage Banner
-    const stageWidth = Math.min(480, State.canvas.width - 80);
-    const stageX = (State.canvas.width - stageWidth) / 2;
+    // 15.2 Draw Subtle Center Symmetry Axis Line
+    ctx.save();
+    ctx.setLineDash([6, 6]);
+    ctx.strokeStyle = 'rgba(29, 86, 207, 0.16)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 56);
+    ctx.lineTo(W / 2, H - 16);
+    ctx.stroke();
+    ctx.restore();
+
+    // 15.3 Draw Stage Banner (Centered at top of canvas)
+    const stageWidth = Math.min(480, W - 80);
+    const stageX = (W - stageWidth) / 2;
     ctx.fillStyle = '#1D56CF';
-    roundRect(ctx, stageX, 16, stageWidth, 36, 6);
+    roundRect(ctx, stageX, 16, stageWidth, 38, 8);
     ctx.fill();
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 13px Lato, sans-serif';
+    ctx.font = '800 13px Lato, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('STAGE / SCREEN / PODIUM', State.canvas.width / 2, 34);
+    ctx.fillText('STAGE / SCREEN / PODIUM', W / 2, 35);
 
-    // Render Seats
+    // 15.4 Draw Row Guide Labels on Left & Right of Each Zone's Rows
+    ctx.save();
+    ctx.font = '800 11px Lato, sans-serif';
+    ctx.fillStyle = '#6B7280';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (const z of State.zones) {
+      const zoneRows = getZoneRows(z.id);
+      for (const row of zoneRows) {
+        if (!row.seats.length || !row.letter) continue;
+        const minX = Math.min(...row.seats.map(s => Number(s.x)));
+        const maxX = Math.max(...row.seats.map(s => Number(s.x) + SEAT_DIAMETER));
+        const rowCenterY = row.seats[0].y + SEAT_RADIUS;
+        if (minX > 24) {
+          ctx.fillText(row.letter, minX - 16, rowCenterY);
+        }
+        if (maxX < W - 24) {
+          ctx.fillText(row.letter, maxX + 16, rowCenterY);
+        }
+      }
+    }
+    ctx.restore();
+
+    // 15.5 Render Seats
     for (const seat of State.seats) {
       const cx = seat.x + SEAT_RADIUS;
       const cy = seat.y + SEAT_RADIUS;
@@ -1490,14 +1816,14 @@
       const isBookedOrHeld = seat.status === 'BOOKED' || seat.status === 'HELD';
       const effectiveColor = seat.color || '#1D56CF';
 
-      // 15.1 Outer Accent Ring (F-17 & AGENTS.md Invariant)
+      // Outer Accent Ring (F-17 & AGENTS.md Invariant)
       ctx.beginPath();
       ctx.arc(cx, cy, SEAT_RADIUS + 3, 0, Math.PI * 2);
       ctx.strokeStyle = effectiveColor;
       ctx.lineWidth = 3;
       ctx.stroke();
 
-      // 15.2 Seat Circle Core
+      // Seat Circle Core
       ctx.beginPath();
       ctx.arc(cx, cy, SEAT_RADIUS, 0, Math.PI * 2);
 
@@ -1543,7 +1869,7 @@
       }
     }
 
-    // 15.3 Render Marquee Selection Box
+    // 15.6 Render Marquee Selection Box
     if (State.interaction.mode === 'marquee') {
       const sx = State.interaction.marqueeStart.x;
       const sy = State.interaction.marqueeStart.y;
@@ -1837,8 +2163,8 @@
           layout: isMatrixMode ? 'matrix' : (z.layout || (zoneSeats.length > 0 ? 'custom' : 'matrix')),
           rows: Number(z.rows || 4),
           cols: Number(z.cols || 8),
-          originX: Number(z.originX !== undefined ? z.originX : 100),
-          originY: Number(z.originY !== undefined ? z.originY : 100),
+          originX: Number(z.originX !== undefined ? z.originX : getCenteredOriginX(z.cols || 8, State.logicalWidth)),
+          originY: Number(z.originY !== undefined ? z.originY : 96),
           seats: isMatrixMode ? [] : zoneSeats.map(s => ({
             label: s.label,
             x: Number(s.x),
@@ -1959,6 +2285,9 @@
     State,
     renderCanvas,
     setBuilderMode,
+    setZoom,
+    fitCanvasToViewport,
+    alignAndCenterSeats,
     normalizeZoneRows,
     renameSelectedRow,
     selectZoneSeats: (zoneId) => {
