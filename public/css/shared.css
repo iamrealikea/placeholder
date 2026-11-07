@@ -68,7 +68,8 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   min-height: 100vh;
   font-family: var(--font-family);
   background-color: var(--bg-page);
@@ -88,7 +89,10 @@ a {
   text-decoration: none;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
   font-size: inherit;
 }
@@ -352,7 +356,6 @@ button, input, select, textarea {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-
 
 /* --------------------------------------------------------------------------
    Modals, Alerts, Form Controls

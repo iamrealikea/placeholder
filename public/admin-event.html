@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/css/shared.css">
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/admin.css">
   <!-- FontAwesome Icons -->
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -24,7 +25,7 @@
   <!-- Global Brand Navbar (AGENTS.md Invariant) -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -35,7 +36,6 @@
             <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
             <li><a href="/admin" class="nav-link">Operations Portal</a></li>
             <li><a href="/admin-event" class="nav-link active">Seat Builder</a></li>
-            <li><a href="/scanner" class="nav-link">Scanner</a></li>
           </ul>
         </nav>
       </div>
@@ -46,7 +46,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge admin-initially-hidden">0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -194,8 +194,7 @@
           <!-- Rounds Management (≥ 1 Round Required) -->
           <div id="rounds-container" class="rounds-manager-section form-col-span-full">
             <div class="rounds-header-row">
-              <span class="form-label" style="margin-bottom: 0;">Show Rounds <span
-                  class="required-asterisk">*</span></span>
+              <span class="form-label mb-0">Show Rounds <span class="required-asterisk">*</span></span>
               <button type="button" id="add-round-btn" class="btn-pill-outline btn-xs"><i class="fa-solid fa-plus"></i>
                 Add Round</button>
             </div>
@@ -210,7 +209,7 @@
 
           <!-- Bottom Bar: Featured Checkbox + Action Buttons -->
           <div class="form-bottom-bar form-col-span-full">
-            <div class="form-group form-check" style="margin: 0;">
+            <div class="form-group form-check m-0">
               <label class="checkbox-label" for="event-featured">
                 <input type="checkbox" id="event-featured" name="isFeatured">
                 <span>Feature on Home Hero Carousel</span>
@@ -218,8 +217,8 @@
             </div>
 
             <div class="form-action-group">
-              <button type="button" id="delete-event-btn" class="btn-pill-outline btn-delete-danger"
-                style="display: none;">
+              <button type="button" id="delete-event-btn"
+                class="btn-pill-outline btn-delete-danger admin-initially-hidden">
                 <i class="fa-solid fa-trash"></i> Delete Event (FR-15)
               </button>
               <button type="submit" id="save-event-btn" class="btn-pill-red">
@@ -251,8 +250,8 @@
 
           <!-- Secondary Toolbar: Presets, Zoom & Alignment Controls -->
           <div class="toolbar-actions">
-            <div id="template-controls" class="template-controls-group" style="display: none;">
-              <select id="template-select" class="form-control form-control-sm" style="width: auto;">
+            <div id="template-controls" class="template-controls-group admin-initially-hidden">
+              <select id="template-select" class="form-control form-control-sm w-auto">
                 <option value="concert-arena">Concert Arena (Floor / Lower / Upper)</option>
                 <option value="theater-hall">Theater / Hall (Orchestra / Balcony)</option>
                 <option value="seminar-classroom">Seminar Classroom</option>
@@ -262,7 +261,7 @@
               </button>
             </div>
 
-            <div id="custom-controls" style="display: none;">
+            <div id="custom-controls" class="admin-initially-hidden">
               <button type="button" id="delete-seat-btn" class="btn-pill-outline btn-sm">
                 <i class="fa-solid fa-trash"></i> Delete Selected
               </button>
@@ -346,27 +345,26 @@
               Ctrl+Scroll to zoom or Space+Drag to pan.</span>
           </div>
           <div class="canvas-seat-stats">
-            Total Seats: <strong id="canvas-total-seats" style="color: var(--monday-blue);">0</strong>
+            Total Seats: <strong class="c-blue" id="canvas-total-seats">0</strong>
           </div>
         </div>
 
         <!-- Seat Legend (UI-04, UI-05, UI-06, Custom Color Ring) -->
         <div class="seat-legend builder-legend">
           <div class="legend-item">
-            <div class="seat available" style="width: 24px; height: 24px; font-size: 8px; cursor: default;">01</div>
+            <div class="seat available w-24 h-24 cursor-def fs-8px">01</div>
             <span>Available (UI-04)</span>
           </div>
           <div class="legend-item">
-            <div class="seat booked" style="width: 24px; height: 24px; cursor: default;"></div>
+            <div class="seat booked w-24 h-24 cursor-def"></div>
             <span>Booked (UI-05)</span>
           </div>
           <div class="legend-item">
-            <div class="seat selected" style="width: 24px; height: 24px; cursor: default;"></div>
+            <div class="seat selected w-24 h-24 cursor-def"></div>
             <span>Selected (UI-06)</span>
           </div>
           <div class="legend-item">
-            <div class="seat available has-accent"
-              style="width: 24px; height: 24px; font-size: 8px; cursor: default; --seat-accent: #1D56CF;">01</div>
+            <div class="seat available has-accent w-24 h-24 cursor-def builder-seat-accent-blue">01</div>
             <span>Zone Accent Ring</span>
           </div>
         </div>
@@ -393,8 +391,8 @@
         <div id="zone-management-panel" class="zone-management-panel">
           <!-- Zone Selector -->
           <div class="form-group">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label class="form-label" for="zone-select" style="margin-bottom: 0;">Assign Zone</label>
+            <div class="flex between items-c mb-6">
+              <label class="form-label mb-0" for="zone-select">Assign Zone</label>
               <button type="button" id="toggle-new-zone-btn" class="btn-link-action">+ New Zone</button>
             </div>
             <select id="zone-select" class="form-control">
@@ -404,11 +402,11 @@
 
           <!-- Inline New Zone Form -->
           <div id="new-zone-box" class="new-zone-box" style="display: none;">
-            <div class="form-group" style="margin-bottom: 8px;">
+            <div class="form-group mb-8">
               <label class="form-label" for="new-zone-name">New Zone Name</label>
               <input type="text" id="new-zone-name" class="form-control" placeholder="e.g. VIP Front">
             </div>
-            <button type="button" id="create-zone-confirm-btn" class="btn-pill-blue btn-sm" style="width: 100%;">
+            <button type="button" id="create-zone-confirm-btn" class="btn-pill-blue btn-sm w-100">
               <i class="fa-solid fa-plus"></i> Create Zone
             </button>
           </div>
@@ -428,8 +426,7 @@
               <input type="color" id="seat-color-native" value="#1D56CF" class="color-picker-input">
               <input type="text" id="seat-color-input" class="form-control color-hex-input" value="#1D56CF"
                 maxlength="7">
-              <span id="color-swatch-preview" class="color-swatch-box" style="background-color: #1D56CF;"
-                title="Color preview"></span>
+              <span id="color-swatch-preview" class="color-swatch-box bg-blue" title="Color preview"></span>
               <!-- Legacy alias for compatibility -->
               <input type="hidden" id="zone-color" value="#1D56CF">
             </div>
@@ -439,7 +436,7 @@
           <!-- Row Labeling -->
           <div id="row-label-control" class="form-group" aria-live="polite">
             <label class="form-label" for="row-label-input">Selected Row Letter</label>
-            <div style="display: flex; gap: 8px;">
+            <div class="flex gap-8">
               <input type="text" id="row-label-input" class="form-control" maxlength="1" pattern="[A-Za-z]"
                 placeholder="A" disabled aria-describedby="row-label-hint">
               <button type="button" id="apply-row-label-btn" class="btn-pill-outline btn-sm" disabled>Rename
@@ -450,20 +447,19 @@
 
           <!-- Action Buttons -->
           <div class="side-panel-actions">
-            <button type="button" id="apply-zone-btn" class="btn-pill-blue" style="width: 100%;">
+            <button type="button" id="apply-zone-btn" class="btn-pill-blue w-100">
               <i class="fa-solid fa-check"></i> Apply to Selection
             </button>
-            <button type="button" id="clear-selection-btn" class="btn-pill-outline"
-              style="width: 100%; margin-top: 8px;">
+            <button type="button" id="clear-selection-btn" class="btn-pill-outline w-100 mt-8">
               <i class="fa-solid fa-xmark"></i> Clear Selection
             </button>
           </div>
 
           <!-- Defined Zones Table -->
           <div class="zones-summary-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span class="form-label" style="margin-bottom: 0;">Defined Zones</span>
-              <span id="total-zones-count" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">0
+            <div class="flex between items-c mb-8">
+              <span class="form-label mb-0">Defined Zones</span>
+              <span class="fs-08 fw-7 c-muted" id="total-zones-count">0
                 zones</span>
             </div>
             <div class="zones-table-wrapper">
@@ -478,7 +474,7 @@
                 </thead>
                 <tbody id="zones-table-body">
                   <tr>
-                    <td colspan="4" style="text-align: center; color: var(--text-light); padding: 16px;">No zones
+                    <td class="tc p-16 c-text-light" colspan="4">No zones
                       defined yet.</td>
                   </tr>
                 </tbody>
@@ -495,44 +491,43 @@
   <!-- ================================================================= -->
   <!-- Delete Event Confirmation Modal (FR-15 Password Re-verification)  -->
   <!-- ================================================================= -->
-  <div id="deleteModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 480px;">
+  <div id="delete-modal" class="modal-overlay admin-initially-hidden">
+    <div class="modal-content max-w-480">
       <div class="modal-header">
-        <h3 style="color: var(--candy-apple); display: flex; align-items: center; gap: 8px; font-weight: 800;">
+        <h3 class="flex items-c gap-8 fw-8 c-red">
           <i class="fa-solid fa-triangle-exclamation"></i> Delete Event Permanently
         </h3>
-        <button type="button" class="modal-close-btn" id="closeDeleteModal"
-          style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close">
+        <button type="button" class="modal-close-btn c-muted btn-icon-action" id="close-delete-modal" title="Close">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <div class="modal-body">
         <div class="danger-warning-box">
           <p><strong>Warning:</strong> You are about to permanently delete this event.</p>
-          <p style="margin-top: 6px; font-size: 0.85rem; color: #4B5563;">
+          <p class="fs-085 c-ink-2 mt-6">
             Existing PAID bookings will be automatically cancelled and refunded (40 THB service fee retained per
             booking). Affected customers will be notified. This action cannot be undone.
           </p>
         </div>
-        <div class="form-group" style="margin-top: 16px;">
-          <label class="form-label" for="deleteEventTitleConfirm">
-            Type event title to confirm: <strong id="deleteTargetTitle" style="color: var(--monday-blue);"></strong>
+        <div class="form-group mt-16">
+          <label class="form-label" for="delete-event-title-confirm">
+            Type event title to confirm: <strong class="c-blue" id="delete-target-title"></strong>
           </label>
-          <input type="text" id="deleteEventTitleConfirm" class="form-control"
+          <input type="text" id="delete-event-title-confirm" class="form-control"
             placeholder="Type event title exact match">
         </div>
         <div class="form-group">
-          <label class="form-label" for="deleteAdminPassword">
+          <label class="form-label" for="delete-admin-password">
             Admin Password Verification <span class="required-asterisk">*</span>
           </label>
-          <input type="password" id="deleteAdminPassword" class="form-control"
+          <input type="password" id="delete-admin-password" class="form-control"
             placeholder="Enter your admin account password" required>
         </div>
-        <div id="deleteModalError" class="modal-error-alert" style="display: none;"></div>
+        <div id="delete-modal-error" class="modal-error-alert admin-initially-hidden"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" id="cancelDeleteBtn" class="btn-pill-outline">Cancel</button>
-        <button type="button" id="confirmDeleteBtn" class="btn-pill-red" disabled>
+        <button type="button" id="cancel-delete-btn" class="btn-pill-outline">Cancel</button>
+        <button type="button" id="confirm-delete-btn" class="btn-pill-red" disabled>
           <i class="fa-solid fa-trash"></i> Permanently Delete
         </button>
       </div>

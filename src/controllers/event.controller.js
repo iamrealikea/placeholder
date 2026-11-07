@@ -367,15 +367,27 @@ function listEvents(req, res) {
       zones: SeatModel.getZoneSeatAvailability(e.id, r.id)
     }));
 
-    const totalAvailable = roundAvailability.reduce(
-      (sum, r) => sum + r.zones.reduce((zSum, z) => zSum + z.availableSeats, 0),
-      0
-    );
+    let totalSeats = 0;
+    let totalAvailableSeats = 0;
+    let totalBookedSeats = 0;
+    let totalHeldSeats = 0;
+
+    for (const r of roundAvailability) {
+      for (const z of (r.zones || [])) {
+        totalSeats += (z.totalSeats || 0);
+        totalAvailableSeats += (z.availableSeats || 0);
+        totalBookedSeats += (z.bookedSeats || 0);
+        totalHeldSeats += (z.heldSeats || 0);
+      }
+    }
 
     return {
       ...e,
       isBookmarked: userBookmarks.includes(e.id),
-      totalAvailableSeats: totalAvailable,
+      totalSeats,
+      totalAvailableSeats,
+      totalBookedSeats,
+      totalHeldSeats,
       roundsSummary: roundAvailability
     };
   });

@@ -109,6 +109,24 @@ const API = {
         method: 'PUT',
         body: JSON.stringify(body)
       });
+    },
+    inspectEvent: (id) => API.request('/admin/events/' + encodeURIComponent(id || '') + '/inspect'),
+    getTransactions: (filters = {}) => {
+      let q = '';
+      if (typeof filters === 'string') {
+        q = filters.startsWith('?') ? filters.slice(1) : filters;
+      } else if (typeof URLSearchParams !== 'undefined' && filters instanceof URLSearchParams) {
+        q = filters.toString();
+      } else if (filters && typeof filters === 'object') {
+        const params = new URLSearchParams();
+        for (const [key, val] of Object.entries(filters)) {
+          if (val !== undefined && val !== null && String(val).trim() !== '') {
+            params.set(key, String(val).trim());
+          }
+        }
+        q = params.toString();
+      }
+      return API.request(`/admin/transactions${q ? `?${q}` : ''}`);
     }
   },
 

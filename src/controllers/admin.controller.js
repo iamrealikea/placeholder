@@ -3,6 +3,7 @@ const {
   EventModel,
   SeatModel,
   BookingModel,
+  PaymentModel,
   TicketModel,
   UserModel,
   NotificationModel
@@ -239,6 +240,273 @@ function updateUserRole(req, res) {
   });
 }
 
+/**
+ * Helper to construct a normalized, sanitized audit transaction record (FR-43)
+ * Guarantees that user object is sanitized and passwordHash is never leaked.
+ */
+function buildTransactionRecord(booking, payment, user, event) {
+  const safeUser = sanitizeUser(user);
+
+  const customerName = (safeUser && safeUser.name) || booking.userName || 'Unknown';
+  const customerEmail = (safeUser && safeUser.email) || booking.userEmail || '';
+  const customerPhone = (safeUser && safeUser.phone) || booking.userPhone || '';
+
+  const eventTitle = booking.eventTitle || (event ? event.title : '');
+  const venue = booking.venue || (event ? event.venue : '');
+
+  let roundLabel = booking.roundLabel || '';
+  if (!roundLabel && event && Array.isArray(event.rounds)) {
+    const matchedRound = event.rounds.find((r) => r.id === booking.roundId);
+    if (matchedRound) {
+      roundLabel = matchedRound.label || `${matchedRound.date || ''} • ${matchedRound.time || ''}`.trim();
+    }
+  }
+
+  const seatNumbers = Array.isArray(booking.seatNumbers) ? booking.seatNumbers : [];
+  const seatIds = Array.isArray(booking.seatIds) ? booking.seatIds : [];
+
+  let paymentStatus = 'PENDING';
+  if (payment && payment.status) {
+    paymentStatus = payment.status;
+  } else if (booking.status === 'PAID') {
+    paymentStatus = 'SUCCESS';
+  } else if (booking.status === 'CANCELLED') {
+    paymentStatus = 'CANCELLED';
+  } else if (booking.status === 'EXPIRED') {
+    paymentStatus = 'EXPIRED';
+  } else if (booking.status) {
+    paymentStatus = booking.status;
+  }
+
+  const subtotal = Number(booking.subtotal) || 0;
+  const discountAmount = Number(booking.discountAmount) || 0;
+  const serviceFee = Number(booking.serviceFee) || 0;
+  const totalAmount = Number(booking.totalAmount) || 0;
+  const refundAmount = payment ? (Number(payment.refundAmount) || 0) : 0;
+
+  return {
+    id: booking.id || (payment ? payment.id : `txn-${Date.now()}`),
+    bookingId: booking.id,
+    paymentId: payment ? payment.id : null,
+    referenceCode: (payment && payment.referenceCode) || booking.referenceCode || booking.id,
+    eventId: booking.eventId,
+    eventTitle,
+    venue,
+    roundId: booking.roundId,
+    roundLabel,
+    userId: booking.userId,
+    user: safeUser,
+    customer: safeUser
+      ? { id: safeUser.id, name: safeUser.name, email: safeUser.email, phone: safeUser.phone }
+      : { id: booking.userId || null, name: customerName, email: customerEmail, phone: customerPhone },
+    customerName,
+    customerEmail,
+    customerPhone,
+    seatNumbers,
+    seatIds,
+    seatsCount: seatNumbers.length,
+    zoneName: booking.zoneName || '',
+    paymentMethod: (payment && payment.method) || booking.paymentMethod || null,
+    bookingStatus: booking.status,
+    paymentStatus,
+    subtotal,
+    discountAmount,
+    discount: discountAmount,
+    serviceFee,
+    fee: serviceFee,
+    totalAmount,
+    total: totalAmount,
+    refundAmount,
+    refund: refundAmount,
+    createdAt: booking.createdAt,
+    paidAt: payment ? payment.paidAt : (booking.status === 'PAID' ? booking.createdAt : null),
+    refundedAt: payment ? payment.refundedAt : null
+  };
+}
+
+/**
+ * Materializes and filters audit transactions across bookings, payments, users, and events (FR-43)
+ * Supports query parameters: eventId, status, and search.
+ * Safely handles regex characters via literal substring matching.
+ */
+function getAuditTransactions(filters = {}) {
+  const { eventId, status, search } = filters || {};
+  const bookings = BookingModel.findAll();
+  const payments = PaymentModel.findAll();
+  const users = UserModel.findAll();
+  const events = EventModel.findAll();
+
+  const paymentMap = new Map();
+  for (const p of payments) {
+    if (p && p.bookingId) paymentMap.set(p.bookingId, p);
+  }
+
+  const userMap = new Map();
+  for (const u of users) {
+    if (u && u.id) userMap.set(u.id, u);
+  }
+
+  const eventMap = new Map();
+  for (const e of events) {
+    if (e && e.id) eventMap.set(e.id, e);
+  }
+
+  let list = bookings;
+
+  // Filter by eventId
+  let targetEventId = '';
+  if (typeof eventId === 'string') {
+    targetEventId = eventId.trim();
+  } else if (Array.isArray(eventId)) {
+    targetEventId = String(eventId[0] || '').trim();
+  }
+  if (targetEventId && targetEventId.toLowerCase() !== 'all') {
+    list = list.filter((b) => b && b.eventId === targetEventId);
+  }
+
+  // Materialize transaction records
+  let transactions = list.map((b) => {
+    const payment = paymentMap.get(b.id) || null;
+    const user = userMap.get(b.userId) || null;
+    const event = eventMap.get(b.eventId) || null;
+    return buildTransactionRecord(b, payment, user, event);
+  });
+
+  // Filter by status (matches bookingStatus or paymentStatus)
+  let targetStatus = '';
+  if (typeof status === 'string') {
+    targetStatus = status.trim().toLowerCase();
+  } else if (Array.isArray(status)) {
+    targetStatus = String(status[0] || '').trim().toLowerCase();
+  }
+  if (targetStatus && targetStatus !== 'all') {
+    transactions = transactions.filter((t) => {
+      const bMatch = t.bookingStatus && t.bookingStatus.toLowerCase() === targetStatus;
+      const pMatch = t.paymentStatus && t.paymentStatus.toLowerCase() === targetStatus;
+      return Boolean(bMatch || pMatch);
+    });
+  }
+
+  // Filter by search string across multiple fields
+  let searchStr = '';
+  if (typeof search === 'string') {
+    searchStr = search.trim().toLowerCase();
+  } else if (Array.isArray(search)) {
+    searchStr = String(search[0] || '').trim().toLowerCase();
+  } else if (search !== undefined && search !== null) {
+    searchStr = String(search).trim().toLowerCase();
+  }
+  if (searchStr) {
+    transactions = transactions.filter((t) => {
+      const bkgIdMatch = t.bookingId && t.bookingId.toLowerCase().includes(searchStr);
+      const payIdMatch = t.paymentId && t.paymentId.toLowerCase().includes(searchStr);
+      const refMatch = t.referenceCode && t.referenceCode.toLowerCase().includes(searchStr);
+      const titleMatch = t.eventTitle && t.eventTitle.toLowerCase().includes(searchStr);
+      const nameMatch = t.customerName && t.customerName.toLowerCase().includes(searchStr);
+      const emailMatch = t.customerEmail && t.customerEmail.toLowerCase().includes(searchStr);
+      const phoneMatch = t.customerPhone && t.customerPhone.toLowerCase().includes(searchStr);
+      const seatsMatch = (t.seatNumbers || []).some((sn) => String(sn).toLowerCase().includes(searchStr));
+      const zoneMatch = t.zoneName && t.zoneName.toLowerCase().includes(searchStr);
+      return Boolean(
+        bkgIdMatch || payIdMatch || refMatch || titleMatch || nameMatch || emailMatch || phoneMatch || seatsMatch || zoneMatch
+      );
+    });
+  }
+
+  // Sort newest-first by createdAt
+  transactions.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  return transactions;
+}
+
+/**
+ * FR-42: Event Inspection & Real-Time Seat Inventory
+ * GET /api/admin/events/:id/inspect
+ */
+function inspectEvent(req, res) {
+  SeatModel.expireHeldSeats();
+
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found.' });
+  }
+
+  const seats = SeatModel.findByEvent(event.id);
+  const totalSeats = seats.length;
+  const availableSeats = seats.filter((s) => s.status === 'AVAILABLE').length;
+  const heldSeats = seats.filter((s) => s.status === 'HELD').length;
+  const bookedSeats = seats.filter((s) => s.status === 'BOOKED').length;
+
+  const rounds = (event.rounds || []).map((r) => ({
+    roundId: r.id,
+    date: r.date,
+    time: r.time,
+    label: r.label || `${r.date} • ${r.time}`,
+    zones: SeatModel.getZoneSeatAvailability(event.id, r.id)
+  }));
+
+  const eventBookings = BookingModel.findByEventId(event.id);
+  const totalBookings = eventBookings.length;
+  const paidBookings = eventBookings.filter((b) => b.status === 'PAID');
+  const paidBookingsCount = paidBookings.length;
+  const pendingBookingsCount = eventBookings.filter((b) => b.status === 'PENDING').length;
+  const cancelledBookingsCount = eventBookings.filter((b) => b.status === 'CANCELLED').length;
+  const totalRevenue = paidBookings.reduce((sum, b) => sum + (Number(b.totalAmount) || 0), 0);
+
+  const payments = PaymentModel.findAll();
+  const paymentMap = new Map();
+  for (const p of payments) {
+    if (p && p.bookingId) paymentMap.set(p.bookingId, p);
+  }
+
+  const totalRefunded = eventBookings.reduce((sum, b) => {
+    const payment = paymentMap.get(b.id);
+    return sum + (payment && payment.refundAmount ? Number(payment.refundAmount) : 0);
+  }, 0);
+
+  const eventTickets = TicketModel.findAll().filter((t) => t && t.eventId === event.id);
+  const ticketsIssued = eventTickets.filter((t) => t.status !== 'CANCELLED').length;
+  const ticketsCheckedIn = eventTickets.filter((t) => t.status === 'CHECKED_IN').length;
+
+  const transactions = getAuditTransactions({ eventId: event.id });
+
+  const summary = {
+    totalSeats,
+    availableSeats,
+    heldSeats,
+    bookedSeats,
+    totalBookings,
+    paidBookingsCount,
+    pendingBookingsCount,
+    cancelledBookingsCount,
+    totalRevenue,
+    totalRefunded,
+    ticketsIssued,
+    ticketsCheckedIn
+  };
+
+  return res.json({
+    event,
+    summary,
+    ...summary,
+    rounds,
+    roundsSummary: rounds,
+    transactions
+  });
+}
+
+/**
+ * FR-43: Global Transaction & Payment History Audit
+ * GET /api/admin/transactions
+ */
+function listTransactions(req, res) {
+  SeatModel.expireHeldSeats();
+  const transactions = getAuditTransactions(req.query);
+  return res.json({
+    total: transactions.length,
+    transactions
+  });
+}
+
 module.exports = {
   getDashboard,
   updateEventSeating,
@@ -246,5 +514,9 @@ module.exports = {
   createBackup,
   restoreBackup,
   listUsers,
-  updateUserRole
+  updateUserRole,
+  buildTransactionRecord,
+  getAuditTransactions,
+  inspectEvent,
+  listTransactions
 };

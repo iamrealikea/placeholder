@@ -6,54 +6,54 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const adminGuardEl = document.getElementById('adminGuard');
-  const adminContentEl = document.getElementById('adminContent');
-  const portalRoleBadgeEl = document.getElementById('portalRoleBadge');
-  const portalSubtitleEl = document.getElementById('portalSubtitle');
-  const portalTabsNavEl = document.getElementById('portalTabsNav');
+  const adminGuardEl = document.getElementById('admin-guard');
+  const adminContentEl = document.getElementById('admin-content');
+  const portalRoleBadgeEl = document.getElementById('portal-role-badge');
+  const portalSubtitleEl = document.getElementById('portal-subtitle');
+  const portalTabsNavEl = document.getElementById('portal-tabs-nav');
 
   // KPI elements (Overview Tab)
-  const kpiRevenueEl = document.getElementById('kpiRevenue');
-  const kpiTicketsEl = document.getElementById('kpiTickets');
-  const kpiCheckedInEl = document.getElementById('kpiCheckedIn');
-  const kpiEventsEl = document.getElementById('kpiEvents');
-  const kpiAvailableSeatsEl = document.getElementById('kpiAvailableSeats');
-  const kpiBookedSeatsEl = document.getElementById('kpiBookedSeats');
-  const salesCanvas = document.getElementById('salesChart');
+  const kpiRevenueEl = document.getElementById('kpi-revenue');
+  const kpiTicketsEl = document.getElementById('kpi-tickets');
+  const kpiCheckedInEl = document.getElementById('kpi-checked-in');
+  const kpiEventsEl = document.getElementById('kpi-events');
+  const kpiAvailableSeatsEl = document.getElementById('kpi-available-seats');
+  const kpiBookedSeatsEl = document.getElementById('kpi-booked-seats');
+  const salesCanvas = document.getElementById('sales-chart');
 
   // Events & Seating Tab elements
-  const adminEventsTableBody = document.getElementById('adminEventsTableBody');
-  const createEventBtn = document.getElementById('createEventBtn');
+  const adminEventsTableBody = document.getElementById('admin-events-table-body');
+  const createEventBtn = document.getElementById('create-event-btn');
 
   // Scanner Tab elements
-  const cameraVideo = document.getElementById('cameraVideo');
-  const startCameraBtn = document.getElementById('startCameraBtn');
-  const stopCameraBtn = document.getElementById('stopCameraBtn');
-  const cameraErrorMsg = document.getElementById('cameraErrorMsg');
-  const manualTicketCodeInput = document.getElementById('manualTicketCode');
-  const validateCodeBtn = document.getElementById('validateCodeBtn');
-  const qrFileInput = document.getElementById('qrFileInput');
-  const scanResultArea = document.getElementById('scanResultArea');
-  const scanAuditLogBody = document.getElementById('scanAuditLogBody');
+  const cameraVideo = document.getElementById('camera-video');
+  const startCameraBtn = document.getElementById('start-camera-btn');
+  const stopCameraBtn = document.getElementById('stop-camera-btn');
+  const cameraErrorMsg = document.getElementById('camera-error-msg');
+  const manualTicketCodeInput = document.getElementById('manual-ticket-code');
+  const validateCodeBtn = document.getElementById('validate-code-btn');
+  const qrFileInput = document.getElementById('qr-file-input');
+  const scanResultArea = document.getElementById('scan-result-area');
+  const scanAuditLogBody = document.getElementById('scan-audit-log-body');
 
   // User & Role Management Tab elements
-  const userCountTotalEl = document.getElementById('userCountTotal');
-  const userCountAdminEl = document.getElementById('userCountAdmin');
-  const userCountStaffEl = document.getElementById('userCountStaff');
-  const userCountCustomerEl = document.getElementById('userCountCustomer');
-  const roleTotalCountEl = document.getElementById('roleTotalCount');
-  const roleAdminCountEl = document.getElementById('roleAdminCount');
-  const roleStaffCountEl = document.getElementById('roleStaffCount');
-  const roleCustomerCountEl = document.getElementById('roleCustomerCount');
-  const userSearchInput = document.getElementById('userSearchInput');
-  const userRoleFilter = document.getElementById('userRoleFilter');
-  const adminUsersTableBody = document.getElementById('adminUsersTableBody');
-  const userResultsCountEl = document.getElementById('userResultsCount');
+  const userCountTotalEl = document.getElementById('user-count-total');
+  const userCountAdminEl = document.getElementById('user-count-admin');
+  const userCountStaffEl = document.getElementById('user-count-staff');
+  const userCountCustomerEl = document.getElementById('user-count-customer');
+  const roleTotalCountEl = document.getElementById('role-total-count');
+  const roleAdminCountEl = document.getElementById('role-admin-count');
+  const roleStaffCountEl = document.getElementById('role-staff-count');
+  const roleCustomerCountEl = document.getElementById('role-customer-count');
+  const userSearchInput = document.getElementById('user-search-input');
+  const userRoleFilter = document.getElementById('user-role-filter');
+  const adminUsersTableBody = document.getElementById('admin-users-table-body');
+  const userResultsCountEl = document.getElementById('user-results-count');
 
   // Support & Backups Tab elements
-  const adminSupportTableBody = document.getElementById('adminSupportTableBody');
-  const backupListEl = document.getElementById('backupList');
-  const createBackupBtn = document.getElementById('createBackupBtn');
+  const adminSupportTableBody = document.getElementById('admin-support-table-body');
+  const backupListEl = document.getElementById('backup-list');
+  const createBackupBtn = document.getElementById('create-backup-btn');
 
   // Scanner state
   let mediaStream = null;
@@ -98,13 +98,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (adminGuardEl) {
       adminGuardEl.style.display = 'block';
       adminGuardEl.innerHTML = `
-        <div style="text-align:center; padding: 48px; background:#FFFFFF; border-radius:16px; max-width:540px; margin:40px auto; border:2px solid #FF0800; box-shadow: 0 10px 25px rgba(255, 8, 0, 0.1);">
-          <span style="font-size: 3rem; display: block; margin-bottom: 12px; color: #FF0800;"><i class="fa-solid fa-lock"></i></span>
-          <h2 style="color: #FF0800; margin-bottom: 12px;">Operational Privileges Required</h2>
-          <p style="color: #4B5563; margin-bottom: 24px; line-height: 1.5;">${msg}</p>
-          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <div class="tc bg-white r-16 admin-guard-card">
+          <span class="block mb-12 c-red fs-3"><i class="fa-solid fa-lock"></i></span>
+          <h2 class="c-red mb-12">Operational Privileges Required</h2>
+          <p class="c-ink-2 mb-24 lh-15">${msg}</p>
+          <div class="flex gap-12 justify-c wrap">
             <button class="btn-pill-blue" onclick="Auth.openAuthModal()">Sign in with Staff/Admin Account</button>
-            <a href="/home" class="btn-pill-outline" style="text-decoration:none; padding:10px 20px;">Return Home</a>
+            <a href="/home" class="btn-pill-outline no-ul p-10-20">Return Home</a>
           </div>
         </div>
       `;
@@ -127,11 +127,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (portalRoleBadgeEl) {
       portalRoleBadgeEl.textContent = currentRole;
       if (isUserAdmin) {
-        portalRoleBadgeEl.className = 'badge-pill-red';
-        portalRoleBadgeEl.style.cssText = 'font-size: 0.85rem; padding: 4px 14px; text-transform: uppercase; background: #FF0800; color: #FFFFFF; font-weight: 800;';
+        portalRoleBadgeEl.className = 'badge-pill-red admin-role-badge';
       } else {
-        portalRoleBadgeEl.className = 'badge-pill-blue';
-        portalRoleBadgeEl.style.cssText = 'font-size: 0.85rem; padding: 4px 14px; text-transform: uppercase; background: #1D56CF; color: #FFFFFF; font-weight: 800;';
+        portalRoleBadgeEl.className = 'badge-pill-blue admin-role-badge';
       }
     }
 
@@ -242,6 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadDashboardData();
     } else if (tabName === 'events' && isUserAdmin) {
       loadEvents();
+      loadAuditTransactions();
     } else if (tabName === 'roles' && isUserAdmin) {
       loadUsers();
     } else if (tabName === 'support' && isUserAdmin) {
@@ -384,7 +383,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (createEventBtn) {
       createEventBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        window.location.href = '/admin-event?mode=create';
+        window.location.href = '/admin-event.html?mode=create';
+      });
+    }
+
+    // Dynamic Filter Controls for Tab 2 Transaction Audit (FR-43)
+    const tabAuditFilterEvent = document.getElementById('tab-audit-filter-event');
+    const tabAuditFilterStatus = document.getElementById('tab-audit-filter-status');
+    const tabAuditSearchInput = document.getElementById('tab-audit-search-input');
+
+    if (tabAuditFilterEvent) {
+      tabAuditFilterEvent.addEventListener('change', () => loadAuditTransactions());
+    }
+    if (tabAuditFilterStatus) {
+      tabAuditFilterStatus.addEventListener('change', () => loadAuditTransactions());
+    }
+    if (tabAuditSearchInput) {
+      tabAuditSearchInput.addEventListener('input', () => {
+        clearTimeout(auditSearchDebounceTimer);
+        auditSearchDebounceTimer = setTimeout(() => {
+          loadAuditTransactions();
+        }, 300);
       });
     }
   }
@@ -396,62 +415,93 @@ document.addEventListener('DOMContentLoaded', async () => {
       const events = res.events || [];
 
       adminEventsTableBody.innerHTML = events
-        .map(
-          (e) => `
+        .map((e) => {
+          const avail = e.totalAvailableSeats ?? (e.availableSeats || 0);
+          const held = e.totalHeldSeats ?? (e.heldSeats || 0);
+          const booked = e.totalBookedSeats ?? (e.bookedSeats || 0);
+
+          return `
             <tr>
-              <td><strong>${e.title}</strong><br><small style="color:#6B7280;">${e.id}</small></td>
-              <td>${e.category}</td>
-              <td><span class="badge-pill-blue" style="font-size:0.75rem;">${e.status}</span></td>
-              <td>${e.venue}</td>
-              <td>${e.totalAvailableSeats || 0}</td>
+              <td><strong>${escapeHtml(e.title)}</strong><br><small class="c-muted">${escapeHtml(e.id)}</small></td>
+              <td>${escapeHtml(e.category)}</td>
+              <td><span class="badge-pill-blue fs-075">${escapeHtml(e.status)}</span></td>
+              <td>${escapeHtml(e.venue)}</td>
+              <td class="nowrap">
+                <div class="flex gap-4 wrap">
+                  <span class="badge-seat-available c-white fs-072 fw-7 p-2-7 r-9999 bg-green" title="Available Seats">${avail} AVAILABLE</span>
+                  <span class="badge-seat-held c-white fs-072 fw-7 p-2-7 r-9999 bg-amber" title="Held Seats">${held} HELD</span>
+                  <span class="badge-seat-booked c-white fs-072 fw-7 p-2-7 r-9999 bg-muted" title="Booked Seats">${booked} BOOKED</span>
+                </div>
+              </td>
               <td>
-                <a href="/admin-event?id=${encodeURIComponent(e.id)}" class="btn-edit-event btn-pill-outline" data-id="${e.id}" style="padding:4px 10px; font-size:0.8rem; margin-right:4px; text-decoration:none; display:inline-block;">Edit</a>
-                <button class="btn-delete-event btn-pill-outline" data-id="${e.id}" data-title="${(e.title || '').replace(/"/g, '&quot;')}" style="padding:4px 10px; font-size:0.8rem; color:#FF0800; border-color:#FF0800;">Delete</button>
+                <button class="btn-info-event btn-pill-outline p-4-10 fs-08 mr-4 c-blue border-blue" data-id="${escapeHtml(e.id)}" title="Inspect Real-Time Inventory &amp; Booking Audit">
+                  <i class="fa-solid fa-circle-info"></i> Info
+                </button>
+                <a href="/admin-event.html?id=${encodeURIComponent(e.id)}" class="btn-edit-event btn-pill-outline p-4-10 fs-08 mr-4 no-ul inline-block" data-id="${escapeHtml(e.id)}">Edit</a>
+                <button class="btn-delete-event btn-pill-outline p-4-10 fs-08 c-red border-red" data-id="${escapeHtml(e.id)}" data-title="${(e.title || '').replace(/"/g, '&quot;')}">Delete</button>
               </td>
             </tr>
-          `
-        )
+          `;
+        })
         .join('');
 
+      // Wire Info Buttons to Event Inspection Modal (FR-42)
+      adminEventsTableBody.querySelectorAll('.btn-info-event').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          openEventInspectionModal(btn.dataset.id);
+        });
+      });
+
+      // Wire Delete Buttons to Confirmation Modal (FR-15)
       adminEventsTableBody.querySelectorAll('.btn-delete-event').forEach((btn) => {
         btn.addEventListener('click', () => {
           openDeleteEventModal(btn.dataset.id, btn.dataset.title || btn.dataset.id);
         });
       });
+
+      // Populate Tab 2 Audit Event Filter Dropdown (FR-43)
+      const tabAuditFilterEvent = document.getElementById('tab-audit-filter-event');
+      if (tabAuditFilterEvent) {
+        const currentVal = tabAuditFilterEvent.value;
+        tabAuditFilterEvent.innerHTML = '<option value="">All Events</option>' +
+          events.map((e) => `<option value="${escapeHtml(e.id)}">${escapeHtml(e.title || e.id)} (${escapeHtml(e.id)})</option>`).join('');
+        if (currentVal && events.some((e) => e.id === currentVal)) {
+          tabAuditFilterEvent.value = currentVal;
+        }
+      }
     } catch (err) {
       console.error('Failed to load events in admin:', err);
     }
   }
 
   function openDeleteEventModal(eventId, eventTitle) {
-    const existing = document.getElementById('adminDeleteEventModal');
+    const existing = document.getElementById('admin-delete-event-modal');
     if (existing) existing.remove();
 
     const modal = document.createElement('div');
-    modal.id = 'adminDeleteEventModal';
-    modal.className = 'modal-overlay';
-    modal.style.cssText = 'position:fixed; inset:0; background:rgba(17,24,39,0.65); display:flex; align-items:center; justify-content:center; z-index:9999;';
+    modal.id = 'admin-delete-event-modal';
+    modal.className = 'modal-overlay admin-delete-event-modal';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 480px; width: 92%; background:#FFFFFF; border-radius:16px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.25);">
-        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <h3 style="margin:0; color:#FF0800;"><i class="fa-solid fa-triangle-exclamation"></i> Permanently Delete Event</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-content bg-white r-16 p-24 admin-delete-modal-card">
+        <div class="modal-header flex between items-c mb-12">
+          <h3 class="m-0 c-red"><i class="fa-solid fa-triangle-exclamation"></i> Permanently Delete Event</h3>
+          <button class="modal-close-btn c-muted btn-icon-action" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
-          <p style="font-size:0.9rem; color:#374151; margin-bottom:14px;">
+          <p class="fs-09 c-ink-3 mb-14">
             You are deleting <strong>${eventTitle}</strong> (<code>${eventId}</code>). Any paid bookings will be automatically cancelled and refunded (retaining the 40 THB service fee per ticket).
           </p>
           <form id="deleteEventPasswordForm">
-            <div class="form-group" style="margin-bottom:12px;">
+            <div class="form-group mb-12">
               <label class="form-label">Type event title to confirm *</label>
               <input type="text" id="delConfirmTitle" class="form-control" required placeholder="${eventTitle}" autocomplete="off">
             </div>
-            <div class="form-group" style="margin-bottom:12px;">
+            <div class="form-group mb-12">
               <label class="form-label">Administrator Password *</label>
               <input type="password" id="delAdminPassword" class="form-control" required placeholder="Enter admin password" autocomplete="current-password">
             </div>
-            <div id="delErrorBox" style="display:none; color:#DC2626; background:#FEE2E2; padding:8px 12px; border-radius:8px; font-size:0.85rem; font-weight:700; margin-bottom:12px;"></div>
-            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+            <div id="del-error-box" class="admin-delete-error admin-initially-hidden"></div>
+            <div class="flex gap-10 mt-16 justify-end">
               <button type="button" class="btn-pill-outline modal-cancel-btn">Cancel</button>
               <button type="submit" id="confirmDeleteSubmitBtn" class="btn-pill-red">Permanently Delete</button>
             </div>
@@ -469,7 +519,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
       const typedTitle = modal.querySelector('#delConfirmTitle').value.trim();
       const password = modal.querySelector('#delAdminPassword').value;
-      const errorBox = modal.querySelector('#delErrorBox');
+      const errorBox = modal.querySelector('#del-error-box');
       const submitBtn = modal.querySelector('#confirmDeleteSubmitBtn');
 
       if (typedTitle !== eventTitle.trim()) {
@@ -495,6 +545,504 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     };
   }
+
+  /**
+   * =========================================================================
+   * FR-42 & FR-43: Real-Time Event Inspection & Audit Management Helpers
+   * =========================================================================
+   */
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /**
+   * Unified Transaction Row Formatter (FR-43 / Ponytail Principle)
+   * Reusable across both #inspect-tx-table-body and #tab-audit-table-body.
+   * Outputs 7 standard columns:
+   * 1. Booking / Ref
+   * 2. Customer Details (name, id, email, phone)
+   * 3. Event & Seats
+   * 4. Payment Method
+   * 5. Financial Breakdown (subtotal, discount, fee, total, refund)
+   * 6. Status pills (booking & payment status)
+   * 7. Date
+   */
+  function formatTransactionRow(tx) {
+    if (!tx || typeof tx !== 'object') return '';
+
+    const bookingId = tx.bookingId || tx.id || '-';
+    const refCode = tx.referenceCode || '';
+    const paymentId = tx.paymentId || '';
+
+    // Customer fields (Sanitized Invariant)
+    const customer = tx.customer || tx.user || {};
+    const customerName = customer.name || tx.customerName || 'Anonymous Customer';
+    const customerId = customer.id || tx.userId || '-';
+    const customerEmail = customer.email || tx.customerEmail || '-';
+    const customerPhone = customer.phone || tx.customerPhone || '';
+
+    // Event & Seats
+    const eventTitle = tx.eventTitle || tx.eventId || 'Unknown Event';
+    const roundLabel = tx.roundLabel || '';
+    const zoneName = tx.zoneName || '';
+    const seats = Array.isArray(tx.seatNumbers) && tx.seatNumbers.length > 0
+      ? tx.seatNumbers.join(', ')
+      : (tx.seatsCount ? `${tx.seatsCount} Seats` : 'General / Unassigned');
+
+    // Payment Method
+    const method = tx.paymentMethod || 'UNPAID';
+
+    // Financial Breakdown
+    const subtotal = Number(tx.subtotal) || 0;
+    const discount = Number(tx.discountAmount || tx.discount) || 0;
+    const fee = Number(tx.serviceFee || tx.fee) || 0;
+    const total = Number(tx.totalAmount || tx.total) || 0;
+    const refund = Number(tx.refundAmount || tx.refund) || 0;
+
+    // Status Badges
+    const bkgStatus = (tx.bookingStatus || 'PENDING').toUpperCase();
+    const bkgStatusClass = ({ PAID: 'paid', PENDING: 'pending', CANCELLED: 'cancelled' })[bkgStatus] || 'other';
+
+    const payStatus = (tx.paymentStatus || (bkgStatus === 'PAID' ? 'SUCCESS' : 'PENDING')).toUpperCase();
+    const payStatusClass = ({ SUCCESS: 'success', REFUNDED: 'refunded', PENDING: 'pending', FAILED: 'failed' })[payStatus] || 'other';
+
+    // Date
+    const rawDate = tx.paidAt || tx.createdAt || tx.date;
+    const d = rawDate ? new Date(rawDate) : null;
+    const dateFormatted = d && !isNaN(d.getTime())
+      ? `${d.toLocaleDateString()} <small class="c-faint">${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>`
+      : '-';
+
+    return `
+      <tr>
+        <!-- 1. Booking / Ref -->
+        <td>
+          <strong class="c-ink fs-085">${escapeHtml(bookingId)}</strong>
+          ${refCode ? `<div class="fs-075 c-blue fw-7 mono mt-2">Ref: ${escapeHtml(refCode)}</div>` : ''}
+          ${paymentId && paymentId !== bookingId ? `<div class="c-faint mono fs-07">Pay: ${escapeHtml(paymentId)}</div>` : ''}
+        </td>
+
+        <!-- 2. Customer Details -->
+        <td>
+          <strong class="c-ink fs-085">${escapeHtml(customerName)}</strong>
+          <div class="fs-075 c-muted lh-14 mt-3">
+            <div><i class="fa-solid fa-id-badge c-faint w-14"></i> <span class="mono">${escapeHtml(customerId)}</span></div>
+            <div><i class="fa-solid fa-envelope c-faint w-14"></i> ${escapeHtml(customerEmail)}</div>
+            ${customerPhone ? `<div><i class="fa-solid fa-phone c-faint w-14"></i> ${escapeHtml(customerPhone)}</div>` : ''}
+          </div>
+        </td>
+
+        <!-- 3. Event & Seats -->
+        <td>
+          <strong class="c-ink fs-085">${escapeHtml(eventTitle)}</strong>
+          ${roundLabel ? `<div class="fs-075 c-muted mt-2">${escapeHtml(roundLabel)}</div>` : ''}
+          <div class="mt-4 flex gap-4 items-c wrap">
+            ${zoneName ? `<span class="fs-072 c-ink-3 r-4 fw-6 badge-subtle">${escapeHtml(zoneName)}</span>` : ''}
+            <span class="fs-078 fw-7 c-blue"><i class="fa-solid fa-chair mr-2"></i> ${escapeHtml(seats)}</span>
+          </div>
+        </td>
+
+        <!-- 4. Payment Method -->
+        <td>
+          <span class="fs-078 fw-7 c-ink-3 inline-flex items-c gap-4 badge-code-subtle">
+            <i class="fa-solid fa-credit-card c-blue"></i> ${escapeHtml(method)}
+          </span>
+        </td>
+
+        <!-- 5. Financial Breakdown -->
+        <td class="fs-08 lh-14">
+          <div class="fw-8 c-ink fs-088">${total.toLocaleString()} THB</div>
+          <div class="fs-072 c-muted mt-2">
+            Subtotal: ${subtotal.toLocaleString()} THB
+            ${discount > 0 ? `<br><span class="c-green fw-6">Discount: -${discount.toLocaleString()} THB</span>` : ''}
+            <br>Fee: ${fee.toLocaleString()} THB
+            ${refund > 0 ? `<br><span class="c-red fw-7">Refunded: ${refund.toLocaleString()} THB</span>` : ''}
+          </div>
+        </td>
+
+        <!-- 6. Status Pills -->
+        <td>
+          <div class="flex gap-4 flex-col-start">
+            <span class="admin-status-pill booking-status-${bkgStatusClass}">
+              ${escapeHtml(bkgStatus)}
+            </span>
+            <span class="admin-status-pill payment-status-${payStatusClass}">
+              Pay: ${escapeHtml(payStatus)}
+            </span>
+          </div>
+        </td>
+
+        <!-- 7. Date -->
+        <td class="fs-078 c-ink-2 nowrap">
+          ${dateFormatted}
+        </td>
+      </tr>
+    `;
+  }
+
+  /**
+   * Tab 2 Transaction Audit Loader (FR-43)
+   * Reads filter inputs and queries API.admin.getTransactions(filters)
+   */
+  let auditSearchDebounceTimer = null;
+
+  async function loadAuditTransactions() {
+    const tbody = document.getElementById('tab-audit-table-body');
+    if (!tbody) return;
+
+    const eventFilter = document.getElementById('tab-audit-filter-event');
+    const statusFilter = document.getElementById('tab-audit-filter-status');
+    const searchInput = document.getElementById('tab-audit-search-input');
+    const countEl = document.getElementById('tab-audit-count');
+
+    const filters = {};
+    if (eventFilter && eventFilter.value) filters.eventId = eventFilter.value;
+    if (statusFilter && statusFilter.value) filters.status = statusFilter.value;
+    if (searchInput && searchInput.value.trim()) filters.search = searchInput.value.trim();
+
+    tbody.innerHTML = `<tr><td class="tc p-24 c-muted" colspan="7"><i class="fa-solid fa-spinner fa-spin mr-8"></i> Loading audit transactions...</td></tr>`;
+
+    try {
+      const res = await API.admin.getTransactions(filters);
+      const transactions = (res && res.transactions) || [];
+
+      if (countEl) {
+        countEl.textContent = `${transactions.length} record${transactions.length === 1 ? '' : 's'}`;
+      }
+
+      if (transactions.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td class="tc c-muted p-32" colspan="7">
+              <i class="fa-solid fa-receipt block mb-8 c-faint fs-15"></i>
+              No transactions match the selected filters.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = transactions.map((tx) => formatTransactionRow(tx)).join('');
+    } catch (err) {
+      console.error('Failed to load audit transactions:', err);
+      tbody.innerHTML = `<tr><td class="tc p-24 c-red" colspan="7">Failed to load transactions: ${escapeHtml(err.message || 'Server error')}</td></tr>`;
+    }
+  }
+
+  /**
+   * Real-Time Event Inspection Modal Controller (FR-42 & FR-43)
+   * Displays seat inventory breakdown, KPI metrics, and event transactions.
+   */
+  let activeInspectModalEscHandler = null;
+  let currentInspectedTransactions = [];
+
+  async function openEventInspectionModal(eventId) {
+    const modal = document.getElementById('event-inspect-modal');
+    if (!modal) {
+      console.warn('Event inspection modal element (#event-inspect-modal) not found in DOM.');
+      return;
+    }
+
+    // Modal elements
+    const titleEl = document.getElementById('inspect-event-title');
+    const statusBadgeEl = document.getElementById('inspect-event-status-badge');
+    const categoryBadgeEl = document.getElementById('inspect-event-category-badge');
+    const metaEl = document.getElementById('inspect-event-meta');
+
+    // KPI elements
+    const kpiRevEl = document.getElementById('inspect-kpi-revenue');
+    const kpiRefEl = document.getElementById('inspect-kpi-refunded');
+    const kpiBkgEl = document.getElementById('inspect-kpi-bookings');
+    const kpiBkgBreakdownEl = document.getElementById('inspect-kpi-bookings-breakdown');
+    const kpiSeatsEl = document.getElementById('inspect-kpi-seats');
+    const kpiSeatsBreakdownEl = document.getElementById('inspect-kpi-seats-breakdown');
+    const kpiCheckInEl = document.getElementById('inspect-kpi-check-in');
+    const kpiCheckInRateEl = document.getElementById('inspect-kpi-check-in-rate');
+
+    // Round & Zone elements
+    const roundSelectorWrap = document.getElementById('inspect-round-selector-wrap');
+    const zoneTableBody = document.getElementById('inspect-zone-table-body');
+
+    // Modal Transactions elements
+    const txSearchInput = document.getElementById('inspect-tx-search');
+    const txStatusFilter = document.getElementById('inspect-tx-status-filter');
+    const txTableBody = document.getElementById('inspect-tx-table-body');
+
+    // Footer & Sub-Tabs
+    const editLink = document.getElementById('inspect-edit-event-link');
+    const lastUpdatedEl = document.getElementById('inspect-modal-last-updated');
+    const closeBtn = document.getElementById('inspect-modal-close-btn');
+    const closeFooterBtn = document.getElementById('inspect-modal-close-footer-btn');
+    const tabBtnInventory = document.getElementById('inspect-tab-btn-inventory');
+    const tabBtnTransactions = document.getElementById('inspect-tab-btn-transactions');
+    const paneInventory = document.getElementById('inspect-pane-inventory');
+    const paneTransactions = document.getElementById('inspect-pane-transactions');
+
+    // Display modal and lock body scrolling
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Reset sub-tabs to inventory view
+    if (tabBtnInventory && tabBtnTransactions && paneInventory && paneTransactions) {
+      tabBtnInventory.classList.add('active');
+      tabBtnTransactions.classList.remove('active');
+      tabBtnInventory.style.borderBottom = '3px solid #1D56CF';
+      tabBtnInventory.style.color = '#ffffffff';
+      tabBtnTransactions.style.borderBottom = 'none';
+      tabBtnTransactions.style.color = '#4B5563';
+      paneInventory.style.display = 'block';
+      paneTransactions.style.display = 'none';
+    }
+
+    // Set loading placeholders
+    if (zoneTableBody) {
+      zoneTableBody.innerHTML = `<tr><td class="tc p-24 c-muted" colspan="7"><i class="fa-solid fa-spinner fa-spin mr-8"></i> Synchronizing real-time seat inventory...</td></tr>`;
+    }
+    if (txTableBody) {
+      txTableBody.innerHTML = `<tr><td class="tc p-24 c-muted" colspan="7"><i class="fa-solid fa-spinner fa-spin mr-8"></i> Loading event transaction history...</td></tr>`;
+    }
+
+    // Define modal close handler
+    const closeModal = () => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+      if (activeInspectModalEscHandler) {
+        document.removeEventListener('keydown', activeInspectModalEscHandler);
+        activeInspectModalEscHandler = null;
+      }
+    };
+
+    // Bind close triggers
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (closeFooterBtn) closeFooterBtn.onclick = closeModal;
+    modal.onclick = (e) => {
+      if (e.target === modal) closeModal();
+    };
+
+    // ESC key listener
+    if (activeInspectModalEscHandler) {
+      document.removeEventListener('keydown', activeInspectModalEscHandler);
+    }
+    activeInspectModalEscHandler = (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        closeModal();
+      }
+    };
+    document.addEventListener('keydown', activeInspectModalEscHandler);
+
+    // Sub-tab switching triggers
+    if (tabBtnInventory) {
+      tabBtnInventory.onclick = () => {
+        tabBtnInventory.classList.add('active');
+        tabBtnTransactions.classList.remove('active');
+        tabBtnInventory.style.borderBottom = '3px solid #1D56CF';
+        tabBtnInventory.style.color = '#ffffffff';
+        tabBtnTransactions.style.borderBottom = 'none';
+        tabBtnTransactions.style.color = '#4B5563';
+        paneInventory.style.display = 'block';
+        paneTransactions.style.display = 'none';
+      };
+    }
+    if (tabBtnTransactions) {
+      tabBtnTransactions.onclick = () => {
+        tabBtnTransactions.classList.add('active');
+        tabBtnInventory.classList.remove('active');
+        tabBtnTransactions.style.borderBottom = '3px solid #1D56CF';
+        tabBtnTransactions.style.color = '#ffffffff';
+        tabBtnInventory.style.borderBottom = 'none';
+        tabBtnInventory.style.color = '#4B5563';
+        paneInventory.style.display = 'none';
+        paneTransactions.style.display = 'block';
+      };
+    }
+
+    try {
+      const data = await API.admin.inspectEvent(eventId);
+      const event = data.event || {};
+      const summary = data.summary || data;
+      const rounds = data.rounds || event.rounds || [];
+      currentInspectedTransactions = data.transactions || [];
+
+      // 1. Populate Header Metadata
+      if (titleEl) titleEl.textContent = event.title || 'Event Inspection';
+      if (statusBadgeEl) {
+        statusBadgeEl.textContent = event.status || 'PUBLISHED';
+        statusBadgeEl.className = event.status === 'PUBLISHED' ? 'badge-pill-blue' : 'badge-pill-outline';
+      }
+      if (categoryBadgeEl) {
+        categoryBadgeEl.textContent = event.category || 'Event';
+      }
+      if (metaEl) {
+        const venue = event.venue || 'Venue Not Set';
+        const roundCount = rounds.length;
+        metaEl.innerHTML = `<i class="fa-solid fa-location-dot mr-4 c-muted"></i> ${escapeHtml(venue)} &nbsp;•&nbsp; <i class="fa-solid fa-calendar-days mr-4 c-muted"></i> ${roundCount} Round${roundCount === 1 ? '' : 's'} &nbsp;•&nbsp; <i class="fa-solid fa-hashtag mr-4 c-muted"></i> <code class="c-blue">${escapeHtml(event.id || eventId)}</code>`;
+      }
+
+      // 2. Populate 5 KPI Cards
+      if (kpiRevEl) kpiRevEl.textContent = `${(summary.totalRevenue || 0).toLocaleString()} THB`;
+      if (kpiRefEl) kpiRefEl.textContent = `${(summary.totalRefunded || 0).toLocaleString()} THB`;
+      if (kpiBkgEl) kpiBkgEl.textContent = (summary.totalBookings || 0).toLocaleString();
+      if (kpiBkgBreakdownEl) {
+        kpiBkgBreakdownEl.textContent = `${summary.paidBookingsCount || 0} Paid • ${summary.pendingBookingsCount || 0} Pending • ${summary.cancelledBookingsCount || 0} Cancelled`;
+      }
+      if (kpiSeatsEl) {
+        kpiSeatsEl.textContent = `${(summary.availableSeats || 0).toLocaleString()} / ${(summary.totalSeats || 0).toLocaleString()} Avail`;
+      }
+      if (kpiSeatsBreakdownEl) {
+        kpiSeatsBreakdownEl.textContent = `${summary.heldSeats || 0} Held • ${summary.bookedSeats || 0} Booked`;
+      }
+      if (kpiCheckInEl) {
+        kpiCheckInEl.textContent = `${summary.ticketsCheckedIn || 0} / ${summary.ticketsIssued || 0}`;
+      }
+      if (kpiCheckInRateEl) {
+        const checkInRate = summary.ticketsIssued > 0
+          ? ((summary.ticketsCheckedIn / summary.ticketsIssued) * 100).toFixed(1)
+          : '0.0';
+        kpiCheckInRateEl.textContent = `${checkInRate}% Check-In Rate`;
+      }
+
+      // 3. Populate Round & Zone Breakdown
+      let activeRoundIndex = 0;
+      function renderZoneBreakdown() {
+        if (!zoneTableBody) return;
+        const currentRound = rounds[activeRoundIndex];
+        const zones = (currentRound && currentRound.zones) || [];
+
+        if (zones.length === 0) {
+          zoneTableBody.innerHTML = `<tr><td class="tc p-24 c-muted" colspan="7">No zone seating configured for this round.</td></tr>`;
+          return;
+        }
+
+        zoneTableBody.innerHTML = zones.map((z) => {
+          const totalSeats = z.totalSeats || 0;
+          const availSeats = z.availableSeats || 0;
+          const heldSeats = z.heldSeats || 0;
+          const bookedSeats = z.bookedSeats || 0;
+          const price = Number(z.price || 0);
+          const occupancyRate = totalSeats > 0 ? (((bookedSeats + heldSeats) / totalSeats) * 100).toFixed(1) : '0.0';
+          const zoneColor = z.color || '#1D56CF';
+
+          return `
+            <tr>
+              <td>
+                <div class="flex items-c gap-8">
+                  <span class="admin-zone-color-dot" style="background:${escapeHtml(zoneColor)};"></span>
+                  <strong>${escapeHtml(z.zoneName || z.name || z.zoneId || 'Zone')}</strong>
+                </div>
+              </td>
+              <td>${price.toLocaleString()} THB</td>
+              <td><span class="c-green fw-7">${availSeats}</span></td>
+              <td><span class="fw-7 c-amber">${heldSeats}</span></td>
+              <td><span class="c-muted fw-7">${bookedSeats}</span></td>
+              <td><strong>${totalSeats}</strong></td>
+              <td>
+                <div class="flex items-c gap-8">
+                  <div class="flex-1 r-4 admin-occupancy-bar">
+                    <div class="admin-occupancy-fill" style="width:${Math.min(100, Number(occupancyRate))}%;"></div>
+                  </div>
+                  <span class="fs-075 fw-7 c-ink-3 min-w-42">${occupancyRate}%</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (roundSelectorWrap) {
+        if (rounds.length <= 1) {
+          roundSelectorWrap.innerHTML = rounds[0]
+            ? `<span class="fs-085 c-ink-2 fw-6"><i class="fa-solid fa-clock mr-4"></i> ${escapeHtml(rounds[0].label || `${rounds[0].date} ${rounds[0].time}`)}</span>`
+            : '';
+        } else {
+          roundSelectorWrap.innerHTML = `
+            <label class="fs-08 c-muted fw-6 mr-4">Round:</label>
+            <select id="inspect-round-select" class="form-control fs-085 inline-block p-4-8-w-auto">
+              ${rounds.map((r, idx) => `<option value="${idx}">${escapeHtml(r.label || `${r.date} ${r.time}`)}</option>`).join('')}
+            </select>
+          `;
+          const roundSelect = document.getElementById('inspect-round-select');
+          if (roundSelect) {
+            roundSelect.addEventListener('change', (e) => {
+              activeRoundIndex = Number(e.target.value) || 0;
+              renderZoneBreakdown();
+            });
+          }
+        }
+      }
+      renderZoneBreakdown();
+
+      // 4. Modal Transactions Table & Real-Time Filtering
+      function renderModalTransactions() {
+        if (!txTableBody) return;
+        const searchVal = txSearchInput ? txSearchInput.value.trim().toLowerCase() : '';
+        const statusVal = txStatusFilter ? txStatusFilter.value.trim().toLowerCase() : '';
+
+        let filtered = currentInspectedTransactions;
+        if (statusVal && statusVal !== 'all') {
+          filtered = filtered.filter((t) => {
+            const bMatch = t.bookingStatus && t.bookingStatus.toLowerCase() === statusVal;
+            const pMatch = t.paymentStatus && t.paymentStatus.toLowerCase() === statusVal;
+            return Boolean(bMatch || pMatch);
+          });
+        }
+        if (searchVal) {
+          filtered = filtered.filter((t) => {
+            const bkgMatch = t.bookingId && t.bookingId.toLowerCase().includes(searchVal);
+            const refMatch = t.referenceCode && t.referenceCode.toLowerCase().includes(searchVal);
+            const nameMatch = t.customerName && t.customerName.toLowerCase().includes(searchVal);
+            const emailMatch = t.customerEmail && t.customerEmail.toLowerCase().includes(searchVal);
+            const phoneMatch = t.customerPhone && t.customerPhone.toLowerCase().includes(searchVal);
+            const seatMatch = (t.seatNumbers || []).some((sn) => String(sn).toLowerCase().includes(searchVal));
+            return Boolean(bkgMatch || refMatch || nameMatch || emailMatch || phoneMatch || seatMatch);
+          });
+        }
+
+        if (filtered.length === 0) {
+          txTableBody.innerHTML = `<tr><td class="tc c-muted p-32" colspan="7"><i class="fa-solid fa-receipt block mb-8 c-faint fs-15"></i>No transactions found for this event.</td></tr>`;
+          return;
+        }
+
+        txTableBody.innerHTML = filtered.map((tx) => formatTransactionRow(tx)).join('');
+      }
+
+      if (txSearchInput) {
+        txSearchInput.value = '';
+        txSearchInput.oninput = () => renderModalTransactions();
+      }
+      if (txStatusFilter) {
+        txStatusFilter.value = '';
+        txStatusFilter.onchange = () => renderModalTransactions();
+      }
+      renderModalTransactions();
+
+      // 5. Update Footer Link and Timestamp
+      if (editLink) {
+        editLink.href = `/admin-event.html?id=${encodeURIComponent(event.id || eventId)}`;
+      }
+      if (lastUpdatedEl) {
+        lastUpdatedEl.textContent = `Synchronized: ${new Date().toLocaleTimeString()}`;
+      }
+
+    } catch (err) {
+      console.error('Failed to load event inspection data:', err);
+      if (titleEl) titleEl.textContent = 'Inspection Error';
+      if (zoneTableBody) {
+        zoneTableBody.innerHTML = `<tr><td class="tc p-24 c-red" colspan="7">Failed to load event data: ${escapeHtml(err.message || 'Server error')}</td></tr>`;
+      }
+    }
+  }
+
+  // Expose inspection trigger to window for external/inline accessibility
+  window.openEventInspectionModal = openEventInspectionModal;
+  window.loadAuditTransactions = loadAuditTransactions;
+  window.formatTransactionRow = formatTransactionRow;
 
   /**
    * =========================================================================
@@ -604,31 +1152,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (scanResultArea) {
       scanResultArea.innerHTML = `
-        <div style="background: #ECFDF5; border: 2px solid #10B981; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <span style="font-size: 2rem; color: #10B981;"><i class="fa-solid fa-circle-check"></i></span>
+        <div class="r-16 p-24 mb-24 scanner-success-box">
+          <div class="flex items-c gap-12 mb-12">
+            <span class="c-green fs-2"><i class="fa-solid fa-circle-check"></i></span>
             <div>
-              <h3 style="color: #065F46; font-size: 1.5rem; margin: 0;">ADMISSION GRANTED</h3>
-              <span style="color: #047857; font-weight: 700; font-size: 0.85rem;">Ticket Status: CHECKED_IN</span>
+              <h3 class="m-0 scanner-success-icon">ADMISSION GRANTED</h3>
+              <span class="fw-7 fs-085 c-green-emerald">Ticket Status: CHECKED_IN</span>
             </div>
           </div>
 
-          <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 12px;">
+          <table class="w-100 fs-095 table-collapse-mt-12">
             <tr>
-              <td style="padding: 6px 0; color: #4B5563;">Ticket Code:</td>
-              <td style="font-family: monospace; font-weight: 800; color: #1D56CF;">${ticket.ticketCode}</td>
+              <td class="c-ink-2 py-6">Ticket Code:</td>
+              <td class="mono fw-8 c-blue">${ticket.ticketCode}</td>
             </tr>
             <tr>
-              <td style="padding: 6px 0; color: #4B5563;">Attendee Name:</td>
-              <td style="font-weight: 700;">${ticket.holderName || 'Alex Rivers'}</td>
+              <td class="c-ink-2 py-6">Attendee Name:</td>
+              <td class="fw-7">${ticket.holderName || 'Alex Rivers'}</td>
             </tr>
             <tr>
-              <td style="padding: 6px 0; color: #4B5563;">Seat / Zone:</td>
-              <td style="font-weight: 700; color: #111827;">${ticket.zoneName} - Seat ${ticket.seatNumber}</td>
+              <td class="c-ink-2 py-6">Seat / Zone:</td>
+              <td class="fw-7 c-ink">${ticket.zoneName} - Seat ${ticket.seatNumber}</td>
             </tr>
             <tr>
-              <td style="padding: 6px 0; color: #4B5563;">Validated At:</td>
-              <td style="color: #6B7280;">${new Date().toLocaleTimeString()}</td>
+              <td class="c-ink-2 py-6">Validated At:</td>
+              <td class="c-muted">${new Date().toLocaleTimeString()}</td>
             </tr>
           </table>
         </div>
@@ -657,12 +1205,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         scanResultArea.innerHTML = `
           <div class="fraud-warning-alert">
             <h3>
-              <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
+              <span><i class="fa-solid fa-triangle-exclamation mr-6"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
             </h3>
-            <p style="font-size: 1.1rem; font-weight: 700; margin: 12px 0; line-height: 1.4;">
+            <p class="fw-7 lh-14 fs-11-my-12">
               ${err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.'}
             </p>
-            <div style="background: rgba(0, 0, 0, 0.25); border-radius: 8px; padding: 12px; font-size: 0.9rem; margin-top: 12px;">
+            <div class="fs-09 scanner-raw-box">
               Ticket Code: <strong>${code}</strong><br>
               Action Required: Confiscate badge or verify customer identity at Box Office.
             </div>
@@ -670,17 +1218,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
       } else {
         scanResultArea.innerHTML = `
-          <div style="background: #FEF2F2; border: 2px solid #EF4444; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-              <span style="font-size: 2rem; color: #EF4444;"><i class="fa-solid fa-circle-xmark"></i></span>
+          <div class="r-16 p-24 mb-24 scanner-fraud-box">
+            <div class="flex items-c gap-12 mb-12">
+              <span class="scanner-fraud-icon"><i class="fa-solid fa-circle-xmark"></i></span>
               <div>
-                <h3 style="color: #991B1B; font-size: 1.35rem; margin: 0;">INVALID TICKET</h3>
-                <span style="color: #B91C1C; font-weight: 700; font-size: 0.85rem;">
+                <h3 class="fs-135 m-0 c-red-dark">INVALID TICKET</h3>
+                <span class="fw-7 fs-085 c-red-crimson">
                   ${isCancelled ? 'Ticket CANCELLED / REFUNDED' : 'Ticket Not Found'}
                 </span>
               </div>
             </div>
-            <p style="color: #7F1D1D; font-size: 0.95rem;">${err.message || 'Please verify the ticket code with customer.'}</p>
+            <p class="fs-095 c-red-deep">${err.message || 'Please verify the ticket code with customer.'}</p>
           </div>
         `;
       }
@@ -705,11 +1253,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         (item) => `
           <tr>
             <td><strong>${item.time}</strong></td>
-            <td style="font-family: monospace; font-weight:700;">${item.code}</td>
+            <td class="mono fw-7">${item.code}</td>
             <td>${item.attendee}</td>
             <td>${item.seat}</td>
             <td>
-              <span style="background: ${item.color}20; color: ${item.color}; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem;">
+              <span class="admin-category-badge" style="--category-color: ${item.color};">
                 ${item.status}
               </span>
             </td>
@@ -805,7 +1353,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (users.length === 0) {
         adminUsersTableBody.innerHTML = `
           <tr>
-            <td colspan="6" style="text-align:center; padding:32px; color:#6B7280;">
+            <td class="tc c-muted p-32" colspan="6">
               No users found matching current search/filter criteria.
             </td>
           </tr>
@@ -823,31 +1371,31 @@ document.addEventListener('DOMContentLoaded', async () => {
           return `
             <tr data-user-row="${u.id}">
               <td>
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <div style="width:36px; height:36px; border-radius:50%; background:#EBF1FD; color:#1D56CF; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0;">
-                    ${u.avatarUrl ? `<img src="${u.avatarUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : initials}
+                <div class="flex items-c gap-10">
+                  <div class="c-blue flex items-c justify-c fw-8 fs-085 admin-user-avatar-placeholder">
+                    ${u.avatarUrl ? `<img class="w-100 admin-user-avatar-img" src="${u.avatarUrl}">` : initials}
                   </div>
                   <div>
-                    <strong style="color:#111827;">${u.name || 'Anonymous User'}</strong>
-                    ${isCurrentUser ? '<span style="font-size:0.7rem; background:#FF0800; color:#FFFFFF; padding:2px 6px; border-radius:4px; margin-left:6px; font-weight:700;">YOU</span>' : ''}
-                    <div style="font-size:0.75rem; color:#6B7280; font-family:monospace;">${u.id}</div>
+                    <strong class="c-ink">${u.name || 'Anonymous User'}</strong>
+                    ${isCurrentUser ? '<span class="c-white r-4 fw-7 badge-pill-danger-sm">YOU</span>' : ''}
+                    <div class="fs-075 c-muted mono">${u.id}</div>
                   </div>
                 </div>
               </td>
               <td>${u.email}</td>
               <td>${u.phone || '—'}</td>
               <td>
-                <span style="font-weight:700; color:#1D56CF;"><i class="fa-solid fa-star" style="color: #1D56CF; margin-right: 2px;"></i> ${u.points || 0}</span>
+                <span class="fw-7 c-blue"><i class="fa-solid fa-star c-blue mr-2"></i> ${u.points || 0}</span>
               </td>
               <td>
-                <select class="user-role-select form-control" data-user-id="${u.id}" data-current-role="${userRole}" style="padding:6px 12px; font-size:0.85rem; font-weight:700; border-radius:9999px; min-width:120px;">
+                <select class="user-role-select form-control fs-085 fw-7 r-9999 btn-minw-120" data-user-id="${u.id}" data-current-role="${userRole}">
                   <option value="customer" ${userRole === 'customer' ? 'selected' : ''}>Customer</option>
                   <option value="staff" ${userRole === 'staff' ? 'selected' : ''}>Staff</option>
                   <option value="admin" ${userRole === 'admin' ? 'selected' : ''}>Admin</option>
                 </select>
               </td>
               <td>
-                <span class="${roleBadgeClass}" style="font-size:0.75rem; padding:3px 10px; border-radius:9999px; text-transform:uppercase;">
+                <span class="${roleBadgeClass} fs-075 r-9999 badge-pill-uppercase">
                   ${userRole}
                 </span>
               </td>
@@ -904,7 +1452,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const list = res.tickets || [];
 
       if (list.length === 0) {
-        adminSupportTableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#6B7280;">No inquiries submitted yet.</td></tr>`;
+        adminSupportTableBody.innerHTML = `<tr><td class="tc c-muted p-18" colspan="6">No inquiries submitted yet.</td></tr>`;
         return;
       }
 
@@ -916,13 +1464,13 @@ document.addEventListener('DOMContentLoaded', async () => {
               <td>${t.name} (${t.email})</td>
               <td>${t.category}</td>
               <td>
-                <span class="badge-pill-${t.status === 'RESOLVED' ? 'blue' : 'red'}" style="font-size:0.75rem;">
+                <span class="badge-pill-${t.status === 'RESOLVED' ? 'blue' : 'red'} fs-075">
                   ${t.status}
                 </span>
               </td>
               <td>${(t.adminReply || '—').slice(0, 30)}...</td>
               <td>
-                <button class="btn-reply-support btn-pill-outline" data-id="${t.id}" style="padding:4px 10px; font-size:0.8rem;">Reply</button>
+                <button class="btn-reply-support btn-pill-outline p-4-10 fs-08" data-id="${t.id}">Reply</button>
               </td>
             </tr>
           `
@@ -941,17 +1489,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-content max-w-480">
         <div class="modal-header">
           <h3>Reply to Customer Inquiry</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
+          <button class="modal-close-btn c-muted btn-icon-action" title="Close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
             <label class="form-label">Official Support Reply *</label>
             <textarea id="replyText" class="form-control" rows="4" placeholder="Enter resolution details..."></textarea>
           </div>
-          <button id="sendReplyBtn" class="btn-pill-blue" style="width:100%; padding:10px;">Send Reply &amp; Resolve</button>
+          <button id="sendReplyBtn" class="btn-pill-blue w-100 p-10">Send Reply &amp; Resolve</button>
         </div>
       </div>
     `;
@@ -993,19 +1541,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const backups = res.backups || [];
 
       if (backups.length === 0) {
-        backupListEl.innerHTML = `<li style="padding:12px; color:#6B7280;">No backups created yet.</li>`;
+        backupListEl.innerHTML = `<li class="c-muted p-12">No backups created yet.</li>`;
         return;
       }
 
       backupListEl.innerHTML = backups
         .map(
           (b) => `
-            <li style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #E5E7EB;">
+            <li class="flex between items-c p-10-14-bb">
               <div>
                 <strong>${b.backupId || b.id}</strong>
-                <div style="font-size:0.75rem; color:#6B7280;">${new Date(b.createdAt).toLocaleString()}</div>
+                <div class="fs-075 c-muted">${new Date(b.createdAt).toLocaleString()}</div>
               </div>
-              <button class="btn-restore-backup btn-pill-outline" data-id="${b.backupId || b.id}" style="padding:4px 12px; font-size:0.8rem;">Restore</button>
+              <button class="btn-restore-backup btn-pill-outline fs-08 p-4-12" data-id="${b.backupId || b.id}">Restore</button>
             </li>
           `
         )

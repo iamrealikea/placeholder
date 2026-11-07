@@ -209,24 +209,10 @@
 
     const toast = document.createElement('div');
     toast.className = `admin-toast toast-${type}`;
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      padding: 14px 24px;
-      border-radius: 8px;
-      background: ${type === 'error' ? '#FF0800' : type === 'success' ? '#10B981' : '#1D56CF'};
-      color: #FFFFFF;
-      font-family: var(--font-family, 'Lato', sans-serif);
-      font-weight: 700;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    `;
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => {
-      toast.style.opacity = '0';
+      toast.classList.add('is-fading');
       setTimeout(() => toast.remove(), 300);
     }, 3500);
   }
@@ -264,10 +250,10 @@
           const main = document.querySelector('main');
           if (main) {
             main.innerHTML = `
-              <div style="text-align:center; padding: 48px; background:#FFFFFF; border-radius:16px; max-width:540px; margin:60px auto; border:2px solid #FF0800;">
-                <h2 style="color: #FF0800;">Operational Privileges Required</h2>
-                <p style="color: #4B5563; margin: 16px 0 24px;">Administrator access is required to access the Seat Builder.</p>
-                <a href="/admin" class="btn-pill-blue" style="padding:10px 20px; text-decoration:none; border-radius:8px; display:inline-block;">Return to Portal</a>
+              <div class="tc bg-white r-16 admin-guard-banner">
+                <h2 class="c-red">Operational Privileges Required</h2>
+                <p class="c-ink-2 my-16-24">Administrator access is required to access the Seat Builder.</p>
+                <a href="/admin" class="btn-pill-blue no-ul inline-block btn-pill-action">Return to Portal</a>
               </div>
             `;
           }
@@ -1491,7 +1477,7 @@
 
     if (!tbody) return;
     if (State.zones.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-light); padding: 16px;">No zones defined yet.</td></tr>';
+      tbody.innerHTML = '<tr><td class="tc p-16 c-text-light" colspan="4">No zones defined yet.</td></tr>';
       return;
     }
 
@@ -1500,7 +1486,7 @@
       return `
         <tr>
           <td>
-            <span class="zone-dot" style="background-color: ${z.color};"></span>
+            <span class="zone-dot" style="--zone-color: ${z.color};"></span>
             <strong>${z.name}</strong>
           </td>
           <td>${z.price.toLocaleString()} THB</td>
@@ -1581,7 +1567,7 @@
 
     if (toggleNewZoneBtn && newZoneBox) {
       toggleNewZoneBtn.addEventListener('click', () => {
-        const isHidden = newZoneBox.style.display === 'none';
+        const isHidden = newZoneBox.style.display === 'none' || (window.getComputedStyle && window.getComputedStyle(newZoneBox).display === 'none');
         newZoneBox.style.display = isHidden ? 'block' : 'none';
         toggleNewZoneBtn.textContent = isHidden ? 'Cancel' : '+ New Zone';
         if (isHidden && newZoneNameInput) newZoneNameInput.focus();
@@ -1669,7 +1655,8 @@
         let targetZoneId = zoneSelect ? zoneSelect.value : State.activeZoneId;
 
         // Check for new zone creation
-        if (targetZoneId === '__new__' || (newZoneNameInput && newZoneNameInput.value.trim() && newZoneBox && newZoneBox.style.display !== 'none')) {
+        const isNewZoneBoxVisible = newZoneBox && newZoneBox.style.display !== 'none' && (window.getComputedStyle ? window.getComputedStyle(newZoneBox).display !== 'none' : true);
+        if (targetZoneId === '__new__' || (newZoneNameInput && newZoneNameInput.value.trim() && isNewZoneBoxVisible)) {
           const created = createNewZoneFromInputs();
           targetZoneId = created.id;
         }
@@ -1944,16 +1931,16 @@
             <i class="fa-solid fa-trash"></i>
           </button>
         ` : ''}
-        <div style="font-weight: 700; font-size: 0.85rem; color: var(--monday-blue); margin-bottom: 4px;">
+        <div class="fw-7 fs-085 c-blue mb-4">
           Round ${idx + 1}
         </div>
         <div class="round-card-row">
           <div>
-            <label class="form-label" style="font-size: 0.75rem;">Date</label>
+            <label class="form-label fs-075">Date</label>
             <input type="date" class="form-control round-date-input" value="${r.date || ''}" onchange="window.AdminEventEngine.updateRound(${idx}, 'date', this.value)">
           </div>
           <div>
-            <label class="form-label" style="font-size: 0.75rem;">Time</label>
+            <label class="form-label fs-075">Time</label>
             <input type="time" class="form-control round-time-input" value="${r.time || '19:00'}" onchange="window.AdminEventEngine.updateRound(${idx}, 'time', this.value)">
           </div>
         </div>
@@ -1975,14 +1962,14 @@
   // -------------------------------------------------------------------------
   function bindDeleteModalEvents() {
     const deleteBtn = getEl(['delete-event-btn']);
-    const modal = getEl(['deleteModal']);
-    const closeBtn = getEl(['closeDeleteModal']);
-    const cancelBtn = getEl(['cancelDeleteBtn']);
-    const confirmBtn = getEl(['confirmDeleteBtn']);
-    const targetTitleEl = getEl(['deleteTargetTitle']);
-    const confirmInput = getEl(['deleteEventTitleConfirm']);
-    const passwordInput = getEl(['deleteAdminPassword']);
-    const errorEl = getEl(['deleteModalError']);
+    const modal = getEl(['delete-modal']);
+    const closeBtn = getEl(['close-delete-modal']);
+    const cancelBtn = getEl(['cancel-delete-btn']);
+    const confirmBtn = getEl(['confirm-delete-btn']);
+    const targetTitleEl = getEl(['delete-target-title']);
+    const confirmInput = getEl(['delete-event-title-confirm']);
+    const passwordInput = getEl(['delete-admin-password']);
+    const errorEl = getEl(['delete-modal-error']);
 
     if (deleteBtn && modal) {
       deleteBtn.addEventListener('click', () => {

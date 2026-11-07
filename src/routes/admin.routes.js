@@ -6,7 +6,9 @@ const notificationController = require('../controllers/notification.controller')
 const router = express.Router();
 
 router.get('/dashboard', requireRole(['admin']), adminController.getDashboard);
+router.get('/events/:id/inspect', requireRole(['admin']), adminController.inspectEvent);
 router.put('/events/:id/seating', requireRole(['admin']), adminController.updateEventSeating);
+router.get('/transactions', requireRole(['admin']), adminController.listTransactions);
 
 router.get('/backups', requireRole(['admin']), adminController.listBackups);
 router.post('/backups', requireRole(['admin']), adminController.createBackup);
