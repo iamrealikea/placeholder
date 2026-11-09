@@ -9,6 +9,9 @@ const Notifications = {
 
   async init() {
     this.bindEvents();
+    if (window.Auth && Auth.ready) {
+      await Auth.ready;
+    }
     if (Auth.isLoggedIn()) {
       await this.fetch();
       this.startPolling();

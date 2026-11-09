@@ -148,7 +148,7 @@ const Auth = {
 
     const logoutBtn = menu.querySelector('#logoutBtn');
     logoutBtn.addEventListener('click', async () => {
-      await API.auth.logout();
+      await API.auth.logout().catch(() => {});
       API.setToken('');
       this.currentUser = null;
       menu.remove();
@@ -416,4 +416,23 @@ const Auth = {
 };
 
 window.Auth = Auth;
-document.addEventListener('DOMContentLoaded', () => Auth.init());
+
+// Expose a promise pages can await before checking login state
+Auth.ready = new Promise((resolve) => {
+  const run = async () => {
+    await Auth.init();
+    resolve();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+});
+
+// Sync session across tabs: reload whenever another tab changes the token
+window.addEventListener('storage', (e) => {
+  if (e.key === 'tickethub_token') {
+    window.location.reload();
+  }
+});

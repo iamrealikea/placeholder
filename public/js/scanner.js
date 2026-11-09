@@ -297,5 +297,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  await Auth.ready;
   await initScanner();
 });
