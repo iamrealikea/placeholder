@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const { store, SeatModel } = require('./src/models');
 const { generateSeedData, ensureTicketQrCodes } = require('./src/store/seed');
+const { resolveViewPath } = require('./src/views');
 const appRoutes = require('./src/routes');
 
 const app = express();
@@ -28,6 +29,20 @@ app.use('/uploads', express.static(uploadDir));
 
 // Mount MVC API & View routes
 app.use('/', appRoutes);
+
+// Unmatched API paths get JSON 404; unmatched page paths get the 404 handle page
+app.use('/api', (req, res) => res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` }));
+app.use((req, res) => res.status(404).sendFile(resolveViewPath('error')));
+
+// Errors thrown before a controller (bad JSON 400, body too large 413) as JSON, never with a stack trace
+app.use((err, req, res, next) => {
+  const status = err.status >= 400 && err.status < 600 ? err.status : 500;
+  if (status >= 500) console.error(err);
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(status).json({ error: err.expose ? err.message : 'Internal server error.' });
+  }
+  return res.status(status).sendFile(resolveViewPath('error'));
+});
 
 // Initialize database with seed data if fresh
 store.init(generateSeedData);

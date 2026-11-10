@@ -492,16 +492,16 @@
   <!-- Delete Event Confirmation Modal (FR-15 Password Re-verification)  -->
   <!-- ================================================================= -->
   <div id="delete-modal" class="modal-overlay admin-initially-hidden">
-    <div class="modal-content max-w-480">
-      <div class="modal-header">
-        <h3 class="flex items-c gap-8 fw-8 c-red">
+    <div class="modal-content th-popup th-popup--big max-w-480" style="padding: 36px 40px;">
+      <div class="th-popup-header" style="border: none; padding: 0; margin-bottom: 16px;">
+        <h3 class="th-popup-title flex items-c gap-8 fw-8 c-red" style="font-size: 1.6rem;">
           <i class="fa-solid fa-triangle-exclamation"></i> Delete Event Permanently
         </h3>
-        <button type="button" class="modal-close-btn c-muted btn-icon-action" id="close-delete-modal" title="Close">
-          <i class="fa-solid fa-xmark"></i>
+        <button type="button" class="modal-close-btn th-popup-close c-muted btn-icon-action" id="close-delete-modal" title="Close" aria-label="Close">
+          <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="padding: 0;">
         <div class="danger-warning-box">
           <p><strong>Warning:</strong> You are about to permanently delete this event.</p>
           <p class="fs-085 c-ink-2 mt-6">
@@ -525,11 +525,11 @@
         </div>
         <div id="delete-modal-error" class="modal-error-alert admin-initially-hidden"></div>
       </div>
-      <div class="modal-footer">
-        <button type="button" id="cancel-delete-btn" class="btn-pill-outline">Cancel</button>
-        <button type="button" id="confirm-delete-btn" class="btn-pill-red" disabled>
+      <div class="th-popup-actions--big" style="margin-top: 24px;">
+        <button type="button" id="confirm-delete-btn" class="th-popup-btn th-popup-btn--primary th-popup-btn--destructive" disabled>
           <i class="fa-solid fa-trash"></i> Permanently Delete
         </button>
+        <button type="button" id="cancel-delete-btn" class="th-popup-btn th-popup-btn--secondary">Cancel</button>
       </div>
     </div>
   </div>

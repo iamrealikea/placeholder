@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notice - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div style="display: flex; align-items: center; gap: 32px;">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge" style="display: none;">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container" style="min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 48px 16px;">
+    <div class="card-checkout" style="max-width: 580px; width: 100%; text-align: center; padding: 48px 32px; background: #FFFFFF; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+      
+      <div id="errorIconContainer" style="margin-bottom: 20px;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #FEE2E2; color: var(--candy-apple, #FF0800); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem;">
+          <i id="errorIcon" class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <span id="errorCodeBadge" class="badge-pill-blue" style="background: var(--candy-apple, #FF0800); color: #FFFFFF; font-weight: 700; padding: 4px 14px; font-size: 0.85rem; border-radius: 9999px;">
+          404 Not Found
+        </span>
+      </div>
+
+      <h1 id="errorTitle" style="font-size: 1.85rem; font-weight: 800; color: #111827; margin: 12px 0;">
+        Page Not Found
+      </h1>
+
+      <p id="errorMessage" style="color: #4B5563; font-size: 1.05rem; line-height: 1.5; margin: 0 auto 32px; max-width: 460px;">
+        The page, event, or booking you are looking for doesn't exist or has been removed.
+      </p>
+
+      <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+        <a href="/home" class="btn-pill-blue" style="padding: 12px 28px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-house"></i> Back to Home
+        </a>
+        <a href="/event" class="btn-pill-blue" style="background: #E5E7EB; color: #1F2937; padding: 12px 28px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-compass"></i> Browse Events
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer
+    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+    <div class="container">
+      <p style="margin-bottom:8px; font-weight:700; color: var(--monday-blue, #1D56CF);">TicketHub Platform &copy; 2026</p>
+      <p>Customer inquiries are monitored 24/7 by venue support staff.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof Auth !== 'undefined' && Auth.init) {
+        Auth.init();
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const path = window.location.pathname.toLowerCase();
+      const code = params.get('code') || (path.includes('403') ? '403' : '404');
+      const customMessage = params.get('message');
+
+      const badgeEl = document.getElementById('errorCodeBadge');
+      const titleEl = document.getElementById('errorTitle');
+      const msgEl = document.getElementById('errorMessage');
+      const iconEl = document.getElementById('errorIcon');
+
+      if (code === '403') {
+        document.title = '403 Forbidden - TicketHub';
+        badgeEl.textContent = '403 Forbidden';
+        badgeEl.style.background = 'var(--monday-blue, #1D56CF)';
+        titleEl.textContent = 'Booking In Progress / Access Denied';
+        msgEl.textContent = customMessage || 'Another customer is currently holding or completing this booking, or you do not have permission to access this page.';
+        if (iconEl) iconEl.className = 'fa-solid fa-user-lock';
+      } else {
+        document.title = '404 Not Found - TicketHub';
+        badgeEl.textContent = '404 Not Found';
+        titleEl.textContent = 'Page Not Found';
+        msgEl.textContent = customMessage || "The page, event, or booking you are looking for doesn't exist or has been removed.";
+        if (iconEl) iconEl.className = 'fa-solid fa-triangle-exclamation';
+      }
+    });
+  </script>
+</body>
+
+</html>

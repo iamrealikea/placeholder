@@ -125,7 +125,7 @@ function getSummary(req, res) {
     return res.status(404).json({ error: 'Booking not found.' });
   }
   if (booking.userId !== req.user.id && req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied.' });
+    return res.status(403).json({ error: 'Access denied. Another user is currently holding this booking.' });
   }
 
   const user = UserModel.findById(req.user.id);
