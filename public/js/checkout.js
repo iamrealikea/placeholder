@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const bookingId = urlParams.get('bookingId');
 
   if (!bookingId) {
-    alert('No active booking found. Redirecting to home.');
+    await Popup.alert('No active booking found. Redirecting to home.', { title: 'No Booking' });
     window.location.href = '/home';
     return;
   }
@@ -53,7 +53,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderPaymentSimulator();
     } catch (err) {
       console.error('Failed to load summary:', err);
-      alert(err.message || 'Error loading booking summary.');
+      if (err.status === 403 || err.status === 404) {
+        window.location.href = `/${err.status}?message=${encodeURIComponent(err.message)}`;
+        return;
+      }
+      await Popup.alert(err.message || 'Error loading booking summary.', { title: 'Checkout Error' });
       window.location.href = '/home';
     }
   }
@@ -111,10 +115,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function handleExpiredHold() {
+  async function handleExpiredHold() {
     if (countdownTimerEl) countdownTimerEl.textContent = '00:00';
     if (confirmPaymentBtn) confirmPaymentBtn.disabled = true;
-    alert('Your 10-minute seat reservation has expired. The held seats have been released back to available inventory. Please re-select your seats.');
+    await Popup.alert('Your 10-minute seat reservation has expired. The held seats have been released back to available inventory. Please re-select your seats.', { title: 'Reservation Expired' });
     window.location.href = `/booking?eventId=${bookingData ? bookingData.eventId : 'evt-1'}`;
   }
 
@@ -123,16 +127,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyPromoBtn.addEventListener('click', async () => {
       const promoCode = promoInput.value.trim();
       if (!promoCode) {
-        alert('Please enter a promotional code.');
+        await Popup.alert('Please enter a promotional code.', { title: 'Promo Code' });
         return;
       }
       try {
         const res = await API.booking.applyDiscount(bookingId, { promoCode });
         bookingData = res.booking;
-        alert(`Success! Code "${promoCode}" applied.`);
+        await Popup.alert(`Success! Code "${promoCode}" applied.`, { title: 'Promo Applied' });
         await loadBookingSummary();
       } catch (err) {
-        alert(err.message || 'Failed to apply promo code.');
+        await Popup.alert(err.message || 'Failed to apply promo code.', { title: 'Promo Error' });
       }
     });
   }
@@ -142,16 +146,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     redeemPointsBtn.addEventListener('click', async () => {
       const redeemPoints = Number(pointsInput.value);
       if (!redeemPoints || redeemPoints < 100) {
-        alert('Minimum redemption is 100 points (10 THB discount).');
+        await Popup.alert('Minimum redemption is 100 points (10 THB discount).', { title: 'Points Redemption' });
         return;
       }
       try {
         const res = await API.booking.applyDiscount(bookingId, { redeemPoints });
         bookingData = res.booking;
-        alert(`Success! Redeemed ${redeemPoints} points.`);
+        await Popup.alert(`Success! Redeemed ${redeemPoints} points.`, { title: 'Points Redeemed' });
         await loadBookingSummary();
       } catch (err) {
-        alert(err.message || 'Failed to redeem points.');
+        await Popup.alert(err.message || 'Failed to redeem points.', { title: 'Redemption Error' });
       }
     });
   }
@@ -268,12 +272,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         const res = await API.booking.pay(bookingId, payload);
-        alert('Payment successful! Electronic tickets have been issued.');
+        await Popup.alert('Payment successful! Electronic tickets have been issued.', { title: 'Payment Successful' });
         window.location.href = '/my-tickets';
       } catch (err) {
         confirmPaymentBtn.disabled = false;
         confirmPaymentBtn.textContent = `Confirm & Pay ${bookingData ? bookingData.totalAmount.toLocaleString() : ''} THB`;
-        alert(err.message || 'Payment failed.');
+        await Popup.alert(err.message || 'Payment failed.', { title: 'Payment Failed' });
       }
     });
   }

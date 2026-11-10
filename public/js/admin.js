@@ -482,28 +482,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     modal.id = 'admin-delete-event-modal';
     modal.className = 'modal-overlay admin-delete-event-modal';
     modal.innerHTML = `
-      <div class="modal-content bg-white r-16 p-24 admin-delete-modal-card">
-        <div class="modal-header flex between items-c mb-12">
-          <h3 class="m-0 c-red"><i class="fa-solid fa-triangle-exclamation"></i> Permanently Delete Event</h3>
-          <button class="modal-close-btn c-muted btn-icon-action" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-content th-popup th-popup--big admin-delete-modal-card" style="padding: 36px 40px;">
+        <div class="th-popup-header" style="border: none; padding: 0; margin-bottom: 16px;">
+          <h3 class="th-popup-title flex items-c gap-8 c-red" style="font-size: 1.6rem; font-weight: 700;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Permanently Delete Event
+          </h3>
+          <button class="modal-close-btn th-popup-close c-muted btn-icon-action" title="Close" aria-label="Close">
+            <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
+          </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="padding: 0;">
           <p class="fs-09 c-ink-3 mb-14">
-            You are deleting <strong>${eventTitle}</strong> (<code>${eventId}</code>). Any paid bookings will be automatically cancelled and refunded (retaining the 40 THB service fee per ticket).
+            You are deleting <strong>${escapeHtml(eventTitle)}</strong> (<code>${escapeHtml(eventId)}</code>). Any paid bookings will be automatically cancelled and refunded (retaining the 40 THB service fee per ticket).
           </p>
           <form id="deleteEventPasswordForm">
             <div class="form-group mb-12">
               <label class="form-label">Type event title to confirm *</label>
-              <input type="text" id="delConfirmTitle" class="form-control" required placeholder="${eventTitle}" autocomplete="off">
+              <input type="text" id="delConfirmTitle" class="form-control" required placeholder="${escapeHtml(eventTitle)}" autocomplete="off">
             </div>
             <div class="form-group mb-12">
               <label class="form-label">Administrator Password *</label>
               <input type="password" id="delAdminPassword" class="form-control" required placeholder="Enter admin password" autocomplete="current-password">
             </div>
             <div id="del-error-box" class="admin-delete-error admin-initially-hidden"></div>
-            <div class="flex gap-10 mt-16 justify-end">
-              <button type="button" class="btn-pill-outline modal-cancel-btn">Cancel</button>
-              <button type="submit" id="confirmDeleteSubmitBtn" class="btn-pill-red">Permanently Delete</button>
+            <div class="th-popup-actions--big" style="margin-top: 24px;">
+              <button type="submit" id="confirmDeleteSubmitBtn" class="th-popup-btn th-popup-btn--primary" style="background-color: var(--candy-apple);">Permanently Delete</button>
+              <button type="button" class="th-popup-btn th-popup-btn--secondary modal-cancel-btn">Cancel</button>
             </div>
           </form>
         </div>
@@ -511,7 +515,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
 
     document.body.appendChild(modal);
-    const close = () => modal.remove();
+    const escHandler = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    const close = () => {
+      document.removeEventListener('keydown', escHandler);
+      modal.remove();
+    };
+    document.addEventListener('keydown', escHandler);
+    modal.onclick = (e) => {
+      if (e.target === modal) close();
+    };
     modal.querySelector('.modal-close-btn').onclick = close;
     modal.querySelector('.modal-cancel-btn').onclick = close;
 
@@ -1074,9 +1088,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (qrFileInput) {
-      qrFileInput.addEventListener('change', () => {
+      qrFileInput.addEventListener('change', async () => {
         if (!qrFileInput.files || !qrFileInput.files[0]) return;
-        const simulatedCode = prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-');
+        const simulatedCode = await Popup.prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-', { title: 'Ticket Code Verification' });
+        qrFileInput.value = '';
         if (simulatedCode) validateTicket(simulatedCode);
       });
     }
@@ -1413,12 +1428,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           // Client-side self-demotion guard
           if (Auth.currentUser && targetUserId === Auth.currentUser.id && newRole !== 'admin') {
-            alert('Cannot demote your own currently active administrator account.');
+            await Popup.alert('Cannot demote your own currently active administrator account.', { title: 'Self-Demotion Guard' });
             e.target.value = previousRole;
             return;
           }
 
-          const confirmed = confirm(`Are you sure you want to change the role of this user to "${newRole.toUpperCase()}"?`);
+          const confirmed = await Popup.confirm(`Are you sure you want to change the role of this user to "${newRole.toUpperCase()}"?`, { title: 'Change Role' });
           if (!confirmed) {
             e.target.value = previousRole;
             return;
@@ -1427,10 +1442,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           try {
             const res = await API.admin.updateUserRole(targetUserId, { role: newRole });
             e.target.dataset.currentRole = newRole;
-            alert(res.message || `User role updated to ${newRole}.`);
+            await Popup.alert(res.message || `User role updated to ${newRole}.`, { title: 'Role Updated' });
             await loadUsers();
           } catch (err) {
-            alert(err.message || 'Failed to update user role.');
+            await Popup.alert(err.message || 'Failed to update user role.', { title: 'Update Error' });
             e.target.value = previousRole;
           }
         });
@@ -1489,33 +1504,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-content max-w-480">
-        <div class="modal-header">
-          <h3>Reply to Customer Inquiry</h3>
-          <button class="modal-close-btn c-muted btn-icon-action" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-content th-popup th-popup--big max-w-480" style="padding: 36px 40px;">
+        <div class="th-popup-header" style="border: none; padding: 0; margin-bottom: 16px;">
+          <h3 class="th-popup-title" style="font-size: 1.6rem; font-weight: 700; color: #1E1E1E;">Reply to Customer Inquiry</h3>
+          <button class="modal-close-btn th-popup-close c-muted btn-icon-action" title="Close" aria-label="Close">
+            <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
+          </button>
         </div>
-        <div class="modal-body">
-          <div class="form-group">
+        <div class="modal-body" style="padding: 0;">
+          <div class="form-group mb-16">
             <label class="form-label">Official Support Reply *</label>
             <textarea id="replyText" class="form-control" rows="4" placeholder="Enter resolution details..."></textarea>
           </div>
-          <button id="sendReplyBtn" class="btn-pill-blue w-100 p-10">Send Reply &amp; Resolve</button>
+          <div class="th-popup-actions--big" style="margin-top: 24px;">
+            <button id="sendReplyBtn" class="th-popup-btn th-popup-btn--primary">Send Reply &amp; Resolve</button>
+            <button type="button" class="th-popup-btn th-popup-btn--secondary modal-close-btn-action">Cancel</button>
+          </div>
         </div>
       </div>
     `;
+
     document.body.appendChild(modal);
-    modal.querySelector('.modal-close-btn').onclick = () => modal.remove();
+    const escHandler = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    const close = () => {
+      document.removeEventListener('keydown', escHandler);
+      modal.remove();
+    };
+    document.addEventListener('keydown', escHandler);
+    modal.onclick = (e) => {
+      if (e.target === modal) close();
+    };
+    modal.querySelector('.modal-close-btn').onclick = close;
+    const cancelAction = modal.querySelector('.modal-close-btn-action');
+    if (cancelAction) cancelAction.onclick = close;
 
     modal.querySelector('#sendReplyBtn').onclick = async () => {
+      const replyBtn = modal.querySelector('#sendReplyBtn');
       const reply = modal.querySelector('#replyText').value.trim();
-      if (!reply) return alert('Reply cannot be empty');
+      if (!reply) return await Popup.alert('Reply cannot be empty', { title: 'Validation Error' });
+      if (replyBtn && replyBtn.disabled) return;
+      if (replyBtn) {
+        replyBtn.disabled = true;
+        replyBtn.textContent = 'Sending...';
+      }
       try {
         await API.support.reply(ticketId, { reply });
-        alert('Reply sent to customer and ticket resolved.');
-        modal.remove();
+        close();
+        await Popup.alert('Reply sent to customer and ticket resolved.', { title: 'Reply Sent' });
         await loadSupportTickets();
       } catch (err) {
-        alert(err.message || 'Error replying');
+        if (replyBtn) {
+          replyBtn.disabled = false;
+          replyBtn.textContent = 'Send Reply & Resolve';
+        }
+        await Popup.alert(err.message || 'Error replying', { title: 'Reply Error' });
       }
     };
   }
@@ -1525,10 +1569,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       createBackupBtn.addEventListener('click', async () => {
         try {
           await API.admin.createBackup({ label: 'manual_admin' });
-          alert('System data snapshot created!');
+          await Popup.alert('System data snapshot created!', { title: 'Backup Created' });
           await loadBackups();
         } catch (err) {
-          alert(err.message || 'Failed to create backup');
+          await Popup.alert(err.message || 'Failed to create backup', { title: 'Backup Error' });
         }
       });
     }
@@ -1561,13 +1605,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       backupListEl.querySelectorAll('.btn-restore-backup').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          if (confirm(`Restore system state to snapshot ${btn.dataset.id}?`)) {
+          if (await Popup.confirm(`Restore system state to snapshot ${btn.dataset.id}?`, { title: 'Restore Snapshot', destructive: true })) {
             try {
               await API.admin.restoreBackup({ backupId: btn.dataset.id });
-              alert('System successfully restored from snapshot!');
+              await Popup.alert('System successfully restored from snapshot!', { title: 'Restore Completed' });
               window.location.reload();
             } catch (err) {
-              alert(err.message || 'Restore failed');
+              await Popup.alert(err.message || 'Restore failed', { title: 'Restore Error' });
             }
           }
         });

@@ -89,12 +89,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (qrFileInput) {
-      qrFileInput.addEventListener('change', () => {
+      qrFileInput.addEventListener('change', async () => {
         if (!qrFileInput.files || !qrFileInput.files[0]) return;
-        // In simulation, if filename contains a code or text, parse it
-        const filename = qrFileInput.files[0].name;
-        // Prompt staff for code or parse filename
-        const simulatedCode = prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-');
+        const simulatedCode = await Popup.prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-', { title: 'Ticket Code Verification' });
+        qrFileInput.value = '';
         if (simulatedCode) validateTicket(simulatedCode);
       });
     }

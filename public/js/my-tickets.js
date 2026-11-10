@@ -180,16 +180,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 480px;">
-        <div class="modal-header">
-          <h3 style="color: #FF0800; font-size: 1.25rem;">Cancel Booking & Request Refund</h3>
-          <button class="modal-close-btn" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-content th-popup th-popup--big" style="max-width: 540px; padding: 36px 40px;">
+        <div class="th-popup-header" style="margin-bottom: 16px; border: none; padding: 0;">
+          <h3 class="th-popup-title" style="color: #1E1E1E; font-size: 1.6rem; font-weight: 700;">Cancel Booking &amp; Refund</h3>
+          <button class="modal-close-btn th-popup-close" title="Close" aria-label="Close">
+            <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
+          </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="padding: 0;">
           <p style="margin-bottom: 16px; color: #374151;">
-            Are you sure you want to cancel your booking for <strong>${booking.eventTitle}</strong>?
+            Are you sure you want to cancel your booking for <strong>${window.Popup && Popup.escapeHtml ? Popup.escapeHtml(booking.eventTitle) : String(booking.eventTitle || '').replace(/[&<>"']/g, '')}</strong>?
           </p>
-          <div style="background: #F9FAFB; border-radius: 12px; padding: 16px; border: 1px solid #E5E7EB; margin-bottom: 16px;">
+          <div style="background: #FFFFFF; border-radius: 16px; padding: 18px; border: 1px solid #E5E7EB; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
               <span>Ticket Subtotal:</span>
               <strong>${booking.subtotal.toLocaleString()} THB</strong>
@@ -207,35 +209,59 @@ document.addEventListener('DOMContentLoaded', async () => {
               <strong>${nonRefundableFee.toLocaleString()} THB</strong>
             </div>
             <div style="border-top: 1px solid #E5E7EB; margin: 8px 0;"></div>
-            <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; color: #1D56CF;">
+            <div style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 800; color: #1D56CF;">
               <span>Total Refund Amount:</span>
               <span>${refundableAmount.toLocaleString()} THB</span>
             </div>
           </div>
-          <p style="font-size: 0.8rem; color: #6B7280;">
+          <p style="font-size: 0.85rem; color: #6B7280; line-height: 1.4;">
             * Refund policy (FR-38, FR-39): The subtotal minus discounts will be refunded to your original payment method. The 40 THB/seat service fee is non-refundable. Your reserved seats will immediately return to available status.
           </p>
         </div>
-        <div class="modal-footer">
-          <button class="btn-cancel-close btn-pill-outline">Keep Booking</button>
-          <button class="btn-confirm-refund btn-pill-red">Confirm Refund</button>
+        <div class="th-popup-actions--big" style="margin-top: 24px;">
+          <button class="btn-confirm-refund th-popup-btn th-popup-btn--primary th-popup-btn--destructive">Confirm Refund</button>
+          <button class="btn-cancel-close th-popup-btn th-popup-btn--secondary">Keep Booking</button>
         </div>
       </div>
     `;
 
     document.body.appendChild(modal);
 
-    modal.querySelector('.modal-close-btn').onclick = () => modal.remove();
-    modal.querySelector('.btn-cancel-close').onclick = () => modal.remove();
+    const closeModal = () => {
+      document.removeEventListener('keydown', escHandler);
+      modal.remove();
+    };
+
+    const escHandler = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+
+    document.addEventListener('keydown', escHandler);
+    modal.onclick = (e) => {
+      if (e.target === modal) closeModal();
+    };
+
+    modal.querySelector('.modal-close-btn').onclick = closeModal;
+    modal.querySelector('.btn-cancel-close').onclick = closeModal;
 
     modal.querySelector('.btn-confirm-refund').onclick = async () => {
+      const confirmBtn = modal.querySelector('.btn-confirm-refund');
+      if (confirmBtn && confirmBtn.disabled) return;
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Processing...';
+      }
       try {
         const res = await API.booking.cancel(booking.id);
-        alert(`Booking cancelled successfully. Refund of ${res.refundableAmount.toLocaleString()} THB issued.`);
-        modal.remove();
+        closeModal();
+        await Popup.alert(`Booking cancelled successfully. Refund of ${res.refundableAmount.toLocaleString()} THB issued.`, { title: 'Refund Processed' });
         await loadData();
       } catch (err) {
-        alert(err.message || 'Failed to cancel booking.');
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Confirm Refund';
+        }
+        await Popup.alert(err.message || 'Failed to cancel booking.', { title: 'Cancellation Error' });
       }
     };
   }

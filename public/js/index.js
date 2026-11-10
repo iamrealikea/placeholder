@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await API.events.toggleBookmark(eventId);
       btn.innerHTML = res.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i>' : '<i class="fa-regular fa-heart"></i>';
     } catch (err) {
-      alert(err.message);
+      await Popup.alert(err.message, { title: 'Bookmark Error' });
     }
   };
 

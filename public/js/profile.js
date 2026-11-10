@@ -88,12 +88,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         const res = await API.auth.updateProfile(body);
-        alert('Profile updated successfully!');
+        await Popup.alert('Profile updated successfully!', { title: 'Profile Updated' });
         Auth.currentUser = res.user;
         renderUserData(res.user);
         Auth.renderNavbarAuth();
       } catch (err) {
-        alert(err.message || 'Failed to update profile.');
+        await Popup.alert(err.message || 'Failed to update profile.', { title: 'Update Error' });
       }
     });
   }
@@ -108,12 +108,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       try {
         const res = await API.auth.uploadAvatar(formData);
-        alert('Avatar uploaded successfully!');
+        await Popup.alert('Avatar uploaded successfully!', { title: 'Avatar Uploaded' });
         Auth.currentUser = res.user;
         renderUserData(res.user);
         Auth.renderNavbarAuth();
       } catch (err) {
-        alert(err.message || 'Failed to upload avatar image.');
+        await Popup.alert(err.message || 'Failed to upload avatar image.', { title: 'Upload Error' });
       }
     });
   }
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     uploadAvatarUrlBtn.addEventListener('click', async () => {
       const url = avatarUrlInput.value.trim();
       if (!url) {
-        alert('Please enter an image URL.');
+        await Popup.alert('Please enter an image URL.', { title: 'Invalid URL' });
         return;
       }
 
@@ -132,12 +132,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           method: 'POST',
           body: JSON.stringify({ avatarUrl: url })
         });
-        alert('Avatar URL updated!');
+        await Popup.alert('Avatar URL updated!', { title: 'Avatar Updated' });
         Auth.currentUser = res.user;
         renderUserData(res.user);
         Auth.renderNavbarAuth();
       } catch (err) {
-        alert(err.message || 'Failed to update avatar.');
+        await Popup.alert(err.message || 'Failed to update avatar.', { title: 'Update Error' });
       }
     });
   }

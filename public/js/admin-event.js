@@ -204,11 +204,17 @@
   // 3. UI Feedback Helpers (Toasts & Banner)
   // -------------------------------------------------------------------------
   function showToast(message, type = 'info') {
+    if (window.Popup && typeof window.Popup.toast === 'function') {
+      window.Popup.toast(message, type);
+      return;
+    }
     const existingToast = document.querySelector('.admin-toast');
     if (existingToast) existingToast.remove();
 
     const toast = document.createElement('div');
     toast.className = `admin-toast toast-${type}`;
+    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => {
@@ -642,9 +648,9 @@
 
     const clearBtn = getEl(['clear-canvas-btn']);
     if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
+      clearBtn.addEventListener('click', async () => {
         if (State.isLayoutLocked) return;
-        if (confirm('Are you sure you want to clear all seats from the canvas?')) {
+        if (await Popup.confirm('Are you sure you want to clear all seats from the canvas?', { title: 'Clear Canvas' })) {
           State.seats = [];
           State.selectedSeatIds.clear();
           updateSidePanelSelection();
@@ -2000,6 +2006,14 @@
 
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display !== 'none') closeModal();
+      });
+    }
 
     if (confirmBtn) {
       confirmBtn.addEventListener('click', async () => {

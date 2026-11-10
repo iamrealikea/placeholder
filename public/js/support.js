@@ -101,18 +101,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const message = messageInput.value.trim();
 
     if (!subject || !message) {
-      alert('Please fill in both subject and message.');
+      await Popup.alert('Please fill in both subject and message.', { title: 'Required Fields' });
       return;
     }
 
     try {
       await API.support.submit({ subject, category, message });
-      alert('Support inquiry submitted! We will respond shortly.');
+      await Popup.alert('Support inquiry submitted! We will respond shortly.', { title: 'Inquiry Submitted' });
       subjectInput.value = '';
       messageInput.value = '';
       await loadMyInquiries();
     } catch (err) {
-      alert(err.message || 'Failed to submit inquiry.');
+      await Popup.alert(err.message || 'Failed to submit inquiry.', { title: 'Submission Error' });
     }
   }
 

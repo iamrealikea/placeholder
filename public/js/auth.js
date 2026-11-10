@@ -167,20 +167,22 @@ const Auth = {
     modal.style.display = 'none';
 
     modal.innerHTML = `
-      <div class="modal-content" style="max-width: 440px;">
-        <div class="modal-header">
-          <h3 id="authModalTitle" style="font-size: 1.35rem; font-weight: 800; color: #1D56CF;">Sign In to TicketHub</h3>
-          <button id="closeAuthModal" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#6B7280;" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-content th-popup th-popup--big" style="max-width: 520px; padding: 36px 40px;">
+        <div class="th-popup-header" style="margin-bottom: 16px; border: none; padding: 0;">
+          <h3 id="authModalTitle" class="th-popup-title" style="font-size: 1.8rem; font-weight: 700; color: #1E1E1E;">Sign In to TicketHub</h3>
+          <button id="closeAuthModal" class="th-popup-close" title="Close" aria-label="Close">
+            <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
+          </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="padding: 0;">
           <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #E5E7EB; padding-bottom: 8px;">
-            <button id="tabLogin" style="flex:1; border:none; background:none; font-weight:700; padding:8px; cursor:pointer; border-bottom: 3px solid #1D56CF; color:#1D56CF;">Log In</button>
-            <button id="tabRegister" style="flex:1; border:none; background:none; font-weight:600; padding:8px; cursor:pointer; color:#6B7280;">Register</button>
-            <button id="tabSocial" style="flex:1; border:none; background:none; font-weight:600; padding:8px; cursor:pointer; color:#6B7280;">Social / OTP</button>
+            <button id="tabLogin" style="flex:1; border:none; background:none; font-weight:700; padding:8px; cursor:pointer; border-bottom: 3px solid #1D56CF; color:#1D56CF; font-family:var(--font-family);">Log In</button>
+            <button id="tabRegister" style="flex:1; border:none; background:none; font-weight:600; padding:8px; cursor:pointer; color:#6B7280; font-family:var(--font-family);">Register</button>
+            <button id="tabSocial" style="flex:1; border:none; background:none; font-weight:600; padding:8px; cursor:pointer; color:#6B7280; font-family:var(--font-family);">Social / OTP</button>
           </div>
 
           <!-- Alert area -->
-          <div id="authAlert" style="display:none; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:0.9rem; font-weight:600;"></div>
+          <div id="authAlert" style="display:none; padding:10px 14px; border-radius:16px; margin-bottom:14px; font-size:0.9rem; font-weight:600;"></div>
 
           <!-- Login Form -->
           <form id="formLogin">
@@ -192,7 +194,7 @@ const Auth = {
               <label class="form-label">Password</label>
               <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn-pill-blue" style="width:100%; padding:12px; margin-top:8px;">Sign In</button>
+            <button type="submit" class="th-popup-btn th-popup-btn--primary" style="width:100%; height:52px; font-size:1.15rem; margin-top:8px;">Sign In</button>
             
             <div style="margin-top:16px; font-size:0.85rem; color:#6B7280; text-align:center;">
               Demo accounts:<br>
@@ -230,7 +232,7 @@ const Auth = {
               <label class="form-label">National ID / Passport</label>
               <input type="text" id="regNationalId" class="form-control" placeholder="13-digit ID">
             </div>
-            <button type="submit" class="btn-pill-red" style="width:100%; padding:12px; margin-top:8px;">Create Account</button>
+            <button type="submit" class="th-popup-btn th-popup-btn--primary" style="width:100%; height:52px; font-size:1.15rem; margin-top:8px; background-color: var(--candy-apple);">Create Account</button>
           </form>
 
           <!-- Social Login Form -->
@@ -249,7 +251,7 @@ const Auth = {
               <label class="form-label">Simulated Phone OTP</label>
               <input type="text" id="socialPhone" class="form-control" placeholder="0899998888">
             </div>
-            <button id="btnSocialOTP" class="btn-pill-blue" style="width:100%; padding:10px;">
+            <button id="btnSocialOTP" class="th-popup-btn th-popup-btn--primary" style="width:100%; height:48px; font-size:1.05rem;">
               Request & Verify OTP
             </button>
           </div>
@@ -265,6 +267,12 @@ const Auth = {
     modal.onclick = (e) => {
       if (e.target === modal) modal.style.display = 'none';
     };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.style.display !== 'none') {
+        modal.style.display = 'none';
+      }
+    });
 
     // Tab Switching
     const tabLogin = modal.querySelector('#tabLogin');

@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     roundSelectorEl.querySelectorAll('.round-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (selectedSeatIds.size > 0) {
-          if (!confirm('Switching rounds will clear your currently selected seats. Continue?')) {
+          const confirmed = await Popup.confirm('Switching rounds will clear your currently selected seats. Continue?', { title: 'Switch Round' });
+          if (!confirmed) {
             return;
           }
         }
@@ -265,7 +266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Attach click events to seats
     seatMatrixContainer.querySelectorAll('.seat.available, .seat.selected').forEach((seatEl) => {
-      seatEl.addEventListener('click', () => {
+      seatEl.addEventListener('click', async () => {
         const id = seatEl.dataset.id;
         const hasAccent = seatEl.dataset.accent ? ' has-accent' : '';
         if (selectedSeatIds.has(id)) {
@@ -274,7 +275,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           seatEl.textContent = seatEl.dataset.number;
         } else {
           if (selectedSeatIds.size >= MAX_SEATS) {
-            alert(`You can select a maximum of ${MAX_SEATS} seats per transaction.`);
+            await Popup.alert(`You can select a maximum of ${MAX_SEATS} seats per transaction.`, { title: 'Seat Limit' });
             return;
           }
           selectedSeatIds.add(id);
@@ -346,12 +347,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       proceedCheckoutBtn.textContent = 'Proceed to Checkout';
 
       if (err.status === 409) {
-        alert('One or more of the seats you selected have just been held or booked by another customer. Please choose other seats.');
+        await Popup.alert('One or more of the seats you selected have just been held or booked by another customer. Please choose other seats.', { title: 'Seats Unavailable' });
         selectedSeatIds.clear();
         updateSummary();
         await loadSeats();
       } else {
-        alert(err.message || 'Failed to hold seats.');
+        await Popup.alert(err.message || 'Failed to hold seats.', { title: 'Reservation Error' });
       }
     }
   }

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const bRes = await API.events.toggleBookmark(event.id);
           bookmarkBtn.innerHTML = bRes.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i> Bookmarked' : '<i class="fa-regular fa-heart"></i> Add to Bookmarks';
         } catch (bErr) {
-          alert(bErr.message);
+          await Popup.alert(bErr.message, { title: 'Bookmark Error' });
         }
       };
     }

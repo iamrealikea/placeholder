@@ -46,6 +46,7 @@
   --radius-lg: 20px;
   --radius-xl: 24px;
   --radius-pill: 9999px;
+  --radius-popup: 50px;
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
@@ -53,6 +54,8 @@
   --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
   --shadow-candy: 0 8px 24px rgba(255, 8, 0, 0.2);
   --shadow-blue: 0 8px 24px rgba(29, 86, 207, 0.2);
+  --shadow-popup: 0 20px 50px rgba(0, 0, 0, 0.28);
+  --shadow-popup-btn: 0px 0px 16.5px 5px rgba(0, 0, 0, 0.25);
 
   /* Transitions */
   --transition-fast: 0.15s ease;
@@ -358,6 +361,229 @@ textarea {
 }
 
 /* --------------------------------------------------------------------------
+   Native <dialog> Top Layer & Scroll Containment (modern-web-guidance)
+   -------------------------------------------------------------------------- */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  background-color: var(--bg-overlay);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  cursor: pointer;
+}
+
+.th-popup-dialog {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: auto;
+  max-width: 623px;
+  width: min(623px, calc(100vw - 32px));
+  box-shadow: none;
+  overflow: visible;
+}
+
+.th-popup-dialog::backdrop {
+  background-color: var(--bg-overlay);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   Figma Popup Components (Small Option Popup 86:214 & Big Option Popup 86:161)
+   -------------------------------------------------------------------------- */
+.th-popup {
+  background-color: var(--oat-milk);
+  border-radius: var(--radius-popup);
+  box-shadow: var(--shadow-popup);
+  padding: 36px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  color: #1E1E1E;
+  font-family: var(--font-family);
+  box-sizing: border-box;
+  width: 100%;
+  cursor: default;
+}
+
+.th-popup--small {
+  min-height: 280px;
+}
+
+.th-popup--big {
+  min-height: 420px;
+}
+
+.th-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.th-popup-title {
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: 1.5em;
+  line-height: 1.25;
+  color: #1E1E1E;
+  margin: 0;
+}
+
+.th-popup-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #1E1E1E;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.th-popup-close:hover {
+  transform: scale(1.1);
+  opacity: 0.85;
+}
+
+.th-popup-close:focus-visible {
+  outline: 2px solid var(--monday-blue);
+  outline-offset: 2px;
+}
+
+.th-popup-close img,
+.th-popup-close svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.th-popup-body {
+  font-family: var(--font-family);
+  font-weight: 400;
+  font-size: 1.2em;
+  line-height: 1.45;
+  color: #000000;
+  margin: 10px 0;
+  word-break: break-word;
+  /*white-space: pre-line;*/
+}
+
+.th-popup-body p {
+  white-space: pre-line;
+}
+
+.th-popup-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Small Option Popup Footer: horizontal right-aligned row (86:214) */
+.th-popup-actions--small {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.th-popup-actions--small .th-popup-btn {
+  min-width: 178px;
+  height: 52px;
+  font-size: 1.2rem;
+}
+
+/* Big Option Popup Footer: full-width vertically stacked (86:161) */
+.th-popup-actions--big {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.th-popup-actions--big .th-popup-btn {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.25rem;
+}
+
+/* Figma Elevated Pill Action Buttons */
+.th-popup-btn {
+  border-radius: 52px;
+  box-shadow: var(--shadow-popup-btn);
+  font-family: var(--font-family);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform var(--transition-fast), filter var(--transition-fast), box-shadow var(--transition-fast);
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.th-popup-btn:hover {
+  filter: brightness(0.94);
+}
+
+.th-popup-btn:active {
+  transform: scale(0.98);
+}
+
+.th-popup-btn--primary {
+  background-color: var(--monday-blue);
+  color: #FFFFFF;
+}
+
+.th-popup-btn--secondary {
+  background-color: var(--oat-milk);
+  color: #1E1E1E;
+}
+
+.th-popup-btn--destructive,
+.th-popup-btn--danger {
+  background-color: var(--candy-apple);
+  color: #FFFFFF;
+}
+
+.th-popup-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .th-popup {
+    padding: 28px 24px 32px;
+    border-radius: 36px;
+  }
+
+  .th-popup-actions--small {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+
+  .th-popup-actions--small .th-popup-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Modals, Alerts, Form Controls
    -------------------------------------------------------------------------- */
 .modal-overlay {
@@ -369,14 +595,16 @@ textarea {
   justify-content: center;
   z-index: 999;
   padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .modal-content {
-  background: #FFFFFF;
-  border-radius: var(--radius-xl);
-  max-width: 540px;
+  background: var(--oat-milk);
+  border-radius: var(--radius-popup);
+  max-width: 623px;
   width: 100%;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-popup);
   overflow: hidden;
   max-height: 90vh;
   display: flex;
@@ -384,7 +612,7 @@ textarea {
 }
 
 .modal-header {
-  padding: 20px 24px;
+  padding: 24px 32px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
@@ -392,16 +620,16 @@ textarea {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 28px 32px;
   overflow-y: auto;
 }
 
 .modal-footer {
-  padding: 16px 24px;
+  padding: 20px 32px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-group {
@@ -432,35 +660,56 @@ textarea {
 }
 
 /* Toast Notifications */
-.toast-container {
+.toast-container,
+.th-toast-container {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 1000;
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  pointer-events: none;
 }
 
-.toast {
-  background: #FFFFFF;
-  border-radius: var(--radius-md);
-  padding: 14px 20px;
-  box-shadow: var(--shadow-lg);
-  border-left: 4px solid var(--monday-blue);
+.toast,
+.th-toast {
+  pointer-events: auto;
+  background: var(--oat-milk);
+  border-radius: 24px;
+  padding: 14px 24px;
+  box-shadow: var(--shadow-popup-btn);
+  border-left: 5px solid var(--monday-blue);
+  color: #1E1E1E;
+  font-family: var(--font-family);
   font-weight: 600;
   min-width: 280px;
+  max-width: 420px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.toast.toast-error {
+.toast.toast-error,
+.th-toast--error {
   border-left-color: var(--candy-apple);
 }
 
-.toast.toast-success {
+.toast.toast-success,
+.th-toast--success {
   border-left-color: #10B981;
+}
+
+.toast.toast-info,
+.th-toast--info {
+  border-left-color: var(--monday-blue);
+}
+
+.toast.is-fading,
+.th-toast.is-fading {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 /* Notification Dropdown Drawer */

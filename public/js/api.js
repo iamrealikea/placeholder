@@ -139,3 +139,375 @@ const API = {
 };
 
 window.API = API;
+
+/**
+ * TicketHub - Unified Popup Controller (Vanilla JS & Native <dialog>)
+ * Matches Figma 86:214 (Small Option Popup) and 86:161 (Big Option Popup)
+ */
+function escapePopupHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+const Popup = {
+  escapeHtml: escapePopupHtml,
+
+  alert(message, options = {}) {
+    return new Promise((resolve) => {
+      const opts = typeof options === 'string' ? { title: options } : (options || {});
+      const title = opts.title || 'Alert';
+      const buttonText = opts.buttonText || opts.confirmText || opts.okText || 'OK';
+      const variant = opts.variant || 'small';
+      const titleId = 'th-popup-title-' + Math.random().toString(36).slice(2, 9);
+
+      const dialog = document.createElement('dialog');
+      dialog.className = 'th-popup-dialog';
+      dialog.setAttribute('closedby', 'any');
+      dialog.setAttribute('aria-labelledby', titleId);
+
+      dialog.innerHTML = `
+        <div class="th-popup th-popup--${variant}">
+          <div class="th-popup-header">
+            <h3 class="th-popup-title" id="${titleId}">${escapePopupHtml(title)}</h3>
+            ${variant === 'big' ? `
+            <button type="button" class="th-popup-close" aria-label="Close">
+              <img src="/images/popup-close-icon.svg" alt="Close">
+            </button>` : ''}
+          </div>
+          <div class="th-popup-body">
+            <p>${escapePopupHtml(message)}</p>
+          </div>
+          <div class="th-popup-actions--${variant}">
+            <button type="button" class="th-popup-btn th-popup-btn--primary" autofocus>${escapePopupHtml(buttonText)}</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(dialog);
+
+      let resolved = false;
+      const finish = () => {
+        if (resolved) return;
+        resolved = true;
+        if (dialog.open && typeof dialog.close === 'function') dialog.close();
+        dialog.remove();
+        resolve();
+      };
+
+      const primaryBtn = dialog.querySelector('.th-popup-btn--primary');
+      if (primaryBtn) primaryBtn.onclick = finish;
+
+      const closeBtn = dialog.querySelector('.th-popup-close');
+      if (closeBtn) closeBtn.onclick = finish;
+
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          e.preventDefault();
+          finish();
+        }
+      });
+
+      dialog.addEventListener('close', finish, { once: true });
+
+      // Fallback for browsers without closedby support (modern-web-guidance)
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        const isOutside = (e) => {
+          const rect = dialog.getBoundingClientRect();
+          return (
+            e.clientY < rect.top ||
+            e.clientY > rect.bottom ||
+            e.clientX < rect.left ||
+            e.clientX > rect.right
+          );
+        };
+        let pressedOutside = false;
+        dialog.addEventListener('pointerdown', (e) => {
+          pressedOutside = (e.target === dialog) && isOutside(e);
+        });
+        dialog.addEventListener('pointerup', (e) => {
+          if (pressedOutside && (e.target === dialog) && isOutside(e)) {
+            finish();
+          }
+        });
+        dialog.addEventListener('click', (e) => {
+          if ((e.target === dialog) && isOutside(e)) {
+            finish();
+          }
+        });
+      }
+
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    });
+  },
+
+  confirm(message, options = {}) {
+    return new Promise((resolve) => {
+      const opts = typeof options === 'string' ? { title: options } : (options || {});
+      const title = opts.title || 'Confirm';
+      const confirmText = opts.confirmText || opts.buttonText || opts.okText || 'Confirm';
+      const cancelText = opts.cancelText || 'Cancel';
+      const variant = opts.variant || 'small';
+      const destructive = !!opts.destructive;
+      const primaryBtnClass = 'th-popup-btn th-popup-btn--primary' + (destructive ? ' th-popup-btn--destructive' : '');
+      const titleId = 'th-popup-title-' + Math.random().toString(36).slice(2, 9);
+
+      const dialog = document.createElement('dialog');
+      dialog.className = 'th-popup-dialog';
+      dialog.setAttribute('closedby', 'any');
+      dialog.setAttribute('aria-labelledby', titleId);
+
+      let actionsHtml = '';
+      if (variant === 'big') {
+        actionsHtml = `
+          <div class="th-popup-actions--big">
+            <button type="button" class="${primaryBtnClass}" ${destructive ? '' : 'autofocus'}>${escapePopupHtml(confirmText)}</button>
+            <button type="button" class="th-popup-btn th-popup-btn--secondary" ${destructive ? 'autofocus' : ''}>${escapePopupHtml(cancelText)}</button>
+          </div>
+        `;
+      } else {
+        actionsHtml = `
+          <div class="th-popup-actions--small">
+            <button type="button" class="th-popup-btn th-popup-btn--secondary" ${destructive ? 'autofocus' : ''}>${escapePopupHtml(cancelText)}</button>
+            <button type="button" class="${primaryBtnClass}" ${destructive ? '' : 'autofocus'}>${escapePopupHtml(confirmText)}</button>
+          </div>
+        `;
+      }
+
+      dialog.innerHTML = `
+        <div class="th-popup th-popup--${variant}">
+          <div class="th-popup-header">
+            <h3 class="th-popup-title" id="${titleId}">${escapePopupHtml(title)}</h3>
+            ${variant === 'big' ? `
+            <button type="button" class="th-popup-close" aria-label="Close">
+              <img src="/images/popup-close-icon.svg" alt="Close">
+            </button>` : ''}
+          </div>
+          <div class="th-popup-body">
+            <p>${escapePopupHtml(message)}</p>
+          </div>
+          ${actionsHtml}
+        </div>
+      `;
+
+      document.body.appendChild(dialog);
+
+      let resolved = false;
+      const finish = (result) => {
+        if (resolved) return;
+        resolved = true;
+        if (dialog.open && typeof dialog.close === 'function') dialog.close();
+        dialog.remove();
+        resolve(result);
+      };
+
+      const primaryBtn = dialog.querySelector('.th-popup-btn--primary');
+      if (primaryBtn) primaryBtn.onclick = () => finish(true);
+
+      const secondaryBtn = dialog.querySelector('.th-popup-btn--secondary');
+      if (secondaryBtn) secondaryBtn.onclick = () => finish(false);
+
+      const closeBtn = dialog.querySelector('.th-popup-close');
+      if (closeBtn) closeBtn.onclick = () => finish(false);
+
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          finish(false);
+        }
+      });
+
+      dialog.addEventListener('close', () => finish(false), { once: true });
+
+      // Fallback for browsers without closedby support
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        const isOutside = (e) => {
+          const rect = dialog.getBoundingClientRect();
+          return (
+            e.clientY < rect.top ||
+            e.clientY > rect.bottom ||
+            e.clientX < rect.left ||
+            e.clientX > rect.right
+          );
+        };
+        let pressedOutside = false;
+        dialog.addEventListener('pointerdown', (e) => {
+          pressedOutside = (e.target === dialog) && isOutside(e);
+        });
+        dialog.addEventListener('pointerup', (e) => {
+          if (pressedOutside && (e.target === dialog) && isOutside(e)) {
+            finish(false);
+          }
+        });
+        dialog.addEventListener('click', (e) => {
+          if ((e.target === dialog) && isOutside(e)) {
+            finish(false);
+          }
+        });
+      }
+
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+    });
+  },
+
+  prompt(message, defaultValue = '', options = {}) {
+    return new Promise((resolve) => {
+      let defaultVal = defaultValue;
+      let opts = options;
+      if (typeof defaultValue === 'object' && defaultValue !== null) {
+        opts = Object.assign({}, defaultValue, typeof options === 'object' && options !== null ? options : {});
+        defaultVal = opts.defaultValue !== undefined ? opts.defaultValue : (opts.value !== undefined ? opts.value : '');
+      } else if (typeof options === 'string') {
+        opts = { title: options };
+      } else {
+        opts = opts || {};
+      }
+
+      const title = opts.title || 'Prompt';
+      const confirmText = opts.confirmText || opts.buttonText || opts.okText || 'OK';
+      const cancelText = opts.cancelText || 'Cancel';
+      const placeholder = opts.placeholder || '';
+      const inputType = opts.inputType || 'text';
+      const titleId = 'th-popup-title-' + Math.random().toString(36).slice(2, 9);
+
+      const dialog = document.createElement('dialog');
+      dialog.className = 'th-popup-dialog';
+      dialog.setAttribute('closedby', 'any');
+      dialog.setAttribute('aria-labelledby', titleId);
+
+      dialog.innerHTML = `
+        <div class="th-popup th-popup--big">
+          <div class="th-popup-header">
+            <h3 class="th-popup-title" id="${titleId}">${escapePopupHtml(title)}</h3>
+            <button type="button" class="th-popup-close" aria-label="Close">
+              <img src="/images/popup-close-icon.svg" alt="Close">
+            </button>
+          </div>
+          <div class="th-popup-body">
+            <p style="margin-bottom: 14px; font-size: 1.15rem; color: #1E1E1E;">${escapePopupHtml(message)}</p>
+            <input type="${escapePopupHtml(inputType)}" class="th-popup-prompt-input form-control" value="${escapePopupHtml(defaultVal)}" placeholder="${escapePopupHtml(placeholder)}" autofocus style="width: 100%; padding: 14px 18px; border-radius: 16px; border: 1.5px solid #D1D5DB; font-size: 1.15rem; font-family: var(--font-family); outline: none; box-sizing: border-box; background: #FFFFFF; color: #1E1E1E;">
+          </div>
+          <div class="th-popup-actions--big">
+            <button type="button" class="th-popup-btn th-popup-btn--primary">${escapePopupHtml(confirmText)}</button>
+            <button type="button" class="th-popup-btn th-popup-btn--secondary">${escapePopupHtml(cancelText)}</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(dialog);
+
+      const input = dialog.querySelector('.th-popup-prompt-input');
+
+      let resolved = false;
+      const finish = (result) => {
+        if (resolved) return;
+        resolved = true;
+        if (dialog.open && typeof dialog.close === 'function') dialog.close();
+        dialog.remove();
+        resolve(result);
+      };
+
+      const primaryBtn = dialog.querySelector('.th-popup-btn--primary');
+      if (primaryBtn) primaryBtn.onclick = () => finish(input.value);
+
+      const secondaryBtn = dialog.querySelector('.th-popup-btn--secondary');
+      if (secondaryBtn) secondaryBtn.onclick = () => finish(null);
+
+      const closeBtn = dialog.querySelector('.th-popup-close');
+      if (closeBtn) closeBtn.onclick = () => finish(null);
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          finish(input.value);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          finish(null);
+        }
+      });
+
+      dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          finish(null);
+        }
+      });
+
+      dialog.addEventListener('close', () => finish(null), { once: true });
+
+      if (!('closedBy' in HTMLDialogElement.prototype)) {
+        const isOutside = (e) => {
+          const rect = dialog.getBoundingClientRect();
+          return (
+            e.clientY < rect.top ||
+            e.clientY > rect.bottom ||
+            e.clientX < rect.left ||
+            e.clientX > rect.right
+          );
+        };
+        let pressedOutside = false;
+        dialog.addEventListener('pointerdown', (e) => {
+          pressedOutside = (e.target === dialog) && isOutside(e);
+        });
+        dialog.addEventListener('pointerup', (e) => {
+          if (pressedOutside && (e.target === dialog) && isOutside(e)) {
+            finish(null);
+          }
+        });
+        dialog.addEventListener('click', (e) => {
+          if ((e.target === dialog) && isOutside(e)) {
+            finish(null);
+          }
+        });
+      }
+
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+
+      setTimeout(() => {
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 50);
+    });
+  },
+
+  toast(message, type = 'info', duration = 3500) {
+    let container = document.querySelector('.th-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'th-toast-container';
+      document.body.appendChild(container);
+    }
+
+    const toastEl = document.createElement('div');
+    toastEl.className = `th-toast th-toast--${type}`;
+    toastEl.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    toastEl.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+    toastEl.textContent = message;
+    container.appendChild(toastEl);
+
+    setTimeout(() => {
+      toastEl.classList.add('is-fading');
+      setTimeout(() => toastEl.remove(), 300);
+    }, duration);
+  }
+};
+
+window.Popup = Popup;
