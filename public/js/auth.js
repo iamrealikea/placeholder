@@ -148,7 +148,7 @@ const Auth = {
 
     const logoutBtn = menu.querySelector('#logoutBtn');
     logoutBtn.addEventListener('click', async () => {
-      await API.auth.logout().catch(() => {});
+      await API.auth.logout().catch(() => { });
       API.setToken('');
       this.currentUser = null;
       menu.remove();

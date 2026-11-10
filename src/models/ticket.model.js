@@ -29,9 +29,10 @@ class TicketModel {
     );
   }
 
-  static async issueForBooking(booking, seats, holderName) {
+  static async issueForBooking(booking, seats, holderNames) {
     const issuedTickets = [];
-    for (const s of seats) {
+    for (const [index, s] of seats.entries()) {
+      const holderName = holderNames[index];
       const ticketCode = `TKT-${booking.id.slice(-4).toUpperCase()}-${s.seatNumber}-${Math.round(Math.random() * 1e4)}`;
       const qrPayload = JSON.stringify({
         ticketCode,
@@ -55,6 +56,7 @@ class TicketModel {
         userId: booking.userId,
         eventId: booking.eventId,
         eventTitle: booking.eventTitle,
+        holderName,
         venue: booking.venue,
         roundId: booking.roundId,
         roundLabel: booking.roundLabel,

@@ -225,12 +225,20 @@ async function payBooking(req, res) {
     });
   }
 
-  const { paymentMethod } = req.body;
+  const { paymentMethod, ticketHolderNames } = req.body;
   const validMethods = ['PROMPTPAY', 'CREDIT_CARD', 'DEBIT_CARD', 'KBANK', 'KRUNGTHAI', 'TRUEMONEY'];
   if (!validMethods.includes(paymentMethod)) {
     return res.status(400).json({
       error: `Invalid payment method. Allowed: ${validMethods.join(', ')}`
     });
+  }
+
+  if (ticketHolderNames !== undefined && (
+    !Array.isArray(ticketHolderNames) ||
+    ticketHolderNames.length !== booking.seatIds.length ||
+    ticketHolderNames.some((name) => typeof name !== 'string' || !name.trim() || name.trim().length > 120)
+  )) {
+    return res.status(400).json({ error: 'Provide a full name for each ticket holder (maximum 120 characters).' });
   }
 
   // Atomic payment confirmation & seat transition (NFR-09)
@@ -255,7 +263,11 @@ async function payBooking(req, res) {
   UserModel.adjustPoints(req.user.id, booking.pointsUsed || 0, booking.pointsEarned || 0);
 
   // Issue electronic tickets with real QR code (FR-27, FR-28, FR-29)
-  const issuedTickets = await TicketModel.issueForBooking(booking, seats, req.user.name);
+  const issuedTickets = await TicketModel.issueForBooking(
+    booking,
+    seats,
+    ticketHolderNames || seats.map(() => req.user.name)
+  );
 
   // FR-33, FR-35, FR-36: Web & Email notifications on payment success
   NotificationModel.create({

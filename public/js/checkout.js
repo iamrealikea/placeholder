@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const eventTitleEl = document.getElementById('checkoutEventTitle');
   const roundLabelEl = document.getElementById('checkoutRound');
   const seatsListEl = document.getElementById('checkoutSeats');
+  const ticketHolderFields = document.getElementById('ticketHolderFields');
   const subtotalEl = document.getElementById('breakdownSubtotal');
   const serviceFeeEl = document.getElementById('breakdownServiceFee');
   const discountRowEl = document.getElementById('breakdownDiscountRow');
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       renderBookingDetails(res);
+      renderTicketHolderFields(b);
       startCountdownTimer();
       renderPaymentSimulator();
     } catch (err) {
@@ -60,6 +62,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       await Popup.alert(err.message || 'Error loading booking summary.', { title: 'Checkout Error' });
       window.location.href = '/home';
     }
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+  }
+
+  function renderTicketHolderFields(booking) {
+    if (!ticketHolderFields) return;
+    ticketHolderFields.innerHTML = `
+      <h4 style="margin-bottom: 12px;">Ticket Holder Names</h4>
+      ${(booking.seatNumbers || []).map((seatNumber, index) => `
+        <div class="form-group">
+          <label class="form-label" for="ticketHolder${index}">Seat ${escapeHtml(seatNumber)}</label>
+          <input id="ticketHolder${index}" class="form-control ticket-holder-name" type="text"
+            value="${escapeHtml(booking.userName || '')}" maxlength="120" required>
+        </div>
+      `).join('')}
+    `;
   }
 
   function renderBookingDetails(data) {
@@ -259,12 +285,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Confirm Payment
   if (confirmPaymentBtn) {
     confirmPaymentBtn.addEventListener('click', async () => {
+      const holderNameInputs = Array.from(document.querySelectorAll('.ticket-holder-name'));
+      if (holderNameInputs.some((input) => !input.value.trim())) {
+        const emptyInput = holderNameInputs.find((input) => !input.value.trim());
+        emptyInput.reportValidity();
+        emptyInput.focus();
+        return;
+      }
+
       confirmPaymentBtn.disabled = true;
       confirmPaymentBtn.textContent = 'Processing Payment...';
 
       try {
         const payload = {
           paymentMethod: selectedMethod,
+          ticketHolderNames: holderNameInputs.map((input) => input.value.trim()),
           paymentDetails: {
             simulatedTimestamp: new Date().toISOString(),
             channel: 'WEB_SIMULATOR'
