@@ -11,6 +11,7 @@
  * - Suite 6: QR Ticket Anti-Reuse Validation (FR-28 to FR-31)
  * - Suite 7: Cancellation & Refund Policy Calculation (FR-38, FR-39)
  * - Suite 8: Admin Dashboard, RBAC & Backup/Restore (FR-40 to FR-44, NFR-06, NFR-11, NFR-12)
+ * - Suite 10: Admin Event Inspection & Transaction Audit (FR-42, FR-43)
  *
  * Execution: npm test (node --test tests/api.test.js)
  */
@@ -873,4 +874,368 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.strictEqual(restoreRes.data.result.restoredFrom, backupId);
     });
   });
+
+  // =========================================================================
+  // Suite 10: FR-42 & FR-43 Admin Event Inspection & Transaction Audit
+  // =========================================================================
+  describe('Suite 10: FR-42 & FR-43 Admin Event Inspection & Transaction Audit', () => {
+    it('FR-42: Admin inspects event details with 12 real-time KPIs, zone breakdown, and transaction history', async () => {
+      const res = await request('/api/admin/events/evt-1/inspect', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.data.event);
+      assert.strictEqual(res.data.event.id, 'evt-1');
+
+      // 1. Verify summary metrics object and all 12 KPI fields
+      const summary = res.data.summary;
+      assert.ok(summary, 'Expected summary object in inspect response');
+      assert.strictEqual(typeof summary.totalSeats, 'number');
+      assert.strictEqual(typeof summary.availableSeats, 'number');
+      assert.strictEqual(typeof summary.heldSeats, 'number');
+      assert.strictEqual(typeof summary.bookedSeats, 'number');
+      assert.strictEqual(typeof summary.totalBookings, 'number');
+      assert.strictEqual(typeof summary.paidBookingsCount, 'number');
+      assert.strictEqual(typeof summary.pendingBookingsCount, 'number');
+      assert.strictEqual(typeof summary.cancelledBookingsCount, 'number');
+      assert.strictEqual(typeof summary.totalRevenue, 'number');
+      assert.strictEqual(typeof summary.totalRefunded, 'number');
+      assert.strictEqual(typeof summary.ticketsIssued, 'number');
+      assert.strictEqual(typeof summary.ticketsCheckedIn, 'number');
+
+      // Verify root-level metric aliases match summary values
+      assert.strictEqual(res.data.totalSeats, summary.totalSeats);
+      assert.strictEqual(res.data.availableSeats, summary.availableSeats);
+      assert.strictEqual(res.data.heldSeats, summary.heldSeats);
+      assert.strictEqual(res.data.bookedSeats, summary.bookedSeats);
+
+      // Invariant: totalSeats equals available + held + booked
+      assert.strictEqual(
+        summary.totalSeats,
+        summary.availableSeats + summary.heldSeats + summary.bookedSeats,
+        'Total seats must equal sum of available, held, and booked seats'
+      );
+
+      // Invariant: totalBookings equals paid + pending + cancelled
+      assert.strictEqual(
+        summary.totalBookings,
+        summary.paidBookingsCount + summary.pendingBookingsCount + summary.cancelledBookingsCount,
+        'Total bookings must equal sum of paid, pending, and cancelled bookings'
+      );
+
+      // 2. Verify rounds and real-time zone availability breakdown
+      assert.ok(Array.isArray(res.data.rounds), 'Expected rounds array');
+      assert.ok(res.data.rounds.length > 0, 'Expected at least one round in rounds');
+      for (const round of res.data.rounds) {
+        assert.ok(round.roundId);
+        assert.ok(Array.isArray(round.zones));
+        assert.ok(round.zones.length > 0);
+        for (const zone of round.zones) {
+          assert.ok(zone.zoneId);
+          assert.ok(zone.zoneName);
+          assert.strictEqual(typeof zone.price, 'number');
+          assert.strictEqual(typeof zone.totalSeats, 'number');
+          assert.strictEqual(typeof zone.availableSeats, 'number');
+          assert.strictEqual(typeof zone.heldSeats, 'number');
+          assert.strictEqual(typeof zone.bookedSeats, 'number');
+          assert.strictEqual(
+            zone.totalSeats,
+            zone.availableSeats + zone.heldSeats + zone.bookedSeats,
+            'Zone total seats must equal sum of available, held, and booked seats'
+          );
+        }
+      }
+
+      // 3. Verify associated transactions sorted newest-first
+      assert.ok(Array.isArray(res.data.transactions), 'Expected transactions array');
+      assert.ok(res.data.transactions.length > 0, 'Expected transactions for evt-1');
+      for (const tx of res.data.transactions) {
+        assert.strictEqual(tx.eventId, 'evt-1');
+        assert.ok(tx.bookingId);
+        assert.ok(tx.referenceCode);
+        assert.strictEqual(typeof tx.totalAmount, 'number');
+        if (tx.user) {
+          assert.strictEqual(tx.user.passwordHash, undefined);
+        }
+      }
+    });
+
+    it('FR-42: Returns HTTP 404 Not Found when inspecting non-existent event', async () => {
+      const res = await request('/api/admin/events/evt-non-existent-9999/inspect', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+
+      assert.strictEqual(res.status, 404);
+      assert.ok(res.data);
+      assert.match(res.data.error, /Event not found/i);
+    });
+
+    it('FR-42, NFR-07: Enforces authentication and admin role on event inspection endpoint', async () => {
+      // 1. Unauthenticated request returns 401 Unauthorized
+      const unauthRes = await request('/api/admin/events/evt-1/inspect');
+      assert.strictEqual(unauthRes.status, 401);
+
+      // 2. Customer token returns 403 Forbidden
+      const customerRes = await request('/api/admin/events/evt-1/inspect', {
+        headers: { Authorization: `Bearer ${customerToken}` }
+      });
+      assert.strictEqual(customerRes.status, 403);
+
+      // 3. Staff token returns 403 Forbidden (inspect is admin-restricted)
+      const staffRes = await request('/api/admin/events/evt-1/inspect', {
+        headers: { Authorization: `Bearer ${staffToken}` }
+      });
+      assert.strictEqual(staffRes.status, 403);
+    });
+
+    it('FR-43: Queries and filters transaction audit log by eventId, status, and search string', async () => {
+      // 1. Unfiltered query returns full transaction list sorted newest-first
+      const allRes = await request('/api/admin/transactions', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(allRes.status, 200);
+      assert.ok(typeof allRes.data.total === 'number');
+      assert.ok(Array.isArray(allRes.data.transactions));
+      assert.strictEqual(allRes.data.total, allRes.data.transactions.length);
+      assert.ok(allRes.data.total >= 2);
+
+      // Verify newest-first ordering
+      for (let i = 0; i < allRes.data.transactions.length - 1; i++) {
+        const current = new Date(allRes.data.transactions[i].createdAt || 0).getTime();
+        const next = new Date(allRes.data.transactions[i + 1].createdAt || 0).getTime();
+        assert.ok(current >= next, 'Transactions must be sorted newest-first by createdAt');
+      }
+
+      // 2. Filter by eventId
+      const evtRes = await request('/api/admin/transactions?eventId=evt-1', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(evtRes.status, 200);
+      assert.ok(evtRes.data.transactions.length > 0);
+      assert.ok(
+        evtRes.data.transactions.every((tx) => tx.eventId === 'evt-1'),
+        'All returned transactions must match eventId evt-1'
+      );
+
+      // 3. Filter by status (case-insensitive booking/payment status)
+      const paidRes = await request('/api/admin/transactions?status=PAID', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(paidRes.status, 200);
+      assert.ok(paidRes.data.transactions.length > 0);
+      assert.ok(
+        paidRes.data.transactions.every(
+          (tx) => tx.bookingStatus === 'PAID' || tx.paymentStatus === 'PAID' || tx.paymentStatus === 'SUCCESS'
+        ),
+        'All returned transactions must have PAID or SUCCESS status'
+      );
+
+      // 4. Filter by search string across multiple fields
+      const searchRes = await request('/api/admin/transactions?search=Forza', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(searchRes.status, 200);
+      assert.ok(searchRes.data.transactions.length > 0);
+      assert.ok(
+        searchRes.data.transactions.every(
+          (tx) => (tx.eventTitle && tx.eventTitle.toLowerCase().includes('forza')) ||
+                  (tx.customerName && tx.customerName.toLowerCase().includes('forza')) ||
+                  (tx.customerEmail && tx.customerEmail.toLowerCase().includes('forza')) ||
+                  (tx.referenceCode && tx.referenceCode.toLowerCase().includes('forza'))
+        ),
+        'Transactions matched by search=Forza must contain query in searchable fields'
+      );
+
+      // 5. Empty search result handling
+      const noMatchRes = await request('/api/admin/transactions?search=NONEXISTENT_QUERY_STRING_XYZ_9999', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(noMatchRes.status, 200);
+      assert.strictEqual(noMatchRes.data.total, 0);
+      assert.strictEqual(noMatchRes.data.transactions.length, 0);
+    });
+
+    it('FR-43, AGENTS.md: Guarantees zero passwordHash leakage across all transaction audit records and customer objects', async () => {
+      const res = await request('/api/admin/transactions', {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.data.transactions.length > 0);
+
+      // Invariant 1: Raw JSON serialization must never contain the substring "passwordHash"
+      const rawPayload = JSON.stringify(res.data);
+      assert.strictEqual(
+        rawPayload.includes('passwordHash'),
+        false,
+        'Sensitive passwordHash field must NEVER be present anywhere in admin transaction payload'
+      );
+
+      // Invariant 2: Explicit object-level property check on user and customer objects
+      for (const tx of res.data.transactions) {
+        if (tx.user) {
+          assert.strictEqual(tx.user.passwordHash, undefined, 'tx.user.passwordHash must be undefined');
+        }
+        if (tx.customer) {
+          assert.strictEqual(tx.customer.passwordHash, undefined, 'tx.customer.passwordHash must be undefined');
+        }
+        assert.strictEqual(tx.passwordHash, undefined, 'tx.passwordHash must be undefined');
+      }
+    });
+
+    it('FR-43, NFR-07: Enforces authentication and admin role on global transactions audit endpoint', async () => {
+      // 1. Unauthenticated request returns 401 Unauthorized
+      const unauthRes = await request('/api/admin/transactions');
+      assert.strictEqual(unauthRes.status, 401);
+
+      // 2. Customer token returns 403 Forbidden
+      const customerRes = await request('/api/admin/transactions', {
+        headers: { Authorization: `Bearer ${customerToken}` }
+      });
+      assert.strictEqual(customerRes.status, 403);
+
+      // 3. Staff token returns 403 Forbidden (requires admin role)
+      const staffRes = await request('/api/admin/transactions', {
+        headers: { Authorization: `Bearer ${staffToken}` }
+      });
+      assert.strictEqual(staffRes.status, 403);
+    });
+
+    it('FR-42, R3: GET /api/events enriches every event with totalSeats, totalAvailableSeats, totalBookedSeats, and totalHeldSeats', async () => {
+      const res = await request('/api/events');
+      assert.strictEqual(res.status, 200);
+      assert.ok(Array.isArray(res.data.events));
+      assert.ok(res.data.events.length > 0);
+
+      for (const event of res.data.events) {
+        assert.ok(event.id);
+        assert.strictEqual(typeof event.totalSeats, 'number', `${event.id} must include totalSeats as a number`);
+        assert.strictEqual(typeof event.totalAvailableSeats, 'number', `${event.id} must include totalAvailableSeats as a number`);
+        assert.strictEqual(typeof event.totalBookedSeats, 'number', `${event.id} must include totalBookedSeats as a number`);
+        assert.strictEqual(typeof event.totalHeldSeats, 'number', `${event.id} must include totalHeldSeats as a number`);
+
+        assert.ok(event.totalSeats >= 0, `${event.id} totalSeats must be non-negative`);
+        assert.ok(event.totalAvailableSeats >= 0, `${event.id} totalAvailableSeats must be non-negative`);
+        assert.ok(event.totalBookedSeats >= 0, `${event.id} totalBookedSeats must be non-negative`);
+        assert.ok(event.totalHeldSeats >= 0, `${event.id} totalHeldSeats must be non-negative`);
+
+        // Invariant: totalSeats must equal the exact sum of totalAvailableSeats + totalBookedSeats + totalHeldSeats
+        assert.strictEqual(
+          event.totalSeats,
+          event.totalAvailableSeats + event.totalBookedSeats + event.totalHeldSeats,
+          `${event.id} totalSeats (${event.totalSeats}) must equal sum of available (${event.totalAvailableSeats}), booked (${event.totalBookedSeats}), and held (${event.totalHeldSeats})`
+        );
+      }
+    });
+  });
+
+  // =========================================================================
+  // Suite 11: Client Error Responses & 404/403 Handle Page (UC-ERR-01 & UC-ERR-02)
+  // =========================================================================
+  describe('Suite 11: Client Error Responses & 404/403 Handle Page (UC-ERR-01 & UC-ERR-02)', () => {
+    it('UC-ERR-01a: Malformed JSON body on /api returns HTTP 400 JSON without stack trace leakage', async () => {
+      const res = await request('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{"email": "bad-json",'
+      });
+
+      assert.strictEqual(res.status, 400);
+      assert.match(res.headers.get('content-type') || '', /application\/json/);
+      assert.ok(typeof res.data.error === 'string' && res.data.error.length > 0);
+      assert.doesNotMatch(JSON.stringify(res.data), /node_modules|at \w+ \(/i);
+    });
+
+    it('UC-ERR-01b: Unmatched API route returns HTTP 404 JSON', async () => {
+      const res = await request('/api/unknown-endpoint-does-not-exist');
+      assert.strictEqual(res.status, 404);
+      assert.match(res.headers.get('content-type') || '', /application\/json/);
+      assert.match(res.data.error, /API route not found/i);
+    });
+
+    it('UC-ERR-01c: Oversized payload body returns HTTP 413 JSON', async () => {
+      const res = await request('/api/auth/login', {
+        method: 'POST',
+        body: { email: 'x'.repeat(200000), password: 'p' }
+      });
+
+      assert.strictEqual(res.status, 413);
+      assert.match(res.headers.get('content-type') || '', /application\/json/);
+      assert.ok(typeof res.data.error === 'string' && res.data.error.length > 0);
+      assert.doesNotMatch(JSON.stringify(res.data), /node_modules|at \w+ \(/i);
+    });
+
+    it('UC-ERR-02a: Unmatched page URL and /404 serve branded 404 handle page with HTTP 404', async () => {
+      const randomPage = await request('/this-page-definitely-does-not-exist');
+      assert.strictEqual(randomPage.status, 404);
+      assert.match(randomPage.headers.get('content-type') || '', /text\/html/);
+      assert.match(randomPage.data, /404 Not Found|Page Not Found/i);
+
+      const direct404 = await request('/404');
+      assert.strictEqual(direct404.status, 404);
+      assert.match(direct404.headers.get('content-type') || '', /text\/html/);
+      assert.match(direct404.data, /404 Not Found|Page Not Found/i);
+    });
+
+    it('UC-ERR-02b: /403 serves branded error handle page with HTTP 403', async () => {
+      const res403 = await request('/403');
+      assert.strictEqual(res403.status, 403);
+      assert.match(res403.headers.get('content-type') || '', /text\/html/);
+      assert.match(res403.data, /403 Forbidden|Access Denied/i);
+    });
+
+    it('UC-ERR-02c: /checkout with non-existent booking ID serves branded 404 handle page', async () => {
+      const resMissing = await request('/checkout?bookingId=bkg-non-existent-999');
+      assert.strictEqual(resMissing.status, 404);
+      assert.match(resMissing.headers.get('content-type') || '', /text\/html/);
+      assert.match(resMissing.data, /Page Not Found/i);
+    });
+
+    it('UC-ERR-02d: Entering another user active booking returns HTTP 403 JSON on API and HTTP 403 HTML on page', async () => {
+      // 1. Hold a seat as customer A
+      const holdRes = await request('/api/bookings/hold', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${customerToken}` },
+        body: {
+          eventId: 'evt-1',
+          roundId: 'rnd-1a',
+          seatIds: ['seat-evt-1-rnd-1a-zone-vip-A4']
+        }
+      });
+      assert.strictEqual(holdRes.status, 201);
+      const bookingAId = holdRes.data.booking.id;
+
+      // 2. Register customer B
+      const custBTime = Date.now();
+      const regB = await request('/api/auth/register', {
+        method: 'POST',
+        body: {
+          name: 'Customer B',
+          email: `customer.b.${custBTime}@example.com`,
+          password: 'Password123!',
+          phone: '0822222222',
+          nationalId: `110060${custBTime.toString().slice(-7)}`
+        }
+      });
+      assert.strictEqual(regB.status, 201);
+      const custBToken = regB.data.token;
+      const custBCookie = regB.setCookie ? regB.setCookie.split(';')[0] : `tickethub_token=${custBToken}`;
+
+      // 3. Customer B attempts to get booking summary of Customer A -> HTTP 403
+      const summaryRes = await request(`/api/bookings/${bookingAId}/summary`, {
+        headers: { Authorization: `Bearer ${custBToken}` }
+      });
+      assert.strictEqual(summaryRes.status, 403);
+      assert.match(summaryRes.data.error, /Another user is currently holding this booking/i);
+
+      // 4. Customer B attempts to view checkout page for Customer A booking -> HTTP 403 HTML
+      const checkoutPageRes = await request(`/checkout?bookingId=${bookingAId}`, {
+        headers: { Cookie: custBCookie }
+      });
+      assert.strictEqual(checkoutPageRes.status, 403);
+      assert.match(checkoutPageRes.headers.get('content-type') || '', /text\/html/);
+      assert.match(checkoutPageRes.data, /403 Forbidden|Access Denied/i);
+    });
+  });
 });
+
