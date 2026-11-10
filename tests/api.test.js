@@ -254,6 +254,13 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.strictEqual(putRes.data.user.name, 'Napat Srisawat (Updated)');
       assert.strictEqual(putRes.data.user.phone, '0898765432');
       assert.strictEqual(putRes.data.user.address, '789 Rama IV Road, Bangkok 10330');
+
+      const futureDobRes = await request('/api/auth/profile', {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${customerToken}` },
+        body: { dob: '2999-01-01' }
+      });
+      assert.strictEqual(futureDobRes.status, 400);
     });
 
     it('FR-05: Updates user avatar via JSON/URL (200 OK)', async () => {
@@ -558,7 +565,7 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       const res = await request(`/api/bookings/${heldBookingId}/pay`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${customerToken}` },
-        body: { paymentMethod: 'PROMPTPAY' }
+        body: { paymentMethod: 'PROMPTPAY', ticketHolderNames: ['Napat Srisawat Guest'] }
       });
 
       assert.strictEqual(res.status, 200);
@@ -573,6 +580,8 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       const ticket = res.data.tickets[0];
       assert.strictEqual(ticket.status, 'VALID');
       assert.strictEqual(ticket.seatNumber, 'A3');
+      assert.strictEqual(ticket.holderName, 'Napat Srisawat Guest');
+      assert.strictEqual(JSON.parse(ticket.qrPayload).holder, 'Napat Srisawat Guest');
       assert.ok(ticket.ticketCode);
       assert.ok(ticket.qrPayload);
       assert.ok(ticket.qrDataUrl);
