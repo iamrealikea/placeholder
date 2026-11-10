@@ -24,11 +24,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentTicketIdx = 0;
   let historyList = [];
 
+  function promptForLogin() {
+    Auth.openAuthModal(async () => {
+      await loadData();
+    });
+  }
+
   async function loadData() {
-    if (!Auth.isLoggedIn()) {
-      Auth.openAuthModal(async () => {
-        await loadData();
-      });
+    if (!Auth.isLoggedIn() && !API.getToken()) {
+      promptForLogin();
       return;
     }
 
@@ -43,6 +47,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       historyList = (hRes && hRes.history) || [];
       renderPurchaseHistory();
     } catch (err) {
+      if (err.status === 401) {
+        Auth.currentUser = null;
+        API.setToken('');
+        Auth.renderNavbarAuth();
+        promptForLogin();
+        return;
+      }
       console.error('Failed to load tickets/history:', err);
     }
   }

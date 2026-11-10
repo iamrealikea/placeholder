@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const inputNationalId = document.getElementById('profileInputNationalId');
   const inputAddress = document.getElementById('profileInputAddress');
 
+  if (inputDob) {
+    const today = new Date();
+    inputDob.max = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }
+
   const avatarFileInput = document.getElementById('avatarFileInput');
   const avatarUrlInput = document.getElementById('avatarUrlInput');
   const uploadAvatarUrlBtn = document.getElementById('uploadAvatarUrlBtn');
@@ -48,28 +53,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderUserData(user) {
+    if (!user) return;
     if (profileNameEl) profileNameEl.textContent = user.name;
     if (profileEmailEl) profileEmailEl.textContent = user.email;
     if (profileRoleBadge) profileRoleBadge.textContent = (user.role || 'Customer').toUpperCase();
     if (loyaltyPointsCount) loyaltyPointsCount.textContent = (user.points || 0).toLocaleString();
 
     if (user.avatarUrl) {
-      profileAvatarImg.src = user.avatarUrl;
-      profileAvatarImg.style.display = 'block';
-      avatarInitials.style.display = 'none';
+      if (profileAvatarImg) {
+        profileAvatarImg.src = user.avatarUrl;
+        profileAvatarImg.style.display = 'block';
+      }
+      if (avatarInitials) avatarInitials.style.display = 'none';
     } else {
-      profileAvatarImg.style.display = 'none';
-      avatarInitials.style.display = 'flex';
-      avatarInitials.textContent = (user.name || 'U').slice(0, 2).toUpperCase();
+      if (profileAvatarImg) profileAvatarImg.style.display = 'none';
+      if (avatarInitials) {
+        avatarInitials.style.display = 'flex';
+        avatarInitials.textContent = (user.name || 'U').slice(0, 2).toUpperCase();
+      }
     }
 
     if (inputName) inputName.value = user.name || '';
     if (inputPhone) inputPhone.value = user.phone || '';
-    if (inputAge) inputAge.value = user.age || '';
-    if (inputDob) inputDob.value = user.dob || '';
+    if (inputAge) inputAge.value = user.age ?? '';
+    if (inputDob) inputDob.value = (user.dob || '').slice(0, 10);
     if (inputGender) inputGender.value = user.gender || 'Unspecified';
     if (inputNationalId) inputNationalId.value = user.nationalId || '';
     if (inputAddress) inputAddress.value = user.address || '';
+  }
+
+  function syncAuthUser(user) {
+    Auth.currentUser = user;
+    localStorage.setItem('tickethub_user', JSON.stringify(user));
+    Auth.notifyAuthChange();
+    Auth.renderNavbarAuth();
   }
 
   // Profile Form Submit
@@ -87,11 +104,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           address: inputAddress.value
         };
 
+        if (inputDob) {
+          inputDob.setCustomValidity('');
+          if (inputDob.value > inputDob.max) {
+            inputDob.setCustomValidity('Date of birth cannot be in the future.');
+            inputDob.reportValidity();
+            return;
+          }
+        }
+
         const res = await API.auth.updateProfile(body);
         alert('Profile updated successfully!');
-        Auth.currentUser = res.user;
-        renderUserData(res.user);
-        Auth.renderNavbarAuth();
+        syncAuthUser(res.user);
+        await loadProfile();
       } catch (err) {
         alert(err.message || 'Failed to update profile.');
       }
@@ -109,9 +134,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         const res = await API.auth.uploadAvatar(formData);
         alert('Avatar uploaded successfully!');
-        Auth.currentUser = res.user;
+        syncAuthUser(res.user);
         renderUserData(res.user);
-        Auth.renderNavbarAuth();
       } catch (err) {
         alert(err.message || 'Failed to upload avatar image.');
       }
@@ -133,9 +157,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           body: JSON.stringify({ avatarUrl: url })
         });
         alert('Avatar URL updated!');
-        Auth.currentUser = res.user;
+        syncAuthUser(res.user);
         renderUserData(res.user);
-        Auth.renderNavbarAuth();
       } catch (err) {
         alert(err.message || 'Failed to update avatar.');
       }

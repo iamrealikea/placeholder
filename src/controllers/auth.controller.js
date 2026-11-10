@@ -9,6 +9,14 @@ const inFlightNids = new Set();
 
 const COOKIE_MAX_AGE_MS = 7 * 24 * 3600 * 1000; // 7 days
 
+function isValidDateOfBirth(value) {
+  if (!value) return true;
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value &&
+    value <= new Date().toISOString().slice(0, 10);
+}
+
 /**
  * FR-02: User Registration
  * POST /api/auth/register
@@ -23,6 +31,10 @@ async function register(req, res) {
     !password || typeof password !== 'string' || !password.trim()
   ) {
     return res.status(400).json({ error: 'Name, email, and password are required non-empty strings.' });
+  }
+
+  if (!isValidDateOfBirth(dob)) {
+    return res.status(400).json({ error: 'Date of birth must be a valid date that is not in the future.' });
   }
 
   const emailNormalized = email.trim().toLowerCase();
@@ -228,6 +240,10 @@ function getMe(req, res) {
  */
 function updateProfile(req, res) {
   try {
+    if (req.body.dob !== undefined && !isValidDateOfBirth(req.body.dob)) {
+      return res.status(400).json({ error: 'Date of birth must be a valid date that is not in the future.' });
+    }
+
     const allowed = ['name', 'phone', 'age', 'address', 'dob', 'gender', 'nationalId', 'avatarUrl'];
     const updates = {};
 

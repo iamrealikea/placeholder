@@ -262,10 +262,6 @@ const Auth = {
     const closeBtn = modal.querySelector('#closeAuthModal');
     closeBtn.onclick = () => (modal.style.display = 'none');
 
-    modal.onclick = (e) => {
-      if (e.target === modal) modal.style.display = 'none';
-    };
-
     // Tab Switching
     const tabLogin = modal.querySelector('#tabLogin');
     const tabRegister = modal.querySelector('#tabRegister');
