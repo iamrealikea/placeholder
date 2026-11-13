@@ -21,7 +21,7 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -41,7 +41,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge d-none" hidden>0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -54,12 +54,11 @@
   <section class="booking-header">
     <div class="container booking-header-inner">
       <div>
-        <h1 id="bookingEventTitle" style="font-size: 2rem; font-weight: 800; margin-bottom: 4px;">Loading Event...</h1>
-        <div id="bookingVenue" style="font-size: 1rem; opacity: 0.9;"><i class="fa-solid fa-location-dot"
-            style="margin-right: 4px;"></i> Impact Arena</div>
+        <h1 id="bookingEventTitle" class="fs-2 fw-8 mb-4">Loading Event...</h1>
+        <div id="bookingVenue" class="fs-1 opacity-90"><i class="fa-solid fa-location-dot mr-4"></i> Impact Arena</div>
       </div>
       <div>
-        <a href="/event" class="btn-pill-outline" style="border-color: #FFFFFF; color: #FFFFFF;">
+        <a href="/event" class="btn-pill-outline border-white text-white">
           Change Event
         </a>
       </div>
@@ -70,8 +69,8 @@
   <main class="container">
 
     <!-- Round Selector -->
-    <div style="margin-bottom: 16px;">
-      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">
+    <div class="mb-16">
+      <h3 class="fs-1 fw-7 c-muted uppercase mb-8">
         Select Show Round</h3>
       <div id="roundSelector" class="round-selector-wrap">
         <!-- Populated by booking.js -->
@@ -79,8 +78,8 @@
     </div>
 
     <!-- Zone Tabs & Live Counts (UI-07, FR-20, FR-21, FR-22) -->
-    <div style="margin-bottom: 24px;">
-      <h3 style="font-size: 1rem; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px;">
+    <div class="mb-24">
+      <h3 class="fs-1 fw-7 c-muted uppercase mb-8">
         Filter by Zone</h3>
       <div id="zoneTabs" class="zone-tabs-wrap">
         <!-- Populated by booking.js -->
@@ -93,17 +92,17 @@
     </div>
 
     <!-- Seat Legend -->
-    <div class="seat-legend" style="margin-bottom: 32px;">
+    <div class="seat-legend mb-32">
       <div class="legend-item">
-        <div class="seat available" style="width: 26px; height: 26px; font-size: 9px; cursor: default;">01</div>
+        <div class="seat available">01</div>
         <span>Available (UI-04)</span>
       </div>
       <div class="legend-item">
-        <div class="seat booked" style="width: 26px; height: 26px; cursor: default;"></div>
+        <div class="seat booked"></div>
         <span>Booked / Reserved (UI-05)</span>
       </div>
       <div class="legend-item">
-        <div class="seat selected" style="width: 26px; height: 26px; cursor: default;"></div>
+        <div class="seat selected"></div>
         <span>Selected (UI-06)</span>
       </div>
     </div>
@@ -117,7 +116,7 @@
         </div>
         <div class="booking-summary-item">
           <small>Seat Numbers</small>
-          <strong id="summarySeatsList" style="font-size: 1.05rem;">None selected</strong>
+          <strong id="summarySeatsList" class="fs-105">None selected</strong>
         </div>
         <div class="booking-summary-item">
           <small>Ticket Subtotal</small>
@@ -125,12 +124,12 @@
         </div>
         <div class="booking-summary-item">
           <small>Total (inc. 40 THB fee/seat)</small>
-          <strong id="summaryTotal" style="color: #1D56CF;">0 THB</strong>
+          <strong id="summaryTotal" class="c-blue">0 THB</strong>
         </div>
       </div>
 
       <div>
-        <button id="proceedCheckoutBtn" class="btn-pill-red" style="font-size: 1.1rem; padding: 12px 32px;" disabled>
+        <button id="proceedCheckoutBtn" class="btn-pill-red fs-11 p-12-32" disabled>
           Proceed to Checkout
         </button>
       </div>
@@ -139,10 +138,9 @@
   </main>
 
   <!-- Footer -->
-  <footer
-    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer class="site-footer">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
       <p>All seat holds are locked atomically for 10 minutes to guarantee double-booking prevention.</p>
     </div>
   </footer>

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "seed": "node src/store/seed-cli.js",
-    "test": "node --test tests/api.test.js",
+    "test": "node --test --test-concurrency=1 tests/api.test.js tests/e2e-admin-events.test.js tests/popup-unit.test.js",
     "dev": "nodemon server.js"
   },
   "dependencies": {

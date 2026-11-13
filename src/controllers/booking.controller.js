@@ -42,8 +42,12 @@ function holdSeats(req, res) {
   SeatModel.expireHeldSeats();
   const { eventId, roundId, seatIds } = req.body;
 
-  if (!eventId || !roundId || !Array.isArray(seatIds) || seatIds.length === 0) {
+  if (!eventId || !roundId || !Array.isArray(seatIds) || seatIds.length === 0 || seatIds.some((s) => typeof s !== 'string' || !s.trim())) {
     return res.status(400).json({ error: 'Please select at least one seat.' });
+  }
+
+  if (new Set(seatIds).size !== seatIds.length) {
+    return res.status(400).json({ error: 'Duplicate seats selected in request.' });
   }
 
   const event = EventModel.findById(eventId);
@@ -80,9 +84,19 @@ function holdSeats(req, res) {
         error: `Seat ${seat.seatNumber} has already been booked by another user.`
       });
     }
-    if (seat.status === 'HELD' && seat.heldByUserId !== req.user.id) {
+    if (seat.status === 'HELD') {
+      if (seat.heldByUserId === req.user.id) {
+        return res.status(409).json({
+          error: `Seat ${seat.seatNumber} is already held in your active reservation.`
+        });
+      }
       return res.status(409).json({
         error: `Seat ${seat.seatNumber} is currently reserved by another customer. Please choose another seat.`
+      });
+    }
+    if (seat.status !== 'AVAILABLE') {
+      return res.status(409).json({
+        error: `Seat ${seat.seatNumber} is not available.`
       });
     }
     targetSeats.push(seat);
@@ -152,6 +166,9 @@ function applyDiscount(req, res) {
   if (!booking || booking.status !== 'PENDING') {
     return res.status(400).json({ error: 'Active pending booking required to apply discount.' });
   }
+  if (booking.userId !== req.user.id) {
+    return res.status(403).json({ error: 'Access denied. You do not own this booking.' });
+  }
 
   const { promoCode, redeemPoints } = req.body;
   const user = UserModel.findById(req.user.id);
@@ -216,12 +233,28 @@ async function payBooking(req, res) {
   if (booking.userId !== req.user.id) {
     return res.status(403).json({ error: 'Unauthorized booking payment.' });
   }
-  if (booking.status === 'PAID') {
-    return res.status(400).json({ error: 'This booking has already been paid.' });
-  }
-  if (booking.status === 'EXPIRED') {
+  if (booking.status !== 'PENDING') {
+    if (booking.status === 'PAID') {
+      return res.status(400).json({ error: 'This booking has already been paid.' });
+    }
+    if (booking.status === 'EXPIRED') {
+      return res.status(400).json({
+        error: 'Your 10-minute seat reservation has expired. Please reselect your seats.'
+      });
+    }
     return res.status(400).json({
-      error: 'Your 10-minute seat reservation has expired. Please reselect your seats.'
+      error: `Cannot pay for booking with status "${booking.status}".`
+    });
+  }
+
+  // Verify seat holds are active and owned by this booking
+  const currentSeats = SeatModel.findByIds(booking.seatIds);
+  if (
+    currentSeats.length !== booking.seatIds.length ||
+    currentSeats.some((s) => s.status !== 'HELD' || s.bookingId !== booking.id || s.heldByUserId !== req.user.id)
+  ) {
+    return res.status(409).json({
+      error: 'Seat reservation has expired or is no longer held for this booking. Please reselect your seats.'
     });
   }
 
@@ -239,6 +272,15 @@ async function payBooking(req, res) {
     ticketHolderNames.some((name) => typeof name !== 'string' || !name.trim() || name.trim().length > 120)
   )) {
     return res.status(400).json({ error: 'Provide a full name for each ticket holder (maximum 120 characters).' });
+  }
+
+  // Atomically validate loyalty points balance before proceeding to payment
+  const currentUser = UserModel.findById(req.user.id);
+  const pointsToDeduct = booking.pointsUsed || 0;
+  if (pointsToDeduct > 0 && (!currentUser || (currentUser.points || 0) < pointsToDeduct)) {
+    return res.status(400).json({
+      error: `Insufficient loyalty points balance (${currentUser ? currentUser.points : 0} points available, ${pointsToDeduct} required). Please re-apply discount or remove points redemption.`
+    });
   }
 
   // Atomic payment confirmation & seat transition (NFR-09)
@@ -322,6 +364,13 @@ function cancelAndRefundBooking(booking, options = {}) {
     // Update payment record to REFUNDED with refund amount and reason
     PaymentModel.markRefunded(booking.id, refundableAmount, reason);
 
+    // Reverse loyalty points: deduct earned points, restore redeemed points
+    UserModel.adjustPoints(
+      booking.userId,
+      booking.pointsEarned || 0,
+      booking.pointsUsed || 0
+    );
+
     // Update booking status
     BookingModel.update(booking.id, {
       status: 'CANCELLED',
@@ -402,6 +451,13 @@ function cancelBooking(req, res) {
   }
   if (booking.status !== 'PAID') {
     return res.status(400).json({ error: 'Only paid bookings can be cancelled.' });
+  }
+
+  const tickets = TicketModel.findByBookingId(booking.id);
+  if (tickets.some((t) => t.status === 'CHECKED_IN')) {
+    return res.status(400).json({
+      error: 'Cannot cancel booking after tickets have already been checked in.'
+    });
   }
 
   const event = EventModel.findById(booking.eventId);

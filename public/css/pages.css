@@ -641,6 +641,16 @@
   gap: 8px;
 }
 
+.legend-item .seat {
+  width: 26px;
+  height: 26px;
+  cursor: default;
+}
+
+.legend-item .seat.available {
+  font-size: 9px;
+}
+
 /* Booking Selection Summary Sticky Bar */
 .booking-summary-bar {
   background: #FFFFFF;

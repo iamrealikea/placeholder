@@ -11,11 +11,11 @@ const { getAllTemplates } = require('../store/seatTemplates');
 const { cancelAndRefundBooking } = require('./booking.controller');
 
 // In-memory tracker for failed delete password attempts (per-admin rate throttle: 5 failed attempts in 10 minutes)
-const failedDeleteAttempts = new Map(); // key: String(adminId) -> Array<number> timestamps
+const failedDeleteAttempts = new Map(); // key: String(adminId) or `${adminId}:${eventId}` -> Array<number> timestamps
 
-function isDeleteRateThrottled(adminId) {
+function isDeleteRateThrottled(adminId, eventId) {
   if (!adminId) return false;
-  const key = String(adminId);
+  const key = eventId ? `${adminId}:${eventId}` : String(adminId);
   const now = Date.now();
   const windowMs = 10 * 60 * 1000; // 10 minutes
   const timestamps = (failedDeleteAttempts.get(key) || []).filter((ts) => now - ts < windowMs);
@@ -23,9 +23,9 @@ function isDeleteRateThrottled(adminId) {
   return timestamps.length >= 5;
 }
 
-function recordDeleteFailedAttempt(adminId) {
+function recordDeleteFailedAttempt(adminId, eventId) {
   if (!adminId) return;
-  const key = String(adminId);
+  const key = eventId ? `${adminId}:${eventId}` : String(adminId);
   const now = Date.now();
   const windowMs = 10 * 60 * 1000;
   const timestamps = (failedDeleteAttempts.get(key) || []).filter((ts) => now - ts < windowMs);
@@ -33,9 +33,15 @@ function recordDeleteFailedAttempt(adminId) {
   failedDeleteAttempts.set(key, timestamps);
 }
 
-function clearDeleteFailedAttempts(adminId) {
-  if (adminId) {
-    failedDeleteAttempts.delete(String(adminId));
+function clearDeleteFailedAttempts(adminId, eventId) {
+  if (adminId && eventId) {
+    failedDeleteAttempts.delete(`${adminId}:${eventId}`);
+  } else if (adminId) {
+    for (const k of failedDeleteAttempts.keys()) {
+      if (k === String(adminId) || k.startsWith(`${adminId}:`)) {
+        failedDeleteAttempts.delete(k);
+      }
+    }
   } else {
     failedDeleteAttempts.clear();
   }
@@ -460,8 +466,6 @@ function getTemplates(_req, res) {
  * POST /api/events
  */
 function createEvent(req, res) {
-  clearDeleteFailedAttempts(req.user && req.user.id);
-
   const validation = validateEventPayload(req.body, { isUpdate: false });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
@@ -560,7 +564,7 @@ async function deleteEvent(req, res) {
   }
 
   const adminId = req.user.id;
-  if (isDeleteRateThrottled(adminId)) {
+  if (isDeleteRateThrottled(adminId, event.id)) {
     return res.status(429).json({
       error: 'Too many failed verification attempts. Please try again later.'
     });
@@ -573,14 +577,14 @@ async function deleteEvent(req, res) {
 
   const isMatch = await bcrypt.compare(password, adminUser.passwordHash);
   if (!isMatch) {
-    recordDeleteFailedAttempt(adminId);
+    recordDeleteFailedAttempt(adminId, event.id);
     return res.status(403).json({
       error: 'Invalid administrator password.',
       code: 'INVALID_PASSWORD'
     });
   }
 
-  clearDeleteFailedAttempts(adminId);
+  clearDeleteFailedAttempts(adminId, event.id);
 
   // Auto-cancel and refund all bookings for this event (F-10)
   const bookings = BookingModel.findByEventId(event.id);

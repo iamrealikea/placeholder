@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       renderBookingDetails(res);
-      renderTicketHolderFields(b);
+      renderTicketHolderFields(res.booking);
       startCountdownTimer();
       renderPaymentSimulator();
     } catch (err) {
@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
     return String(value).replace(/[&<>"']/g, (char) => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderTicketHolderFields(booking) {
     if (!ticketHolderFields) return;
     ticketHolderFields.innerHTML = `
-      <h4 style="margin-bottom: 12px;">Ticket Holder Names</h4>
+      <h4 class="mb-12">Ticket Holder Names</h4>
       ${(booking.seatNumbers || []).map((seatNumber, index) => `
         <div class="form-group">
           <label class="form-label" for="ticketHolder${index}">Seat ${escapeHtml(seatNumber)}</label>
@@ -91,17 +92,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderBookingDetails(data) {
     const b = data.booking;
     if (eventTitleEl) eventTitleEl.textContent = b.eventTitle;
-    if (roundLabelEl) roundLabelEl.innerHTML = `<i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${b.roundLabel || 'General Admission'}`;
-    if (seatsListEl) seatsListEl.innerHTML = `<i class="fa-solid fa-chair" style="margin-right: 4px;"></i> ${b.zoneName} - Seats: ${(b.seatNumbers || []).join(', ')}`;
+    if (roundLabelEl) roundLabelEl.innerHTML = `<i class="fa-solid fa-calendar-days mr-4"></i> ${escapeHtml(b.roundLabel || 'General Admission')}`;
+    if (seatsListEl) seatsListEl.innerHTML = `<i class="fa-solid fa-chair mr-4"></i> ${escapeHtml(b.zoneName)} - Seats: ${(b.seatNumbers || []).map(escapeHtml).join(', ')}`;
 
     if (subtotalEl) subtotalEl.textContent = `${b.subtotal.toLocaleString()} THB`;
     if (serviceFeeEl) serviceFeeEl.textContent = `${b.serviceFee.toLocaleString()} THB`;
 
     if (b.discountAmount > 0) {
-      if (discountRowEl) discountRowEl.style.display = 'table-row';
+      if (discountRowEl) discountRowEl.classList.remove('d-none');
       if (discountAmountEl) discountAmountEl.textContent = `-${b.discountAmount.toLocaleString()} THB`;
     } else {
-      if (discountRowEl) discountRowEl.style.display = 'none';
+      if (discountRowEl) discountRowEl.classList.add('d-none');
     }
 
     if (totalAmountEl) totalAmountEl.textContent = `${b.totalAmount.toLocaleString()} THB`;
@@ -201,13 +202,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (selectedMethod === 'PROMPTPAY') {
       paymentSimulatorContainer.innerHTML = `
-        <div style="text-align: center;">
-          <h4 style="font-size: 1.1rem; margin-bottom: 8px; color: #1D56CF;">PromptPay QR Code</h4>
-          <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 16px;">Scan with any Thai Mobile Banking App</p>
-          <div style="width: 200px; height: 200px; margin: 0 auto 12px; background: #FFFFFF; border: 2px solid #1D56CF; border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: center;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PROMPTPAY_SIMULATOR_${bookingId}" alt="PromptPay QR">
+        <div class="tc">
+          <h4 class="fs-11 mb-8 c-blue">PromptPay QR Code</h4>
+          <p class="fs-085 c-muted mb-16">Scan with any Thai Mobile Banking App</p>
+          <div class="promptpay-qr-box">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=PROMPTPAY_SIMULATOR_${escapeHtml(encodeURIComponent(bookingId))}" alt="PromptPay QR">
           </div>
-          <div style="font-size: 0.85rem; color: #4B5563;">
+          <div class="fs-085 c-ink-2">
             Ref: <strong>TH-PP-${Date.now().toString().slice(-6)}</strong>
           </div>
         </div>
@@ -216,12 +217,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cardType = selectedMethod === 'CREDIT_CARD' ? 'Credit Card' : 'Debit Card';
       paymentSimulatorContainer.innerHTML = `
         <div>
-          <h4 style="font-size: 1.1rem; margin-bottom: 12px; color: #111827;">${cardType} Details</h4>
+          <h4 class="fs-11 mb-12 c-ink">${escapeHtml(cardType)} Details</h4>
           <div class="form-group">
             <label class="form-label">Card Number</label>
             <input type="text" id="simCardNumber" class="form-control" placeholder="4123 4567 8901 2345" value="4123 4567 8901 2345">
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="grid-2col">
             <div class="form-group">
               <label class="form-label">Expiry (MM/YY)</label>
               <input type="text" id="simExpiry" class="form-control" placeholder="12/28" value="12/28">
@@ -233,49 +234,49 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="form-group">
             <label class="form-label">Cardholder Name</label>
-            <input type="text" id="simCardHolder" class="form-control" placeholder="Full Name on Card" value="${bookingData ? bookingData.userName : 'Alex Rivers'}">
+            <input type="text" id="simCardHolder" class="form-control" placeholder="Full Name on Card" value="${escapeHtml(bookingData ? bookingData.userName : 'Alex Rivers')}">
           </div>
         </div>
       `;
     } else if (selectedMethod === 'KBANK') {
       paymentSimulatorContainer.innerHTML = `
-        <div style="text-align: center;">
-          <h4 style="font-size: 1.1rem; margin-bottom: 8px; color: #10B981;">Kasikornbank (K PLUS)</h4>
-          <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 16px;">App-to-App direct authorization simulation</p>
-          <div class="form-group" style="max-width: 280px; margin: 0 auto 16px; text-align: left;">
+        <div class="tc">
+          <h4 class="fs-11 mb-8 c-green">Kasikornbank (K PLUS)</h4>
+          <p class="fs-085 c-muted mb-16">App-to-App direct authorization simulation</p>
+          <div class="form-group max-w-280 mx-auto mb-16 tl">
             <label class="form-label">K PLUS Registered Mobile</label>
-            <input type="text" id="simKbankPhone" class="form-control" placeholder="081-xxx-xxxx" value="${bookingData ? bookingData.userPhone || '0812345678' : '0812345678'}">
+            <input type="text" id="simKbankPhone" class="form-control" placeholder="081-xxx-xxxx" value="${escapeHtml(bookingData ? bookingData.userPhone || '0812345678' : '0812345678')}">
           </div>
-          <div style="font-size: 0.8rem; background: #ECFDF5; color: #065F46; padding: 8px 12px; border-radius: 8px;">
-            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Instant push confirmation ready
+          <div class="fs-08 bg-green-light c-green-dark p-8-12 r-8">
+            <i class="fa-solid fa-circle-check mr-4"></i> Instant push confirmation ready
           </div>
         </div>
       `;
     } else if (selectedMethod === 'KRUNGTHAI') {
       paymentSimulatorContainer.innerHTML = `
-        <div style="text-align: center;">
-          <h4 style="font-size: 1.1rem; margin-bottom: 8px; color: #0284C7;">Krungthai NEXT</h4>
-          <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 16px;">Simulated Online Banking Direct Debit</p>
-          <div class="form-group" style="max-width: 280px; margin: 0 auto 16px; text-align: left;">
+        <div class="tc">
+          <h4 class="fs-11 mb-8 c-sky">Krungthai NEXT</h4>
+          <p class="fs-085 c-muted mb-16">Simulated Online Banking Direct Debit</p>
+          <div class="form-group max-w-280 mx-auto mb-16 tl">
             <label class="form-label">Krungthai NEXT Citizen ID / Phone</label>
-            <input type="text" id="simKtPhone" class="form-control" placeholder="081-xxx-xxxx" value="${bookingData ? bookingData.userPhone || '0812345678' : '0812345678'}">
+            <input type="text" id="simKtPhone" class="form-control" placeholder="081-xxx-xxxx" value="${escapeHtml(bookingData ? bookingData.userPhone || '0812345678' : '0812345678')}">
           </div>
-          <div style="font-size: 0.8rem; background: #E0F2FE; color: #075985; padding: 8px 12px; border-radius: 8px;">
-            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Seamless single-step approval enabled
+          <div class="fs-08 bg-sky-light c-sky-dark p-8-12 r-8">
+            <i class="fa-solid fa-circle-check mr-4"></i> Seamless single-step approval enabled
           </div>
         </div>
       `;
     } else if (selectedMethod === 'TRUEMONEY') {
       paymentSimulatorContainer.innerHTML = `
-        <div style="text-align: center;">
-          <h4 style="font-size: 1.1rem; margin-bottom: 8px; color: #EA580C;">TrueMoney Wallet</h4>
-          <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 16px;">Simulated E-Wallet Balance Deduction</p>
-          <div class="form-group" style="max-width: 280px; margin: 0 auto 16px; text-align: left;">
+        <div class="tc">
+          <h4 class="fs-11 mb-8 c-orange-dark">TrueMoney Wallet</h4>
+          <p class="fs-085 c-muted mb-16">Simulated E-Wallet Balance Deduction</p>
+          <div class="form-group max-w-280 mx-auto mb-16 tl">
             <label class="form-label">TrueMoney Registered Phone</label>
-            <input type="text" id="simTmPhone" class="form-control" placeholder="089-xxx-xxxx" value="${bookingData ? bookingData.userPhone || '0891234567' : '0891234567'}">
+            <input type="text" id="simTmPhone" class="form-control" placeholder="089-xxx-xxxx" value="${escapeHtml(bookingData ? bookingData.userPhone || '0891234567' : '0891234567')}">
           </div>
-          <div style="font-size: 0.8rem; background: #FFF7ED; color: #9A3412; padding: 8px 12px; border-radius: 8px;">
-            <i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i> Wallet OTP simulation verified
+          <div class="fs-08 bg-orange-light c-orange-dark p-8-12 r-8">
+            <i class="fa-solid fa-circle-check mr-4"></i> Wallet OTP simulation verified
           </div>
         </div>
       `;

@@ -21,7 +21,7 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -41,7 +41,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge d-none" hidden>0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -59,7 +59,7 @@
         <h1 id="eventTitle">Loading Event...</h1>
       </div>
       <div class="event-detail-location" id="eventVenue">
-        <i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> Impact Arena
+        <i class="fa-solid fa-location-dot c-blue mr-4"></i> Impact Arena
       </div>
     </div>
 
@@ -83,13 +83,13 @@
           Loading detailed event description...
         </div>
 
-        <h3 style="font-size: 1.25rem; margin-bottom: 12px; margin-top: 24px;">Available Show Rounds</h3>
+        <h3 class="fs-125 mb-12 mt-24">Available Show Rounds</h3>
         <div id="roundsList">
           <!-- Populated by event.js -->
         </div>
 
         <div class="event-actions-bar">
-          <button id="bookmarkBtn" class="btn-pill-outline" style="display: flex; align-items: center; gap: 8px;">
+          <button id="bookmarkBtn" class="btn-pill-outline flex items-c gap-8">
             <i class="fa-regular fa-heart"></i> Add to Bookmarks
           </button>
         </div>
@@ -99,7 +99,7 @@
       <div>
         <div class="info-card">
           <div class="info-card-header">
-            <span><i class="fa-solid fa-circle-info" style="color: var(--monday-blue); margin-right: 6px;"></i></span>
+            <span><i class="fa-solid fa-circle-info c-blue mr-6"></i></span>
             Information
           </div>
 
@@ -122,7 +122,7 @@
           </div>
 
           <div class="info-cta">
-            <button id="buyNowBtn" class="btn-pill-red" style="font-size: 1.15rem; width: 100%;">
+            <button id="buyNowBtn" class="btn-pill-red fs-115 w-100">
               Buy Now
             </button>
           </div>
@@ -134,10 +134,9 @@
   </main>
 
   <!-- Footer -->
-  <footer
-    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer class="site-footer">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
       <p>Official ticketing partner with instant electronic ticket delivery.</p>
     </div>
   </footer>

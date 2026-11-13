@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!Auth.isLoggedIn()) {
       if (myInquiriesContainer) {
         myInquiriesContainer.innerHTML = `
-          <div style="text-align: center; padding: 24px; color: #6B7280;">
+          <div class="tc p-24 c-muted">
             Please log in to view your submitted support inquiries.
           </div>
         `;
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (list.length === 0) {
       myInquiriesContainer.innerHTML = `
-        <div style="text-align: center; padding: 32px; color: #6B7280;">
+        <div class="tc p-32 c-muted">
           No support inquiries found. Submit your question using the form.
         </div>
       `;
@@ -46,30 +46,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     myInquiriesContainer.innerHTML = list
       .map((item) => {
         const isResolved = item.status === 'RESOLVED';
-        const badgeColor = isResolved ? '#10B981' : '#F59E0B';
         const dateStr = new Date(item.createdAt).toLocaleString();
 
         return `
-          <div style="background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <div class="support-card">
+            <div class="flex between items-start mb-8">
               <div>
-                <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #6B7280;">${item.category}</span>
-                <h4 style="font-size: 1.15rem; color: #111827; margin-top: 2px;">${item.subject}</h4>
+                <span class="fs-075 uppercase fw-7 c-muted">${escapeHtml(item.category)}</span>
+                <h4 class="fs-115 c-ink mt-2">${escapeHtml(item.subject)}</h4>
               </div>
-              <span style="background: ${badgeColor}20; color: ${badgeColor}; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.8rem;">
-                ${item.status}
+              <span class="badge-pill-${isResolved ? 'blue' : 'red'} fs-08">
+                ${escapeHtml(item.status)}
               </span>
             </div>
             
-            <p style="color: #4B5563; font-size: 0.95rem; margin-bottom: 12px; line-height: 1.5;">${item.message}</p>
-            <div style="font-size: 0.8rem; color: #9CA3AF; margin-bottom: 12px;">Submitted on ${dateStr}</div>
+            <p class="c-ink-2 fs-095 mb-12 lh-15">${escapeHtml(item.message)}</p>
+            <div class="fs-08 c-faint mb-12">Submitted on ${escapeHtml(dateStr)}</div>
 
             ${
               isResolved && item.adminReply
                 ? `
-                  <div style="background: #EBF1FD; border-left: 4px solid #1D56CF; border-radius: 6px; padding: 12px 16px; margin-top: 10px;">
-                    <div style="font-size: 0.8rem; font-weight: 700; color: #1D56CF; margin-bottom: 4px;">TicketHub Support Team Reply:</div>
-                    <div style="color: #111827; font-size: 0.95rem;">${item.adminReply}</div>
+                  <div class="support-admin-reply">
+                    <div class="fs-08 fw-7 c-blue mb-4">TicketHub Support Team Reply:</div>
+                    <div class="c-ink fs-095">${escapeHtml(item.adminReply)}</div>
                   </div>
                 `
                 : ''

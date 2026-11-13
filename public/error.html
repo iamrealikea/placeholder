@@ -21,7 +21,7 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -41,7 +41,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge d-none" hidden>0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -51,34 +51,34 @@
   </header>
 
   <!-- Main Container -->
-  <main class="container" style="min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 48px 16px;">
-    <div class="card-checkout" style="max-width: 580px; width: 100%; text-align: center; padding: 48px 32px; background: #FFFFFF; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+  <main class="container min-h-60vh flex items-c justify-c p-48-16">
+    <div class="card-checkout error-card">
       
-      <div id="errorIconContainer" style="margin-bottom: 20px;">
-        <div style="width: 72px; height: 72px; border-radius: 50%; background: #FEE2E2; color: var(--candy-apple, #FF0800); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem;">
+      <div id="errorIconContainer" class="mb-20">
+        <div class="error-icon-circle">
           <i id="errorIcon" class="fa-solid fa-triangle-exclamation"></i>
         </div>
       </div>
 
-      <div style="margin-bottom: 12px;">
-        <span id="errorCodeBadge" class="badge-pill-blue" style="background: var(--candy-apple, #FF0800); color: #FFFFFF; font-weight: 700; padding: 4px 14px; font-size: 0.85rem; border-radius: 9999px;">
+      <div class="mb-12">
+        <span id="errorCodeBadge" class="badge-pill-red badge-pill-uppercase fs-085">
           404 Not Found
         </span>
       </div>
 
-      <h1 id="errorTitle" style="font-size: 1.85rem; font-weight: 800; color: #111827; margin: 12px 0;">
+      <h1 id="errorTitle" class="fs-185 fw-8 c-dark my-12">
         Page Not Found
       </h1>
 
-      <p id="errorMessage" style="color: #4B5563; font-size: 1.05rem; line-height: 1.5; margin: 0 auto 32px; max-width: 460px;">
+      <p id="errorMessage" class="c-ink-3 fs-105 lh-15 mx-auto mb-32 max-w-460">
         The page, event, or booking you are looking for doesn't exist or has been removed.
       </p>
 
-      <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
-        <a href="/home" class="btn-pill-blue" style="padding: 12px 28px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+      <div class="flex gap-14 justify-c wrap">
+        <a href="/home" class="btn-pill-blue p-12-28">
           <i class="fa-solid fa-house"></i> Back to Home
         </a>
-        <a href="/event" class="btn-pill-blue" style="background: #E5E7EB; color: #1F2937; padding: 12px 28px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <a href="/event" class="btn-pill-secondary p-12-28">
           <i class="fa-solid fa-compass"></i> Browse Events
         </a>
       </div>
@@ -87,10 +87,9 @@
   </main>
 
   <!-- Footer -->
-  <footer
-    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer class="site-footer">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color: var(--monday-blue, #1D56CF);">TicketHub Platform &copy; 2026</p>
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
       <p>Customer inquiries are monitored 24/7 by venue support staff.</p>
     </div>
   </footer>
@@ -118,13 +117,16 @@
       if (code === '403') {
         document.title = '403 Forbidden - TicketHub';
         badgeEl.textContent = '403 Forbidden';
-        badgeEl.style.background = 'var(--monday-blue, #1D56CF)';
+        badgeEl.classList.remove('badge-pill-red');
+        badgeEl.classList.add('badge-pill-blue');
         titleEl.textContent = 'Booking In Progress / Access Denied';
         msgEl.textContent = customMessage || 'Another customer is currently holding or completing this booking, or you do not have permission to access this page.';
         if (iconEl) iconEl.className = 'fa-solid fa-user-lock';
       } else {
         document.title = '404 Not Found - TicketHub';
         badgeEl.textContent = '404 Not Found';
+        badgeEl.classList.remove('badge-pill-blue');
+        badgeEl.classList.add('badge-pill-red');
         titleEl.textContent = 'Page Not Found';
         msgEl.textContent = customMessage || "The page, event, or booking you are looking for doesn't exist or has been removed.";
         if (iconEl) iconEl.className = 'fa-solid fa-triangle-exclamation';

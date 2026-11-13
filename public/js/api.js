@@ -154,8 +154,27 @@ function escapePopupHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+function sanitizeSafeUrl(url, fallback = '') {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+  if (/^(https?:\/\/|\/uploads\/)/i.test(trimmed)) {
+    return escapePopupHtml(trimmed);
+  }
+  return fallback;
+}
+
+if (typeof window !== 'undefined') {
+  window.escapeHtml = escapePopupHtml;
+  window.sanitizeUrl = sanitizeSafeUrl;
+}
+if (typeof global !== 'undefined') {
+  global.escapeHtml = escapePopupHtml;
+  global.sanitizeUrl = sanitizeSafeUrl;
+}
+
 const Popup = {
   escapeHtml: escapePopupHtml,
+  sanitizeUrl: sanitizeSafeUrl,
 
   alert(message, options = {}) {
     return new Promise((resolve) => {
@@ -396,8 +415,8 @@ const Popup = {
             </button>
           </div>
           <div class="th-popup-body">
-            <p style="margin-bottom: 14px; font-size: 1.15rem; color: #1E1E1E;">${escapePopupHtml(message)}</p>
-            <input type="${escapePopupHtml(inputType)}" class="th-popup-prompt-input form-control" value="${escapePopupHtml(defaultVal)}" placeholder="${escapePopupHtml(placeholder)}" autofocus style="width: 100%; padding: 14px 18px; border-radius: 16px; border: 1.5px solid #D1D5DB; font-size: 1.15rem; font-family: var(--font-family); outline: none; box-sizing: border-box; background: #FFFFFF; color: #1E1E1E;">
+            <p class="th-popup-prompt-msg">${escapePopupHtml(message)}</p>
+            <input type="${escapePopupHtml(inputType)}" class="th-popup-prompt-input form-control" value="${escapePopupHtml(defaultVal)}" placeholder="${escapePopupHtml(placeholder)}" autofocus>
           </div>
           <div class="th-popup-actions--big">
             <button type="button" class="th-popup-btn th-popup-btn--primary">${escapePopupHtml(confirmText)}</button>

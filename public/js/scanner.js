@@ -47,21 +47,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function showGuard(msg) {
     if (scannerGuardEl) {
-      scannerGuardEl.style.display = 'block';
+      scannerGuardEl.classList.remove('d-none');
+      scannerGuardEl.hidden = false;
       scannerGuardEl.innerHTML = `
-        <div style="text-align:center; padding: 48px; background:#FFFFFF; border-radius:16px; max-width:500px; margin:40px auto; border:2px solid #FF0800;">
-          <h2 style="color: #FF0800; margin-bottom: 12px;">Staff Verification Required</h2>
-          <p style="color: #4B5563; margin-bottom: 24px;">${msg}</p>
+        <div class="tc p-48 bg-white r-16 max-w-500 mx-auto border-red-alert">
+          <h2 class="c-red mb-12">Staff Verification Required</h2>
+          <p class="c-ink-2 mb-24">${escapeHtml(msg)}</p>
           <button class="btn-pill-blue" onclick="Auth.openAuthModal()">Sign in as Staff (staff@ticket.com / staff123)</button>
         </div>
       `;
     }
-    if (scannerContentEl) scannerContentEl.style.display = 'none';
+    if (scannerContentEl) {
+      scannerContentEl.classList.add('d-none');
+      scannerContentEl.hidden = true;
+    }
   }
 
   function showScanner() {
-    if (scannerGuardEl) scannerGuardEl.style.display = 'none';
-    if (scannerContentEl) scannerContentEl.style.display = 'block';
+    if (scannerGuardEl) {
+      scannerGuardEl.classList.add('d-none');
+      scannerGuardEl.hidden = true;
+    }
+    if (scannerContentEl) {
+      scannerContentEl.classList.remove('d-none');
+      scannerContentEl.hidden = false;
+    }
   }
 
   function bindEvents() {
@@ -106,15 +116,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       cameraVideo.srcObject = mediaStream;
       cameraVideo.play();
       isScanningActive = true;
-      startCameraBtn.style.display = 'none';
-      stopCameraBtn.style.display = 'inline-flex';
-      cameraErrorMsg.style.display = 'none';
+      startCameraBtn.classList.add('d-none');
+      stopCameraBtn.classList.remove('d-none');
+      cameraErrorMsg.classList.add('d-none');
 
       // Start scanning loop using hidden canvas
       requestAnimationFrame(scanVideoFrame);
     } catch (err) {
       console.warn('Camera access not supported or denied:', err);
-      cameraErrorMsg.style.display = 'block';
+      cameraErrorMsg.classList.remove('d-none');
       cameraErrorMsg.textContent = 'Camera not available or access denied. Please use manual code entry or file upload below.';
     }
   }
@@ -125,8 +135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       mediaStream = null;
     }
     isScanningActive = false;
-    startCameraBtn.style.display = 'inline-flex';
-    stopCameraBtn.style.display = 'none';
+    startCameraBtn.classList.remove('d-none');
+    stopCameraBtn.classList.add('d-none');
   }
 
   function scanVideoFrame() {
@@ -157,31 +167,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     playAudioBeep(true);
 
     scanResultArea.innerHTML = `
-      <div style="background: #ECFDF5; border: 2px solid #10B981; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-          <span style="font-size: 2rem; color: #10B981;"><i class="fa-solid fa-circle-check"></i></span>
+      <div class="r-16 p-24 mb-24 scanner-success-box">
+        <div class="flex items-c gap-12 mb-12">
+          <span class="c-green fs-2"><i class="fa-solid fa-circle-check"></i></span>
           <div>
-            <h3 style="color: #065F46; font-size: 1.5rem; margin: 0;">ADMISSION GRANTED</h3>
-            <span style="color: #047857; font-weight: 700; font-size: 0.85rem;">Ticket Status: CHECKED_IN</span>
+            <h3 class="m-0 scanner-success-icon">ADMISSION GRANTED</h3>
+            <span class="fw-7 fs-085 c-green-emerald">Ticket Status: CHECKED_IN</span>
           </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-top: 12px;">
+        <table class="w-100 fs-095 table-collapse-mt-12">
           <tr>
-            <td style="padding: 6px 0; color: #4B5563;">Ticket Code:</td>
-            <td style="font-family: monospace; font-weight: 800; color: #1D56CF;">${ticket.ticketCode}</td>
+            <td class="c-ink-2 py-6">Ticket Code:</td>
+            <td class="mono fw-8 c-blue">${escapeHtml(ticket.ticketCode)}</td>
           </tr>
           <tr>
-            <td style="padding: 6px 0; color: #4B5563;">Attendee Name:</td>
-            <td style="font-weight: 700;">${ticket.holderName || 'Alex Rivers'}</td>
+            <td class="c-ink-2 py-6">Attendee Name:</td>
+            <td class="fw-7">${escapeHtml(ticket.holderName || 'Alex Rivers')}</td>
           </tr>
           <tr>
-            <td style="padding: 6px 0; color: #4B5563;">Seat / Zone:</td>
-            <td style="font-weight: 700; color: #111827;">${ticket.zoneName} - Seat ${ticket.seatNumber}</td>
+            <td class="c-ink-2 py-6">Seat / Zone:</td>
+            <td class="fw-7 c-ink">${escapeHtml(ticket.zoneName)} - Seat ${escapeHtml(ticket.seatNumber)}</td>
           </tr>
           <tr>
-            <td style="padding: 6px 0; color: #4B5563;">Validated At:</td>
-            <td style="color: #6B7280;">${new Date().toLocaleTimeString()}</td>
+            <td class="c-ink-2 py-6">Validated At:</td>
+            <td class="c-muted">${escapeHtml(new Date().toLocaleTimeString())}</td>
           </tr>
         </table>
       </div>
@@ -192,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       attendee: ticket.holderName || 'Alex Rivers',
       seat: `${ticket.zoneName || ''} ${ticket.seatNumber || ''}`,
       status: 'VALID',
-      color: '#10B981',
+      badgeClass: 'badge-status-valid',
       time: new Date().toLocaleTimeString()
     });
   }
@@ -203,37 +213,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isDuplicate = err.data && err.data.reason === 'ALREADY_CHECKED_IN';
     const isCancelled = err.data && err.data.reason === 'CANCELLED_TICKET';
 
-    if (isDuplicate) {
-      // High-visibility Candy Apple Red Fraud Warning (FR-31)
-      scanResultArea.innerHTML = `
-        <div class="fraud-warning-alert">
-          <h3>
-            <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
-          </h3>
-          <p style="font-size: 1.1rem; font-weight: 700; margin: 12px 0; line-height: 1.4;">
-            ${err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.'}
-          </p>
-          <div style="background: rgba(0, 0, 0, 0.25); border-radius: 8px; padding: 12px; font-size: 0.9rem; margin-top: 12px;">
-            Ticket Code: <strong>${code}</strong><br>
-            Action Required: Confiscate badge or verify customer identity at Box Office.
-          </div>
-        </div>
-      `;
-    } else {
-      scanResultArea.innerHTML = `
-        <div style="background: #FEF2F2; border: 2px solid #EF4444; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <span style="font-size: 2rem; color: #EF4444;"><i class="fa-solid fa-circle-xmark"></i></span>
-            <div>
-              <h3 style="color: #991B1B; font-size: 1.35rem; margin: 0;">INVALID TICKET</h3>
-              <span style="color: #B91C1C; font-weight: 700; font-size: 0.85rem;">
-                ${isCancelled ? 'Ticket CANCELLED / REFUNDED' : 'Ticket Not Found'}
-              </span>
+    if (scanResultArea) {
+      if (isDuplicate) {
+        // High-visibility Candy Apple Red Fraud Warning (FR-31)
+        scanResultArea.innerHTML = `
+          <div class="fraud-warning-alert">
+            <h3>
+              <span><i class="fa-solid fa-triangle-exclamation mr-6"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
+            </h3>
+            <p class="fw-7 lh-14 fs-11 my-12">
+              ${escapeHtml(err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.')}
+            </p>
+            <div class="fs-09 scanner-raw-box">
+              Ticket Code: <strong>${escapeHtml(code)}</strong><br>
+              Action Required: Confiscate badge or verify customer identity at Box Office.
             </div>
           </div>
-          <p style="color: #7F1D1D; font-size: 0.95rem;">${err.message || 'Please verify the ticket code with customer.'}</p>
-        </div>
-      `;
+        `;
+      } else {
+        scanResultArea.innerHTML = `
+          <div class="r-16 p-24 mb-24 scanner-fraud-box">
+            <div class="flex items-c gap-12 mb-12">
+              <span class="scanner-fraud-icon"><i class="fa-solid fa-circle-xmark"></i></span>
+              <div>
+                <h3 class="fs-135 m-0 c-red-dark">INVALID TICKET</h3>
+                <span class="fw-7 fs-085 c-red-crimson">
+                  ${isCancelled ? 'Ticket CANCELLED / REFUNDED' : 'Ticket Not Found'}
+                </span>
+              </div>
+            </div>
+            <p class="fs-095 c-red-deep">${escapeHtml(err.message || 'Please verify the ticket code with customer.')}</p>
+          </div>
+        `;
+      }
     }
 
     logAuditEntry({
@@ -241,7 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       attendee: (err.data && err.data.ticket && err.data.ticket.holderName) || 'Unknown',
       seat: (err.data && err.data.ticket && err.data.ticket.seatNumber) || '—',
       status: isDuplicate ? 'DUPLICATE_ALERT' : (isCancelled ? 'CANCELLED' : 'INVALID'),
-      color: '#FF0800',
+      badgeClass: 'badge-status-alert',
       time: new Date().toLocaleTimeString()
     });
   }
@@ -254,13 +266,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       .map(
         (item) => `
           <tr>
-            <td><strong>${item.time}</strong></td>
-            <td style="font-family: monospace;">${item.code}</td>
-            <td>${item.attendee}</td>
-            <td>${item.seat}</td>
+            <td><strong>${escapeHtml(item.time)}</strong></td>
+            <td class="mono fw-7">${escapeHtml(item.code)}</td>
+            <td>${escapeHtml(item.attendee)}</td>
+            <td>${escapeHtml(item.seat)}</td>
             <td>
-              <span style="background: ${item.color}20; color: ${item.color}; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem;">
-                ${item.status}
+              <span class="admin-category-badge ${item.badgeClass || (item.status === 'VALID' ? 'badge-status-valid' : 'badge-status-alert')}">
+                ${escapeHtml(item.status)}
               </span>
             </td>
           </tr>

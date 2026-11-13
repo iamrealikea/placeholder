@@ -88,7 +88,9 @@ class TicketModel {
   static cancelByBookingId(bookingId) {
     const tickets = this.findByBookingId(bookingId);
     for (const t of tickets) {
-      t.status = 'CANCELLED';
+      if (t.status !== 'CHECKED_IN') {
+        t.status = 'CANCELLED';
+      }
     }
     store.save('tickets');
     return tickets;

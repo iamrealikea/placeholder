@@ -34,6 +34,10 @@ The interactive seat matrix in `public/booking.html` must follow the exact visua
 - **Booked / Held Seat (`UI-05`)**: Greyed background marked with an `✕`.
 - **Selected Seat (`UI-06`)**: Monday Blue circle marked with a `✓`.
 
+### No Inline Styles
+- Do not use inline `style="..."` attributes in HTML templates (`public/*.html`) or HTML strings rendered by JavaScript (`public/js/*.js`), nor direct `element.style.*` mutations in JavaScript when CSS classes can be used.
+- Define all layout, spacing, color, and visibility rules via reusable classes in `public/css/` (`shared.css`, `pages.css`, `admin.css`, `responsive.css`).
+
 ---
 
 ## 2. Verification & Testing Standards

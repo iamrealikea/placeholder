@@ -62,9 +62,11 @@ const Notifications = {
     if (!badge) return;
     if (count > 0) {
       badge.textContent = count > 99 ? '99+' : count;
-      badge.style.display = 'inline-block';
+      badge.classList.remove('d-none');
+      badge.hidden = false;
     } else {
-      badge.style.display = 'none';
+      badge.classList.add('d-none');
+      badge.hidden = true;
     }
   },
 
@@ -98,7 +100,7 @@ const Notifications = {
     let itemsHtml = '';
     if (this.items.length === 0) {
       itemsHtml = `
-        <li style="padding: 24px; text-align: center; color: #6B7280; font-size: 0.9rem;">
+        <li class="tc p-24 c-muted fs-09">
           No notifications yet.
         </li>
       `;
@@ -107,15 +109,15 @@ const Notifications = {
         .map((n) => {
           const dateStr = new Date(n.createdAt).toLocaleString();
           return `
-            <li class="notification-item ${n.isRead ? '' : 'unread'}" data-id="${n.id}">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                <strong style="font-size:0.9rem; color:#111827;">${n.subject || 'Notification'}</strong>
-                <span style="font-size:0.75rem; color:#9CA3AF;">${dateStr}</span>
+            <li class="notification-item ${n.isRead ? '' : 'unread'}" data-id="${escapeHtml(n.id)}">
+              <div class="flex between items-start mb-4">
+                <strong class="fs-09 c-ink">${escapeHtml(n.subject || 'Notification')}</strong>
+                <span class="fs-075 c-faint">${escapeHtml(dateStr)}</span>
               </div>
-              <p style="font-size:0.85rem; color:#4B5563; margin-bottom:6px; line-height:1.4;">${n.message || ''}</p>
+              <p class="fs-085 c-ink-2 mb-6 lh-14">${escapeHtml(n.message || '')}</p>
               ${
                 !n.isRead
-                  ? `<button class="btn-mark-read" data-id="${n.id}" style="background:none; border:none; color:#1D56CF; font-size:0.75rem; font-weight:700; cursor:pointer; padding:0;">Mark as read</button>`
+                  ? `<button class="btn-mark-read border-none bg-white c-blue fs-075 fw-7 cursor-pointer p-0" data-id="${escapeHtml(n.id)}">Mark as read</button>`
                   : ''
               }
             </li>

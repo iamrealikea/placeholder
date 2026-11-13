@@ -17,6 +17,52 @@ function isValidDateOfBirth(value) {
     value <= new Date().toISOString().slice(0, 10);
 }
 
+function isValidAvatarUrl(url) {
+  if (typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+
+  const lower = trimmed.toLowerCase();
+  const cleaned = lower.replace(/[\s\x00-\x1f\x7f-\x9f]/g, '');
+
+  // Strictly reject dangerous schemes
+  if (
+    cleaned.startsWith('javascript:') ||
+    cleaned.startsWith('vbscript:') ||
+    cleaned.startsWith('data:text/') ||
+    cleaned.includes('javascript:') ||
+    cleaned.includes('vbscript:')
+  ) {
+    return false;
+  }
+
+  // Reject directory traversal
+  if (trimmed.includes('..')) {
+    return false;
+  }
+
+  // Accept only http://, https://, and /uploads/ (or relative path)
+  if (lower.startsWith('http://') || lower.startsWith('https://')) {
+    return true;
+  }
+
+  if (trimmed.startsWith('/uploads/')) {
+    return true;
+  }
+
+  // Accept valid base64 image data URIs
+  if (/^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
+    return true;
+  }
+
+  // Relative path without protocol scheme (no colon) and no protocol-relative '//'
+  if (!trimmed.includes(':') && !trimmed.startsWith('//')) {
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * FR-02: User Registration
  * POST /api/auth/register
@@ -152,7 +198,7 @@ async function login(req, res) {
  */
 function socialLogin(req, res) {
   try {
-    const { provider, identifier, email, phone, name } = req.body;
+    const { provider, identifier, email, phone, name } = req.body || {};
 
     let p = String(provider || '').trim().toLowerCase();
     if (p === 'google') p = 'gmail';
@@ -175,6 +221,19 @@ function socialLogin(req, res) {
       user = UserModel.findByEmail(effectiveEmail);
     } else if (effectivePhone) {
       user = UserModel.findByPhone(effectivePhone);
+    }
+
+    if (user) {
+      if (
+        user.authProvider === 'local' ||
+        user.role === 'admin' ||
+        user.role === 'staff' ||
+        (user.authProvider && user.authProvider !== p)
+      ) {
+        return res.status(403).json({
+          error: 'Cannot sign in via social login for this account. Please use password login.'
+        });
+      }
     }
 
     if (!user) {
@@ -240,22 +299,47 @@ function getMe(req, res) {
  */
 function updateProfile(req, res) {
   try {
-    if (req.body.dob !== undefined && !isValidDateOfBirth(req.body.dob)) {
+    const body = req.body || {};
+
+    if (body.dob !== undefined && !isValidDateOfBirth(body.dob)) {
       return res.status(400).json({ error: 'Date of birth must be a valid date that is not in the future.' });
     }
 
-    const allowed = ['name', 'phone', 'age', 'address', 'dob', 'gender', 'nationalId', 'avatarUrl'];
+    const textFields = ['name', 'phone', 'address', 'dob', 'gender', 'nationalId', 'avatarUrl'];
     const updates = {};
 
-    for (const key of allowed) {
-      if (req.body[key] !== undefined) {
-        if (key === 'age') {
-          updates.age = Number(req.body.age) || 0;
-        } else if (typeof req.body[key] === 'string') {
-          updates[key] = req.body[key].trim();
-        } else {
-          updates[key] = req.body[key];
+    if (body.age !== undefined) {
+      if (typeof body.age !== 'number' && typeof body.age !== 'string') {
+        return res.status(400).json({ error: 'Field "age" must be a number.' });
+      }
+      const parsedAge = parseInt(body.age, 10);
+      updates.age = Number.isNaN(parsedAge) || parsedAge < 0 ? 0 : parsedAge;
+    }
+
+    for (const key of textFields) {
+      if (body[key] !== undefined) {
+        if (typeof body[key] !== 'string') {
+          return res.status(400).json({ error: `Field "${key}" must be a string.` });
         }
+
+        const val = body[key].trim();
+
+        if (key === 'nationalId') {
+          if (val) {
+            const existing = UserModel.findByNationalId(val);
+            if (existing && existing.id !== req.user.id) {
+              return res.status(409).json({ error: 'An account with this national ID already exists.' });
+            }
+          }
+        }
+
+        if (key === 'avatarUrl') {
+          if (val && !isValidAvatarUrl(val)) {
+            return res.status(400).json({ error: 'Invalid or disallowed avatar URL scheme.' });
+          }
+        }
+
+        updates[key] = val;
       }
     }
 
@@ -278,12 +362,32 @@ function uploadAvatar(req, res) {
     let avatarUrl = '';
     if (req.file) {
       avatarUrl = `/uploads/${req.file.filename}`;
-    } else if (req.body && (req.body.avatarUrl || req.body.avatarDataUrl || req.body.avatar)) {
-      avatarUrl = req.body.avatarUrl || req.body.avatarDataUrl || req.body.avatar;
+    } else if (req.body && (req.body.avatarUrl !== undefined || req.body.avatarDataUrl !== undefined || req.body.avatar !== undefined)) {
+      const candidate = req.body.avatarUrl !== undefined
+        ? req.body.avatarUrl
+        : (req.body.avatarDataUrl !== undefined ? req.body.avatarDataUrl : req.body.avatar);
+
+      if (typeof candidate !== 'string') {
+        return res.status(400).json({ error: 'Invalid or disallowed avatar URL scheme.' });
+      }
+
+      if (!candidate.trim()) {
+        return res.status(400).json({ error: 'No avatar image uploaded.' });
+      }
+
+      if (!isValidAvatarUrl(candidate)) {
+        return res.status(400).json({ error: 'Invalid or disallowed avatar URL scheme.' });
+      }
+
+      avatarUrl = candidate.trim();
     }
 
     if (!avatarUrl) {
       return res.status(400).json({ error: 'No avatar image uploaded.' });
+    }
+
+    if (!isValidAvatarUrl(avatarUrl)) {
+      return res.status(400).json({ error: 'Invalid or disallowed avatar URL scheme.' });
     }
 
     const updatedUser = UserModel.update(req.user.id, { avatarUrl });

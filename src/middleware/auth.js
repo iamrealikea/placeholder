@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/user.model');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tickethub-secret-key-2026';
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim())) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required in production.');
+}
+
+const JWT_SECRET = (process.env.JWT_SECRET && process.env.JWT_SECRET.trim()) || 'tickethub-secret-key-2026';
 
 function signToken(user) {
   return jwt.sign(

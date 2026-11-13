@@ -96,12 +96,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function showGuard(msg) {
     if (adminGuardEl) {
-      adminGuardEl.style.display = 'block';
+      adminGuardEl.classList.remove('admin-initially-hidden', 'd-none');
       adminGuardEl.innerHTML = `
         <div class="tc bg-white r-16 admin-guard-card">
           <span class="block mb-12 c-red fs-3"><i class="fa-solid fa-lock"></i></span>
           <h2 class="c-red mb-12">Operational Privileges Required</h2>
-          <p class="c-ink-2 mb-24 lh-15">${msg}</p>
+          <p class="c-ink-2 mb-24 lh-15">${escapeHtml(msg)}</p>
           <div class="flex gap-12 justify-c wrap">
             <button class="btn-pill-blue" onclick="Auth.openAuthModal()">Sign in with Staff/Admin Account</button>
             <a href="/home" class="btn-pill-outline no-ul p-10-20">Return Home</a>
@@ -109,12 +109,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
     }
-    if (adminContentEl) adminContentEl.style.display = 'none';
+    if (adminContentEl) adminContentEl.classList.add('admin-initially-hidden', 'd-none');
   }
 
   function showPortalContent() {
-    if (adminGuardEl) adminGuardEl.style.display = 'none';
-    if (adminContentEl) adminContentEl.style.display = 'block';
+    if (adminGuardEl) adminGuardEl.classList.add('admin-initially-hidden', 'd-none');
+    if (adminContentEl) adminContentEl.classList.remove('admin-initially-hidden', 'd-none');
   }
 
   /**
@@ -147,12 +147,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Staff only has access to scanner tab; hide admin-only tabs
       allTabBtns.forEach((btn) => {
         if (btn.dataset.tab !== 'scanner') {
-          btn.style.display = 'none';
+          btn.classList.add('d-none');
+        } else {
+          btn.classList.remove('d-none');
         }
       });
     } else {
       allTabBtns.forEach((btn) => {
-        btn.style.display = 'inline-flex';
+        btn.classList.remove('d-none');
       });
     }
   }
@@ -208,14 +210,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isActive = btn.dataset.tab === tabName;
       if (isActive) {
         btn.classList.add('active');
-        btn.style.background = '#1D56CF';
-        btn.style.color = '#FFFFFF';
-        btn.style.borderColor = '#1D56CF';
       } else {
         btn.classList.remove('active');
-        btn.style.background = 'transparent';
-        btn.style.color = '#4B5563';
-        btn.style.borderColor = '#D1D5DB';
       }
     });
 
@@ -223,10 +219,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.portal-tab-pane').forEach((pane) => {
       if (pane.dataset.tabContent === tabName) {
         pane.classList.add('active');
-        pane.style.display = 'block';
       } else {
         pane.classList.remove('active');
-        pane.style.display = 'none';
       }
     });
 
@@ -482,16 +476,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     modal.id = 'admin-delete-event-modal';
     modal.className = 'modal-overlay admin-delete-event-modal';
     modal.innerHTML = `
-      <div class="modal-content th-popup th-popup--big admin-delete-modal-card" style="padding: 36px 40px;">
-        <div class="th-popup-header" style="border: none; padding: 0; margin-bottom: 16px;">
-          <h3 class="th-popup-title flex items-c gap-8 c-red" style="font-size: 1.6rem; font-weight: 700;">
+      <div class="modal-content th-popup th-popup--big admin-delete-modal-card p-36-40">
+        <div class="th-popup-header border-none p-0 mb-16">
+          <h3 class="th-popup-title flex items-c gap-8 c-red fs-16 fw-7">
             <i class="fa-solid fa-triangle-exclamation"></i> Permanently Delete Event
           </h3>
           <button class="modal-close-btn th-popup-close c-muted btn-icon-action" title="Close" aria-label="Close">
-            <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
+            <img src="/images/popup-close-icon.svg" alt="Close" class="w-24 h-24">
           </button>
         </div>
-        <div class="modal-body" style="padding: 0;">
+        <div class="modal-body p-0">
           <p class="fs-09 c-ink-3 mb-14">
             You are deleting <strong>${escapeHtml(eventTitle)}</strong> (<code>${escapeHtml(eventId)}</code>). Any paid bookings will be automatically cancelled and refunded (retaining the 40 THB service fee per ticket).
           </p>
@@ -505,8 +499,8 @@ document.addEventListener('DOMContentLoaded', async () => {
               <input type="password" id="delAdminPassword" class="form-control" required placeholder="Enter admin password" autocomplete="current-password">
             </div>
             <div id="del-error-box" class="admin-delete-error admin-initially-hidden"></div>
-            <div class="th-popup-actions--big" style="margin-top: 24px;">
-              <button type="submit" id="confirmDeleteSubmitBtn" class="th-popup-btn th-popup-btn--primary" style="background-color: var(--candy-apple);">Permanently Delete</button>
+            <div class="th-popup-actions--big mt-24">
+              <button type="submit" id="confirmDeleteSubmitBtn" class="th-popup-btn th-popup-btn--destructive">Permanently Delete</button>
               <button type="button" class="th-popup-btn th-popup-btn--secondary modal-cancel-btn">Cancel</button>
             </div>
           </form>
@@ -538,13 +532,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (typedTitle !== eventTitle.trim()) {
         errorBox.textContent = 'Event title confirmation does not match.';
-        errorBox.style.display = 'block';
+        errorBox.classList.remove('admin-initially-hidden', 'd-none');
         return;
       }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Deleting...';
-      errorBox.style.display = 'none';
+      errorBox.classList.add('admin-initially-hidden', 'd-none');
 
       try {
         await API.events.delete(eventId, password);
@@ -553,7 +547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadDashboardData();
       } catch (err) {
         errorBox.textContent = err.message || 'Failed to delete event.';
-        errorBox.style.display = 'block';
+        errorBox.classList.remove('admin-initially-hidden', 'd-none');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Permanently Delete';
       }
@@ -800,19 +794,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const paneTransactions = document.getElementById('inspect-pane-transactions');
 
     // Display modal and lock body scrolling
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    modal.classList.remove('admin-initially-hidden', 'd-none');
+    document.body.classList.add('overflow-hidden');
 
     // Reset sub-tabs to inventory view
     if (tabBtnInventory && tabBtnTransactions && paneInventory && paneTransactions) {
       tabBtnInventory.classList.add('active');
       tabBtnTransactions.classList.remove('active');
-      tabBtnInventory.style.borderBottom = '3px solid #1D56CF';
-      tabBtnInventory.style.color = '#ffffffff';
-      tabBtnTransactions.style.borderBottom = 'none';
-      tabBtnTransactions.style.color = '#4B5563';
-      paneInventory.style.display = 'block';
-      paneTransactions.style.display = 'none';
+      paneInventory.classList.remove('admin-initially-hidden', 'd-none');
+      paneTransactions.classList.add('admin-initially-hidden', 'd-none');
     }
 
     // Set loading placeholders
@@ -825,8 +815,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Define modal close handler
     const closeModal = () => {
-      modal.style.display = 'none';
-      document.body.style.overflow = '';
+      modal.classList.add('admin-initially-hidden', 'd-none');
+      document.body.classList.remove('overflow-hidden');
       if (activeInspectModalEscHandler) {
         document.removeEventListener('keydown', activeInspectModalEscHandler);
         activeInspectModalEscHandler = null;
@@ -856,24 +846,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       tabBtnInventory.onclick = () => {
         tabBtnInventory.classList.add('active');
         tabBtnTransactions.classList.remove('active');
-        tabBtnInventory.style.borderBottom = '3px solid #1D56CF';
-        tabBtnInventory.style.color = '#ffffffff';
-        tabBtnTransactions.style.borderBottom = 'none';
-        tabBtnTransactions.style.color = '#4B5563';
-        paneInventory.style.display = 'block';
-        paneTransactions.style.display = 'none';
+        paneInventory.classList.remove('admin-initially-hidden', 'd-none');
+        paneTransactions.classList.add('admin-initially-hidden', 'd-none');
       };
     }
     if (tabBtnTransactions) {
       tabBtnTransactions.onclick = () => {
         tabBtnTransactions.classList.add('active');
         tabBtnInventory.classList.remove('active');
-        tabBtnTransactions.style.borderBottom = '3px solid #1D56CF';
-        tabBtnTransactions.style.color = '#ffffffff';
-        tabBtnInventory.style.borderBottom = 'none';
-        tabBtnInventory.style.color = '#4B5563';
-        paneInventory.style.display = 'none';
-        paneTransactions.style.display = 'block';
+        paneInventory.classList.add('admin-initially-hidden', 'd-none');
+        paneTransactions.classList.remove('admin-initially-hidden', 'd-none');
       };
     }
 
@@ -1107,15 +1089,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         cameraVideo.play();
       }
       isScanningActive = true;
-      if (startCameraBtn) startCameraBtn.style.display = 'none';
-      if (stopCameraBtn) stopCameraBtn.style.display = 'inline-flex';
-      if (cameraErrorMsg) cameraErrorMsg.style.display = 'none';
+      if (startCameraBtn) startCameraBtn.classList.add('d-none');
+      if (stopCameraBtn) stopCameraBtn.classList.remove('d-none');
+      if (cameraErrorMsg) cameraErrorMsg.classList.add('d-none');
 
       requestAnimationFrame(scanVideoFrame);
     } catch (err) {
       console.warn('Camera access not supported or denied:', err);
       if (cameraErrorMsg) {
-        cameraErrorMsg.style.display = 'block';
+        cameraErrorMsg.classList.remove('d-none');
         cameraErrorMsg.textContent = 'Camera not available or access denied. Please use manual code entry or file upload below.';
       }
     }
@@ -1127,8 +1109,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       mediaStream = null;
     }
     isScanningActive = false;
-    if (startCameraBtn) startCameraBtn.style.display = 'inline-flex';
-    if (stopCameraBtn) stopCameraBtn.style.display = 'none';
+    if (startCameraBtn) startCameraBtn.classList.remove('d-none');
+    if (stopCameraBtn) stopCameraBtn.classList.add('d-none');
   }
 
   function scanVideoFrame() {
@@ -1179,19 +1161,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           <table class="w-100 fs-095 table-collapse-mt-12">
             <tr>
               <td class="c-ink-2 py-6">Ticket Code:</td>
-              <td class="mono fw-8 c-blue">${ticket.ticketCode}</td>
+              <td class="mono fw-8 c-blue">${escapeHtml(ticket.ticketCode)}</td>
             </tr>
             <tr>
               <td class="c-ink-2 py-6">Attendee Name:</td>
-              <td class="fw-7">${ticket.holderName || 'Alex Rivers'}</td>
+              <td class="fw-7">${escapeHtml(ticket.holderName || 'Alex Rivers')}</td>
             </tr>
             <tr>
               <td class="c-ink-2 py-6">Seat / Zone:</td>
-              <td class="fw-7 c-ink">${ticket.zoneName} - Seat ${ticket.seatNumber}</td>
+              <td class="fw-7 c-ink">${escapeHtml(ticket.zoneName)} - Seat ${escapeHtml(ticket.seatNumber)}</td>
             </tr>
             <tr>
               <td class="c-ink-2 py-6">Validated At:</td>
-              <td class="c-muted">${new Date().toLocaleTimeString()}</td>
+              <td class="c-muted">${escapeHtml(new Date().toLocaleTimeString())}</td>
             </tr>
           </table>
         </div>
@@ -1203,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       attendee: ticket.holderName || 'Alex Rivers',
       seat: `${ticket.zoneName || ''} ${ticket.seatNumber || ''}`,
       status: 'VALID',
-      color: '#10B981',
+      badgeClass: 'badge-status-valid',
       time: new Date().toLocaleTimeString()
     });
   }
@@ -1223,10 +1205,10 @@ document.addEventListener('DOMContentLoaded', async () => {
               <span><i class="fa-solid fa-triangle-exclamation mr-6"></i></span> DUPLICATE SCAN DETECTED - ENTRY DENIED!
             </h3>
             <p class="fw-7 lh-14 fs-11-my-12">
-              ${err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.'}
+              ${escapeHtml(err.message || 'Fraud Warning: This ticket was already checked in and cannot be reused.')}
             </p>
             <div class="fs-09 scanner-raw-box">
-              Ticket Code: <strong>${code}</strong><br>
+              Ticket Code: <strong>${escapeHtml(code)}</strong><br>
               Action Required: Confiscate badge or verify customer identity at Box Office.
             </div>
           </div>
@@ -1243,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </span>
               </div>
             </div>
-            <p class="fs-095 c-red-deep">${err.message || 'Please verify the ticket code with customer.'}</p>
+            <p class="fs-095 c-red-deep">${escapeHtml(err.message || 'Please verify the ticket code with customer.')}</p>
           </div>
         `;
       }
@@ -1254,7 +1236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       attendee: (err.data && err.data.ticket && err.data.ticket.holderName) || 'Unknown',
       seat: (err.data && err.data.ticket && err.data.ticket.seatNumber) || '—',
       status: isDuplicate ? 'DUPLICATE_ALERT' : (isCancelled ? 'CANCELLED' : 'INVALID'),
-      color: '#FF0800',
+      badgeClass: 'badge-status-alert',
       time: new Date().toLocaleTimeString()
     });
   }
@@ -1267,13 +1249,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       .map(
         (item) => `
           <tr>
-            <td><strong>${item.time}</strong></td>
-            <td class="mono fw-7">${item.code}</td>
-            <td>${item.attendee}</td>
-            <td>${item.seat}</td>
+            <td><strong>${escapeHtml(item.time)}</strong></td>
+            <td class="mono fw-7">${escapeHtml(item.code)}</td>
+            <td>${escapeHtml(item.attendee)}</td>
+            <td>${escapeHtml(item.seat)}</td>
             <td>
-              <span class="admin-category-badge" style="--category-color: ${item.color};">
-                ${item.status}
+              <span class="admin-category-badge ${item.badgeClass || (item.status === 'VALID' ? 'badge-status-valid' : 'badge-status-alert')}">
+                ${escapeHtml(item.status)}
               </span>
             </td>
           </tr>
@@ -1382,28 +1364,29 @@ document.addEventListener('DOMContentLoaded', async () => {
           const userRole = (u.role || 'customer').toLowerCase();
           const roleBadgeClass = userRole === 'admin' ? 'badge-pill-red' : (userRole === 'staff' ? 'badge-pill-blue' : 'badge-pill-outline');
           const initials = (u.name || 'U').slice(0, 2).toUpperCase();
+          const safeAvatar = (u.avatarUrl && /^(https?:\/\/|\/uploads\/)/i.test(u.avatarUrl)) ? escapeHtml(u.avatarUrl) : '';
 
           return `
-            <tr data-user-row="${u.id}">
+            <tr data-user-row="${escapeHtml(u.id)}">
               <td>
                 <div class="flex items-c gap-10">
                   <div class="c-blue flex items-c justify-c fw-8 fs-085 admin-user-avatar-placeholder">
-                    ${u.avatarUrl ? `<img class="w-100 admin-user-avatar-img" src="${u.avatarUrl}">` : initials}
+                    ${safeAvatar ? `<img class="w-100 admin-user-avatar-img" src="${safeAvatar}" alt="${escapeHtml(u.name || 'Avatar')}">` : escapeHtml(initials)}
                   </div>
                   <div>
-                    <strong class="c-ink">${u.name || 'Anonymous User'}</strong>
+                    <strong class="c-ink">${escapeHtml(u.name || 'Anonymous User')}</strong>
                     ${isCurrentUser ? '<span class="c-white r-4 fw-7 badge-pill-danger-sm">YOU</span>' : ''}
-                    <div class="fs-075 c-muted mono">${u.id}</div>
+                    <div class="fs-075 c-muted mono">${escapeHtml(u.id)}</div>
                   </div>
                 </div>
               </td>
-              <td>${u.email}</td>
-              <td>${u.phone || '—'}</td>
+              <td>${escapeHtml(u.email)}</td>
+              <td>${escapeHtml(u.phone || '—')}</td>
               <td>
-                <span class="fw-7 c-blue"><i class="fa-solid fa-star c-blue mr-2"></i> ${u.points || 0}</span>
+                <span class="fw-7 c-blue"><i class="fa-solid fa-star c-blue mr-2"></i> ${escapeHtml(u.points || 0)}</span>
               </td>
               <td>
-                <select class="user-role-select form-control fs-085 fw-7 r-9999 btn-minw-120" data-user-id="${u.id}" data-current-role="${userRole}">
+                <select class="user-role-select form-control fs-085 fw-7 r-9999 btn-minw-120" data-user-id="${escapeHtml(u.id)}" data-current-role="${escapeHtml(userRole)}">
                   <option value="customer" ${userRole === 'customer' ? 'selected' : ''}>Customer</option>
                   <option value="staff" ${userRole === 'staff' ? 'selected' : ''}>Staff</option>
                   <option value="admin" ${userRole === 'admin' ? 'selected' : ''}>Admin</option>
@@ -1411,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               </td>
               <td>
                 <span class="${roleBadgeClass} fs-075 r-9999 badge-pill-uppercase">
-                  ${userRole}
+                  ${escapeHtml(userRole)}
                 </span>
               </td>
             </tr>
@@ -1475,17 +1458,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         .map(
           (t) => `
             <tr>
-              <td><strong>${t.subject}</strong></td>
-              <td>${t.name} (${t.email})</td>
-              <td>${t.category}</td>
+              <td><strong>${escapeHtml(t.subject)}</strong></td>
+              <td>${escapeHtml(t.name)} (${escapeHtml(t.email)})</td>
+              <td>${escapeHtml(t.category)}</td>
               <td>
                 <span class="badge-pill-${t.status === 'RESOLVED' ? 'blue' : 'red'} fs-075">
-                  ${t.status}
+                  ${escapeHtml(t.status)}
                 </span>
               </td>
-              <td>${(t.adminReply || '—').slice(0, 30)}...</td>
+              <td>${escapeHtml((t.adminReply || '—').slice(0, 30))}...</td>
               <td>
-                <button class="btn-reply-support btn-pill-outline p-4-10 fs-08" data-id="${t.id}">Reply</button>
+                <button class="btn-reply-support btn-pill-outline p-4-10 fs-08" data-id="${escapeHtml(t.id)}">Reply</button>
               </td>
             </tr>
           `
@@ -1504,19 +1487,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-      <div class="modal-content th-popup th-popup--big max-w-480" style="padding: 36px 40px;">
-        <div class="th-popup-header" style="border: none; padding: 0; margin-bottom: 16px;">
-          <h3 class="th-popup-title" style="font-size: 1.6rem; font-weight: 700; color: #1E1E1E;">Reply to Customer Inquiry</h3>
+      <div class="modal-content th-popup th-popup--big max-w-480 p-36-40">
+        <div class="th-popup-header border-none p-0 mb-16">
+          <h3 class="th-popup-title fs-16 fw-7 c-ink">Reply to Customer Inquiry</h3>
           <button class="modal-close-btn th-popup-close c-muted btn-icon-action" title="Close" aria-label="Close">
-            <img src="/images/popup-close-icon.svg" alt="Close" style="width: 24px; height: 24px;">
+            <img src="/images/popup-close-icon.svg" alt="Close" class="w-24 h-24">
           </button>
         </div>
-        <div class="modal-body" style="padding: 0;">
+        <div class="modal-body p-0">
           <div class="form-group mb-16">
             <label class="form-label">Official Support Reply *</label>
             <textarea id="replyText" class="form-control" rows="4" placeholder="Enter resolution details..."></textarea>
           </div>
-          <div class="th-popup-actions--big" style="margin-top: 24px;">
+          <div class="th-popup-actions--big mt-24">
             <button id="sendReplyBtn" class="th-popup-btn th-popup-btn--primary">Send Reply &amp; Resolve</button>
             <button type="button" class="th-popup-btn th-popup-btn--secondary modal-close-btn-action">Cancel</button>
           </div>

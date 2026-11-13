@@ -21,7 +21,7 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -41,7 +41,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge d-none" hidden>0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -51,122 +51,114 @@
   </header>
 
   <!-- Access Denied Guard -->
-  <div id="scannerGuard" class="container" style="display: none;"></div>
+  <div id="scannerGuard" class="container d-none" hidden></div>
 
-  <!-- Staff Gate Scanner Main Area -->
-  <main id="scannerContent" class="container" style="display: none; padding-top: 32px; padding-bottom: 64px;">
+  <!-- Main Scanner Content Area -->
+  <main id="scannerContent" class="container d-none py-32 mb-64" hidden>
 
-    <!-- Portal Consolidation Banner -->
-    <div class="portal-banner"
-      style="background: #EBF1FD; border: 2px solid #1D56CF; border-radius: 16px; padding: 18px 24px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 12px rgba(29, 86, 207, 0.08);">
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <span style="font-size: 2rem; color: #1D56CF;"><i class="fa-solid fa-circle-info"></i></span>
+    <!-- Operations Portal Banner -->
+    <div class="bg-blue-light border-blue-brand r-16 p-18-24 mb-28 flex items-c between wrap gap-16 shadow-blue-glow">
+      <div class="flex items-c gap-14">
+        <span class="fs-2 c-blue"><i class="fa-solid fa-circle-info"></i></span>
         <div>
-          <strong style="color: #1D56CF; font-size: 1.05rem; display: block; margin-bottom: 2px;">Portal Integration
-            Notice</strong>
-          <span style="color: #374151; font-size: 0.95rem;">
-            The Gate Admission Scanner is now consolidated into the Staff &amp; Admin Operations Portal.
+          <strong class="c-blue fs-105 block mb-2">Portal Integration Enabled</strong>
+          <span class="c-ink-3 fs-095">
+            This scanner is integrated with the central TicketHub Operations Portal. Switch to the portal dashboard for full metrics and user role administration.
           </span>
         </div>
       </div>
-      <a href="/admin?tab=scanner" class="btn-pill-blue"
-        style="font-size: 0.95rem; padding: 10px 22px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-        Open Operations Portal Scanner &rarr;
+      <a href="/admin" class="btn-pill-blue fs-095 p-10-20 no-ul inline-flex items-c gap-6">
+        <i class="fa-solid fa-gauge-high"></i> Open Operations Portal
       </a>
     </div>
 
-    <div style="margin-bottom: 24px;">
-      <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">Gate Admission Scanner</h1>
-      <p style="color: #6B7280;">Validate attendee electronic tickets via camera stream, file upload, or manual code
-        entry.</p>
+    <div class="mb-24">
+      <h1 class="fs-225 fw-8 c-ink">Gate Admission Scanner</h1>
+      <p class="c-muted">Validate attendee electronic tickets via camera stream, file upload, or manual code input.</p>
     </div>
 
-    <!-- Scanner Layout Grid -->
     <div class="scanner-grid">
 
-      <!-- Left Column: Camera Viewport & Manual Entry -->
+      <!-- Left Column: Camera Viewport & Manual Code Input -->
       <div>
-
-        <!-- Live Camera Viewport -->
-        <div class="card-checkout" style="padding: 16px;">
-          <div class="camera-viewport">
-            <video id="cameraVideo" playsinline></video>
-            <div class="scanner-crosshair"></div>
-          </div>
-
-          <div id="cameraErrorMsg"
-            style="display: none; color: #DC2626; font-size: 0.85rem; margin-top: 10px; text-align: center;"></div>
-
-          <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center;">
-            <button id="startCameraBtn" class="btn-pill-blue" style="font-size: 0.95rem;">
-              <i class="fa-solid fa-camera" style="margin-right: 6px;"></i> Start Camera Stream
-            </button>
-            <button id="stopCameraBtn" class="btn-pill-outline" style="display: none; font-size: 0.95rem;">
-              <i class="fa-solid fa-stop" style="margin-right: 6px;"></i> Stop Camera
-            </button>
-          </div>
-        </div>
-
-        <!-- Manual Ticket Code Input -->
         <div class="card-checkout">
-          <h3>Manual Code Input</h3>
-          <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;">Type or scan barcode ticket code directly:
-          </p>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="manualTicketCode" class="form-control" placeholder="e.g. TKT-BKG1-A1-1234">
-            <button id="validateCodeBtn" class="btn-pill-blue" style="white-space: nowrap;">
-              Validate Ticket
-            </button>
+          <h3>Camera QR Stream</h3>
+
+          <!-- Camera Stream Box with Crosshair Alignment Box -->
+          <div class="card-checkout p-16">
+            <div class="camera-viewport">
+              <video id="cameraVideo" playsinline autoplay muted></video>
+              <div class="scanner-crosshair"></div>
+            </div>
+
+            <!-- Camera Feedback / Error Message -->
+            <div id="cameraErrorMsg" class="d-none c-red-dark fs-085 mt-10 tc" hidden></div>
+
+            <div class="flex gap-12 mt-16 justify-c">
+              <button id="startCameraBtn" class="btn-pill-blue fs-095">
+                <i class="fa-solid fa-camera mr-6"></i> Start Camera Stream
+              </button>
+              <button id="stopCameraBtn" class="btn-pill-outline d-none fs-095" hidden>
+                <i class="fa-solid fa-stop mr-6"></i> Stop Camera
+              </button>
+            </div>
           </div>
 
-          <div style="margin-top: 16px; border-top: 1px dashed #E5E7EB; padding-top: 14px;">
-            <label class="form-label">Or Upload QR Ticket Image</label>
-            <input type="file" id="qrFileInput" accept="image/*" style="font-size: 0.85rem;">
+          <!-- Manual Code Form -->
+          <div class="form-group mt-20">
+            <label class="form-label">Manual Ticket Code Entry</label>
+            <p class="fs-085 c-muted mb-12">Type or scan barcode ticket code directly:</p>
+            <div class="flex gap-8">
+              <input type="text" id="manualTicketCode" class="form-control" placeholder="e.g. TKT-E1-0001">
+              <button id="validateCodeBtn" class="btn-pill-blue nowrap">
+                Validate Ticket
+              </button>
+            </div>
+          </div>
+
+          <!-- Optional QR Image Upload Fallback -->
+          <div class="mt-16 border-dashed-subtle pt-14">
+            <label class="form-label">Upload QR Code Image</label>
+            <input type="file" id="qrFileInput" accept="image/*" class="fs-085">
           </div>
         </div>
-
       </div>
 
-      <!-- Right Column: Scan Result Alert & Audit History -->
+      <!-- Right Column: Scan Result & Real-Time Feedback -->
       <div>
-
-        <!-- Dynamic Scan Result Area -->
-        <div id="scanResultArea">
-          <div
-            style="background: #FFFFFF; border: 2px dashed #D1D5DB; border-radius: 16px; padding: 36px 20px; text-align: center; color: #9CA3AF; margin-bottom: 24px;">
-            <span style="font-size: 2.5rem; display: block; margin-bottom: 8px; color: var(--monday-blue);"><i
-                class="fa-solid fa-tower-broadcast"></i></span>
-            <strong style="color: #4B5563;">Scanner Idle</strong>
-            <p style="font-size: 0.85rem; margin-top: 4px;">Point camera at attendee QR code or submit code on the left.
-            </p>
-          </div>
-        </div>
-
-        <!-- Session Scan Audit Log (FR-30, FR-31) -->
         <div class="card-checkout">
-          <h3>Session Scan Audit Log</h3>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Ticket Code</th>
-                  <th>Attendee</th>
-                  <th>Seat</th>
-                  <th>Result</th>
-                </tr>
-              </thead>
-              <tbody id="scanAuditLogBody">
-                <tr>
-                  <td colspan="5" style="text-align: center; color: #9CA3AF; padding: 18px;">
-                    No tickets scanned in this session yet.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <h3>Validation Result</h3>
 
+          <!-- Dynamic Scan Feedback Area -->
+          <div id="scanResultArea">
+            <div class="bg-white r-16 p-36-20 tc c-faint mb-24 admin-empty-state-box">
+              <span class="fs-25 block mb-8 c-blue"><i class="fa-solid fa-qrcode"></i></span>
+              <strong class="c-ink-2">Scanner Idle</strong>
+              <p class="fs-085 mt-4">Point camera at attendee QR code or submit code on the left.</p>
+            </div>
+          </div>
+
+          <!-- Session Audit Log Table -->
+          <h4 class="mb-12">Recent Gate Scans (Session)</h4>
+          <table class="tickets-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Code</th>
+                <th>Attendee</th>
+                <th>Seat</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scanAuditLogBody">
+              <tr>
+                <td colspan="5" class="tc c-faint p-18">
+                  No scans recorded in this session yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
@@ -174,11 +166,10 @@
   </main>
 
   <!-- Footer -->
-  <footer
-    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer class="site-footer">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Staff Gate Terminal &copy; 2026</p>
-      <p>Single-use security enforcement with fraud warning alerts.</p>
+      <p class="site-footer-brand">TicketHub Staff Gate Terminal &copy; 2026</p>
+      <p>Single-use ticket validation with atomic anti-reuse fraud warning verification.</p>
     </div>
   </footer>
 

@@ -16,12 +16,12 @@
   <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
 </head>
 
-<body style="background-color: var(--oat-milk);">
+<body>
 
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -41,7 +41,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge d-none" hidden>0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -53,16 +53,16 @@
   <!-- Main Container on Oat Milk Background (UI-12) -->
   <main class="container tickets-container">
 
-    <div style="text-align: center; margin-bottom: 24px;">
-      <h1 style="font-size: 2.25rem; font-weight: 800; color: #111827;">My Electronic Tickets</h1>
-      <p style="color: #6B7280;">Present this QR code at venue entrance for fast check-in.</p>
+    <div class="tc mb-24">
+      <h1 class="fs-225 fw-8 c-dark">My Electronic Tickets</h1>
+      <p class="c-muted">Present this QR code at venue entrance for fast check-in.</p>
     </div>
 
     <!-- Active Ticket Carousel (UI-12) -->
     <div id="ticketCarouselArea">
 
-      <div style="text-align: center; margin-bottom: 8px;">
-        <span id="ticketIndexBadge" class="badge-pill-blue" style="font-size: 0.85rem;">Ticket 1 of 1</span>
+      <div class="tc mb-8">
+        <span id="ticketIndexBadge" class="badge-pill-blue fs-085">Ticket 1 of 1</span>
       </div>
 
       <div class="eticket-carousel-wrap">
@@ -75,10 +75,9 @@
         <!-- E-Ticket Card with Real QR Image -->
         <div class="eticket-card">
           <div class="eticket-header">
-            <span id="ticketStatusBadge" class="badge-pill-red" style="font-size: 0.75rem;">VALID</span>
-            <h3 id="ticketEventTitle" style="font-size: 1.35rem; margin-top: 8px;">Forza Horizon Live</h3>
-            <div id="ticketRound" style="font-size: 0.9rem; opacity: 0.9;"><i class="fa-solid fa-calendar-days"
-                style="margin-right: 4px;"></i> 11 Nov 2026 • 19:00</div>
+            <span id="ticketStatusBadge" class="badge-pill-red fs-075">VALID</span>
+            <h3 id="ticketEventTitle" class="fs-135 mt-8">Forza Horizon Live</h3>
+            <div id="ticketRound" class="fs-09 opacity-90"><i class="fa-solid fa-calendar-days mr-4"></i> 11 Nov 2026 • 19:00</div>
           </div>
 
           <div class="eticket-body">
@@ -88,7 +87,7 @@
             </div>
 
             <div id="ticketCode" class="eticket-code">TKT-XXXX-0000</div>
-            <div style="font-size: 0.8rem; color: #6B7280; margin-bottom: 16px;">Scan via gate scanner for single-entry
+            <div class="fs-08 c-muted mb-16">Scan via gate scanner for single-entry
               admission</div>
 
             <table class="eticket-details-table">
@@ -98,7 +97,7 @@
               </tr>
               <tr>
                 <td>Seat Assignment:</td>
-                <td id="ticketSeat" style="color: #1D56CF;">VIP A1</td>
+                <td id="ticketSeat" class="c-blue">VIP A1</td>
               </tr>
             </table>
           </div>
@@ -114,8 +113,8 @@
     </div>
 
     <!-- Purchase History Section (FR-32) -->
-    <div style="margin-top: 48px;">
-      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 16px; color: #111827;">Purchase & Booking History
+    <div class="mt-48">
+      <h2 class="fs-15 fw-8 mb-16 c-dark">Purchase & Booking History
       </h2>
 
       <div class="table-responsive">
@@ -141,10 +140,9 @@
   </main>
 
   <!-- Footer -->
-  <footer
-    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer class="site-footer">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026</p>
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
       <p>Single-use authenticated QR tickets with anti-reuse protection.</p>
     </div>
   </footer>

@@ -59,16 +59,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (profileRoleBadge) profileRoleBadge.textContent = (user.role || 'Customer').toUpperCase();
     if (loyaltyPointsCount) loyaltyPointsCount.textContent = (user.points || 0).toLocaleString();
 
-    if (user.avatarUrl) {
+    const safeAvatar = typeof window !== 'undefined' && typeof window.sanitizeUrl === 'function'
+      ? window.sanitizeUrl(user.avatarUrl)
+      : ((user.avatarUrl && /^(https?:\/\/|\/uploads\/)/i.test(user.avatarUrl)) ? user.avatarUrl : null);
+    if (safeAvatar) {
       if (profileAvatarImg) {
-        profileAvatarImg.src = user.avatarUrl;
-        profileAvatarImg.style.display = 'block';
+        profileAvatarImg.src = safeAvatar;
+        profileAvatarImg.classList.remove('d-none');
+        profileAvatarImg.hidden = false;
       }
-      if (avatarInitials) avatarInitials.style.display = 'none';
-    } else {
-      if (profileAvatarImg) profileAvatarImg.style.display = 'none';
       if (avatarInitials) {
-        avatarInitials.style.display = 'flex';
+        avatarInitials.classList.add('d-none');
+        avatarInitials.hidden = true;
+      }
+    } else {
+      if (profileAvatarImg) {
+        profileAvatarImg.classList.add('d-none');
+        profileAvatarImg.hidden = true;
+      }
+      if (avatarInitials) {
+        avatarInitials.classList.remove('d-none');
+        avatarInitials.hidden = false;
         avatarInitials.textContent = (user.name || 'U').slice(0, 2).toUpperCase();
       }
     }
@@ -170,7 +181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadBookmarks(bookmarkIds) {
     if (!bookmarksContainer) return;
     if (bookmarkIds.length === 0) {
-      bookmarksContainer.innerHTML = `<p style="grid-column: 1/-1; color: #6B7280; padding: 24px; text-align: center;">You have not bookmarked any events yet.</p>`;
+      bookmarksContainer.innerHTML = `<p class="tc p-24 c-muted">You have not bookmarked any events yet.</p>`;
       return;
     }
 
@@ -180,24 +191,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       const bookmarked = allEvents.filter((e) => bookmarkIds.includes(e.id));
 
       if (bookmarked.length === 0) {
-        bookmarksContainer.innerHTML = `<p style="grid-column: 1/-1; color: #6B7280; padding: 24px; text-align: center;">No bookmarked events found.</p>`;
+        bookmarksContainer.innerHTML = `<p class="tc p-24 c-muted">No bookmarked events found.</p>`;
         return;
       }
 
       bookmarksContainer.innerHTML = bookmarked
         .map((e) => {
-          const img = e.posterUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600&q=80';
+          const rawImg = e.posterUrl || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=600&q=80';
+          const img = (typeof window.sanitizeUrl === 'function') ? window.sanitizeUrl(rawImg, '') : escapeHtml(rawImg);
           return `
-            <div class="card-popular" style="border-width: 2px;">
-              <div class="card-image-wrap" style="height: 140px;">
-                <img src="${img}" alt="${e.title}">
+            <div class="card-popular border-strong">
+              <div class="card-image-wrap h-140">
+                <img src="${img}" alt="${escapeHtml(e.title)}">
               </div>
-              <div class="card-body" style="padding: 16px;">
-                <h4 style="font-size: 1.1rem; margin-bottom: 6px;">${e.title}</h4>
-                <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 12px;"><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${e.venue}</div>
-                <div style="display: flex; gap: 8px;">
-                  <a href="/event?id=${e.id}" class="btn-pill-red" style="font-size: 0.85rem; padding: 6px 16px; flex: 1; text-align: center;">View</a>
-                  <button class="btn-pill-outline btn-remove-bm" data-id="${e.id}" style="padding: 6px 12px; font-size: 0.85rem;">Remove</button>
+              <div class="card-body p-16">
+                <h4 class="fs-11 mb-6">${escapeHtml(e.title)}</h4>
+                <div class="fs-085 c-muted mb-12"><i class="fa-solid fa-location-dot c-blue mr-4"></i> ${escapeHtml(e.venue)}</div>
+                <div class="flex gap-8">
+                  <a href="/event?id=${encodeURIComponent(e.id)}" class="btn-pill-red fs-085 p-6-16 flex-1 tc">View</a>
+                  <button class="btn-pill-outline btn-remove-bm fs-085 p-6-16" data-id="${escapeHtml(e.id)}">Remove</button>
                 </div>
               </div>
             </div>
@@ -226,7 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await API.admin.getNotifications();
       const notifs = res.notifications || [];
       if (notifs.length === 0) {
-        profileNotificationsList.innerHTML = `<li style="padding: 16px; color: #6B7280;">No notifications received yet.</li>`;
+        profileNotificationsList.innerHTML = `<li class="p-16 c-muted">No notifications received yet.</li>`;
         return;
       }
 
@@ -234,12 +246,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         .slice(0, 5)
         .map(
           (n) => `
-            <li style="padding: 12px 16px; border-bottom: 1px solid #E5E7EB;">
-              <div style="display: flex; justify-content: space-between;">
-                <strong>${n.subject}</strong>
-                <span style="font-size: 0.75rem; color: #9CA3AF;">${new Date(n.createdAt).toLocaleDateString()}</span>
+            <li class="p-12 border-b-subtle">
+              <div class="flex between items-c">
+                <strong class="c-ink">${escapeHtml(n.subject)}</strong>
+                <span class="fs-075 c-faint">${escapeHtml(new Date(n.createdAt).toLocaleDateString())}</span>
               </div>
-              <div style="font-size: 0.85rem; color: #4B5563; margin-top: 4px;">${n.message}</div>
+              <div class="fs-085 c-ink-2 mt-4">${escapeHtml(n.message)}</div>
             </li>
           `
         )

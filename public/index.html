@@ -21,7 +21,7 @@
   <!-- Navigation Bar -->
   <header class="navbar">
     <div class="container navbar-inner">
-      <div style="display: flex; align-items: center; gap: 32px;">
+      <div class="flex items-c gap-32">
         <a href="/home" class="nav-brand">
           <span class="brand-pill">TicketHub</span>
         </a>
@@ -41,7 +41,7 @@
         </button>
         <button class="notification-bell-btn" title="Notifications">
           <i class="fa-solid fa-bell"></i>
-          <span class="notification-badge" style="display: none;">0</span>
+          <span class="notification-badge d-none" hidden>0</span>
         </button>
         <div class="avatar-pill" title="User Profile">
           <i class="fa-solid fa-user"></i>
@@ -62,10 +62,10 @@
           <p class="hero-desc">The ultimate audio-visual festival experience featuring premier artists and world-class
             stage production.</p>
           <div class="hero-meta">
-            <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> Impact
+            <span><i class="fa-solid fa-location-dot c-blue mr-4"></i> Impact
               Arena, Exhibition Hall 1</span>
             <span>•</span>
-            <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> 11 Nov 2026</span>
+            <span><i class="fa-solid fa-calendar-days mr-4"></i> 11 Nov 2026</span>
           </div>
         </div>
         <div class="hero-bottom">
@@ -135,12 +135,11 @@
   </main>
 
   <!-- Footer -->
-  <footer
-    style="background:#FFFFFF; border-top:1px solid #E5E7EB; padding:32px 0; margin-top:64px; text-align:center; color:#6B7280; font-size:0.9rem;">
+  <footer class="site-footer">
     <div class="container">
-      <p style="margin-bottom:8px; font-weight:700; color:#1D56CF;">TicketHub Platform &copy; 2026. All Rights Reserved.
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026. All Rights Reserved.
       </p>
-      <p><i class="fa-solid fa-check" style="color: #1D56CF; margin-right: 4px;"></i> Secure ticketing, atomic seat
+      <p><i class="fa-solid fa-check c-blue mr-4"></i> Secure ticketing, atomic seat
         locks, and transparent pricing in Oat Milk, Monday Blue, and Candy Apple Red.</p>
     </div>
   </footer>
