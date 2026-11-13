@@ -38,31 +38,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   let timerInterval = null;
   let selectedMethod = 'PROMPTPAY';
 
-  async function loadBookingSummary() {
-    try {
-      const res = await API.booking.getSummary(bookingId);
-      bookingData = res.booking;
-      remainingSeconds = res.remainingSeconds || 0;
+async function loadBookingSummary() {
+  try {
+    const res = await API.booking.getSummary(bookingId);
+    bookingData = res.booking;
+    remainingSeconds = res.remainingSeconds || 0;
 
-      if (res.isExpired || remainingSeconds <= 0) {
-        handleExpiredHold();
-        return;
-      }
-
-      renderBookingDetails(res);
-      renderTicketHolderFields(b);
-      startCountdownTimer();
-      renderPaymentSimulator();
-    } catch (err) {
-      console.error('Failed to load summary:', err);
-      if (err.status === 403 || err.status === 404) {
-        window.location.href = `/${err.status}?message=${encodeURIComponent(err.message)}`;
-        return;
-      }
-      await Popup.alert(err.message || 'Error loading booking summary.', { title: 'Checkout Error' });
-      window.location.href = '/home';
+    if (res.isExpired || remainingSeconds <= 0) {
+      handleExpiredHold();
+      return;
     }
+
+    renderBookingDetails(res);
+    renderTicketHolderFields(res.booking);
+    startCountdownTimer();
+    renderPaymentSimulator();
+  } catch (err) {
+    console.error('Failed to load summary:', err);
+    if (err.status === 403 || err.status === 404) {
+      window.location.href = `/${err.status}?message=${encodeURIComponent(err.message)}`;
+      return;
+    }
+    await Popup.alert(err.message || 'Error loading booking summary.', { title: 'Checkout Error' });
+    window.location.href = '/home';
   }
+}
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (char) => ({
