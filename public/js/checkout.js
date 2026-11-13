@@ -151,57 +151,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Promo Code Application
   if (applyPromoBtn) {
-    applyPromoBtn.addEventListener('click', async () => {
-      const promoCode = promoInput.value.trim();
-      if (!promoCode) {
-        await Popup.alert('Please enter a promotional code.', { title: 'Promo Code' });
-        return;
-      }
-      try {
-        const res = await API.booking.applyDiscount(bookingId, { promoCode });
-        bookingData = res.booking;
-        await Popup.alert(`Success! Code "${promoCode}" applied.`, { title: 'Promo Applied' });
-        await loadBookingSummary();
-      } catch (err) {
-        await Popup.alert(err.message || 'Failed to apply promo code.', { title: 'Promo Error' });
-      }
-    });
-  }
-
-  // Loyalty Points Redemption
-  if (redeemPointsBtn) {
-    redeemPointsBtn.addEventListener('click', async () => {
-      const redeemPoints = Number(pointsInput.value);
-      if (!redeemPoints || redeemPoints < 100) {
-        await Popup.alert('Minimum redemption is 100 points (10 THB discount).', { title: 'Points Redemption' });
-        return;
-      }
-      try {
-        const res = await API.booking.applyDiscount(bookingId, { redeemPoints });
-        bookingData = res.booking;
-        await Popup.alert(`Success! Redeemed ${redeemPoints} points.`, { title: 'Points Redeemed' });
-        await loadBookingSummary();
-      } catch (err) {
-        await Popup.alert(err.message || 'Failed to redeem points.', { title: 'Redemption Error' });
-      }
-    });
-  }
-
-  // Payment Method Selection
-  document.querySelectorAll('.payment-method-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.payment-method-card').forEach((c) => c.classList.remove('active'));
-      card.classList.add('active');
-      selectedMethod = card.dataset.method;
-      renderPaymentSimulator();
-    });
+  applyPromoBtn.addEventListener('click', async () => {
+    const promoCode = promoInput.value.trim();
+    if (!promoCode) {
+      await Popup.alert('Please enter a promotional code.', { title: 'Promo Code' });
+      return;
+    }
+    try {
+      const res = await API.booking.applyDiscount(bookingId, { promoCode });
+      bookingData = res.booking;
+      await Popup.alert(`Success! Code "${promoCode}" applied.`, { title: 'Promo Applied' });
+      await loadBookingSummary();
+    } catch (err) {
+      await Popup.alert(err.message || 'Failed to apply promo code.', { title: 'Promo Error' });
+    }
   });
+}
 
-  function renderPaymentSimulator() {
-    if (!paymentSimulatorContainer) return;
+// Loyalty Points Redemption
+if (redeemPointsBtn) {
+  redeemPointsBtn.addEventListener('click', async () => {
+    const redeemPoints = Number(pointsInput.value);
+    if (!redeemPoints || redeemPoints < 100) {
+      await Popup.alert('Minimum redemption is 100 points (10 THB discount).', { title: 'Points Redemption' });
+      return;
+    }
+    try {
+      const res = await API.booking.applyDiscount(bookingId, { redeemPoints });
+      bookingData = res.booking;
+      await Popup.alert(`Success! Redeemed ${redeemPoints} points.`, { title: 'Points Redeemed' });
+      await loadBookingSummary();
+    } catch (err) {
+      await Popup.alert(err.message || 'Failed to redeem points.', { title: 'Redemption Error' });
+    }
+  });
+}
 
-    if (selectedMethod === 'PROMPTPAY') {
-      paymentSimulatorContainer.innerHTML = `
+// Payment Method Selection
+document.querySelectorAll('.payment-method-card').forEach((card) => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.payment-method-card').forEach((c) => c.classList.remove('active'));
+    card.classList.add('active');
+    selectedMethod = card.dataset.method;
+    renderPaymentSimulator();
+  });
+});
+
+function renderPaymentSimulator() {
+  if (!paymentSimulatorContainer) return;
+
+  if (selectedMethod === 'PROMPTPAY') {
+    paymentSimulatorContainer.innerHTML = `
         <div class="tc">
           <h4 class="fs-11 mb-8 c-blue">PromptPay QR Code</h4>
           <p class="fs-085 c-muted mb-16">Scan with any Thai Mobile Banking App</p>
@@ -213,9 +213,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
-    } else if (selectedMethod === 'CREDIT_CARD' || selectedMethod === 'DEBIT_CARD') {
-      const cardType = selectedMethod === 'CREDIT_CARD' ? 'Credit Card' : 'Debit Card';
-      paymentSimulatorContainer.innerHTML = `
+  } else if (selectedMethod === 'CREDIT_CARD' || selectedMethod === 'DEBIT_CARD') {
+    const cardType = selectedMethod === 'CREDIT_CARD' ? 'Credit Card' : 'Debit Card';
+    paymentSimulatorContainer.innerHTML = `
         <div>
           <h4 class="fs-11 mb-12 c-ink">${escapeHtml(cardType)} Details</h4>
           <div class="form-group">
@@ -238,8 +238,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
-    } else if (selectedMethod === 'KBANK') {
-      paymentSimulatorContainer.innerHTML = `
+  } else if (selectedMethod === 'KBANK') {
+    paymentSimulatorContainer.innerHTML = `
         <div class="tc">
           <h4 class="fs-11 mb-8 c-green">Kasikornbank (K PLUS)</h4>
           <p class="fs-085 c-muted mb-16">App-to-App direct authorization simulation</p>
@@ -252,8 +252,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
-    } else if (selectedMethod === 'KRUNGTHAI') {
-      paymentSimulatorContainer.innerHTML = `
+  } else if (selectedMethod === 'KRUNGTHAI') {
+    paymentSimulatorContainer.innerHTML = `
         <div class="tc">
           <h4 class="fs-11 mb-8 c-sky">Krungthai NEXT</h4>
           <p class="fs-085 c-muted mb-16">Simulated Online Banking Direct Debit</p>
@@ -266,8 +266,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
-    } else if (selectedMethod === 'TRUEMONEY') {
-      paymentSimulatorContainer.innerHTML = `
+  } else if (selectedMethod === 'TRUEMONEY') {
+    paymentSimulatorContainer.innerHTML = `
         <div class="tc">
           <h4 class="fs-11 mb-8 c-orange-dark">TrueMoney Wallet</h4>
           <p class="fs-085 c-muted mb-16">Simulated E-Wallet Balance Deduction</p>
@@ -280,43 +280,43 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
+  }
+}
+
+// Confirm Payment
+if (confirmPaymentBtn) {
+  confirmPaymentBtn.addEventListener('click', async () => {
+    const holderNameInputs = Array.from(document.querySelectorAll('.ticket-holder-name'));
+    if (holderNameInputs.some((input) => !input.value.trim())) {
+      const emptyInput = holderNameInputs.find((input) => !input.value.trim());
+      emptyInput.reportValidity();
+      emptyInput.focus();
+      return;
     }
-  }
 
-  // Confirm Payment
-  if (confirmPaymentBtn) {
-    confirmPaymentBtn.addEventListener('click', async () => {
-      const holderNameInputs = Array.from(document.querySelectorAll('.ticket-holder-name'));
-      if (holderNameInputs.some((input) => !input.value.trim())) {
-        const emptyInput = holderNameInputs.find((input) => !input.value.trim());
-        emptyInput.reportValidity();
-        emptyInput.focus();
-        return;
-      }
+    confirmPaymentBtn.disabled = true;
+    confirmPaymentBtn.textContent = 'Processing Payment...';
 
-      confirmPaymentBtn.disabled = true;
-      confirmPaymentBtn.textContent = 'Processing Payment...';
+    try {
+      const payload = {
+        paymentMethod: selectedMethod,
+        ticketHolderNames: holderNameInputs.map((input) => input.value.trim()),
+        paymentDetails: {
+          simulatedTimestamp: new Date().toISOString(),
+          channel: 'WEB_SIMULATOR'
+        }
+      };
 
-      try {
-        const payload = {
-          paymentMethod: selectedMethod,
-          ticketHolderNames: holderNameInputs.map((input) => input.value.trim()),
-          paymentDetails: {
-            simulatedTimestamp: new Date().toISOString(),
-            channel: 'WEB_SIMULATOR'
-          }
-        };
+      const res = await API.booking.pay(bookingId, payload);
+      await Popup.alert('Payment successful! Electronic tickets have been issued.', { title: 'Payment Successful' });
+      window.location.href = '/my-tickets';
+    } catch (err) {
+      confirmPaymentBtn.disabled = false;
+      confirmPaymentBtn.textContent = `Confirm & Pay ${bookingData ? bookingData.totalAmount.toLocaleString() : ''} THB`;
+      await Popup.alert(err.message || 'Payment failed.', { title: 'Payment Failed' });
+    }
+  });
+}
 
-        const res = await API.booking.pay(bookingId, payload);
-        await Popup.alert('Payment successful! Electronic tickets have been issued.', { title: 'Payment Successful' });
-        window.location.href = '/my-tickets';
-      } catch (err) {
-        confirmPaymentBtn.disabled = false;
-        confirmPaymentBtn.textContent = `Confirm & Pay ${bookingData ? bookingData.totalAmount.toLocaleString() : ''} THB`;
-        await Popup.alert(err.message || 'Payment failed.', { title: 'Payment Failed' });
-      }
-    });
-  }
-
-  await loadBookingSummary();
+await loadBookingSummary();
 });
