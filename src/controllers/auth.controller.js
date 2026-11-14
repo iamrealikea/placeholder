@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { UserModel } = require('../models');
 const { signToken, sanitizeUser } = require('../middleware/auth');
+const socialAuth = require('../services/socialAuth');
 
 // In-memory concurrency locks to eliminate registration race conditions (TC-1.1, TC-1.2)
 const inFlightEmails = new Set();
@@ -192,15 +193,89 @@ async function login(req, res) {
   }
 }
 
-/**
- * FR-01: Simulated Social & OTP Login
- * POST /api/auth/social-login
- */
-function socialLogin(req, res) {
-  try {
-    const { provider, identifier, email, phone, name } = req.body || {};
+const SOCIAL_FORBIDDEN_MSG = 'Cannot sign in via social login for this account. Please use password login.';
 
-    let p = String(provider || '').trim().toLowerCase();
+function issueSession(res, user) {
+  const token = signToken(user);
+  res.cookie('tickethub_token', token, {
+    httpOnly: true,
+    maxAge: COOKIE_MAX_AGE_MS
+  });
+  return token;
+}
+
+/**
+ * Public (non-secret) provider settings used by the browser to start Google / Facebook login.
+ * GET /api/auth/social-config
+ */
+function getSocialConfig(_req, res) {
+  return res.json(socialAuth.getPublicConfig());
+}
+
+/**
+ * Demo-only simulated phone OTP login (no real OTP is sent or checked).
+ * Disabled in production unless ALLOW_SIMULATED_PHONE_LOGIN=true.
+ */
+function phoneDemoLogin(req, res) {
+  if (!socialAuth.isPhoneDemoEnabled()) {
+    return res.status(403).json({ error: 'Phone OTP login is not available.' });
+  }
+
+  const { identifier, phone, name } = req.body || {};
+  const effectivePhone = phone
+    ? String(phone).trim()
+    : (identifier ? String(identifier).trim() : '');
+
+  if (!effectivePhone) {
+    return res.status(400).json({ error: 'A phone number is required.' });
+  }
+
+  let user = UserModel.findByPhone(effectivePhone);
+
+  if (user) {
+    if (
+      user.authProvider === 'local' ||
+      user.role === 'admin' ||
+      user.role === 'staff' ||
+      (user.authProvider && user.authProvider !== 'phone')
+    ) {
+      return res.status(403).json({ error: SOCIAL_FORBIDDEN_MSG });
+    }
+  } else {
+    user = UserModel.create({
+      name: name ? String(name).trim() : 'User phone',
+      email: `${effectivePhone}@phone.sim`,
+      phone: effectivePhone,
+      age: 20,
+      dob: '2004-01-01',
+      gender: 'Unspecified',
+      nationalId: '',
+      address: '',
+      avatarUrl: '',
+      passwordHash: '',
+      authProvider: 'phone',
+      role: 'customer',
+      points: 100,
+      bookmarks: []
+    });
+  }
+
+  const token = issueSession(res, user);
+  return res.json({ message: 'Logged in via phone', token, user: sanitizeUser(user) });
+}
+
+/**
+ * FR-01: Google / Facebook login (+ demo phone OTP)
+ * POST /api/auth/social-login
+ *   Google:   { provider: 'gmail' | 'google', idToken }
+ *   Facebook: { provider: 'facebook', accessToken }
+ * The token is verified with the provider; any email/name sent by the client is ignored.
+ */
+async function socialLogin(req, res) {
+  try {
+    const body = req.body || {};
+
+    let p = String(body.provider || '').trim().toLowerCase();
     if (p === 'google') p = 'gmail';
     if (p === 'phone_otp') p = 'phone';
 
@@ -208,67 +283,81 @@ function socialLogin(req, res) {
       return res.status(400).json({ error: 'Invalid provider. Allowed: gmail, facebook, phone.' });
     }
 
-    const effectiveEmail = email
-      ? String(email).trim().toLowerCase()
-      : (identifier && String(identifier).includes('@') ? String(identifier).trim().toLowerCase() : null);
-
-    const effectivePhone = phone
-      ? String(phone).trim()
-      : (identifier && !String(identifier).includes('@') ? String(identifier).trim() : null);
-
-    let user = null;
-    if (effectiveEmail) {
-      user = UserModel.findByEmail(effectiveEmail);
-    } else if (effectivePhone) {
-      user = UserModel.findByPhone(effectivePhone);
+    if (p === 'phone') {
+      return phoneDemoLogin(req, res);
     }
 
-    if (user) {
-      if (
-        user.authProvider === 'local' ||
-        user.role === 'admin' ||
-        user.role === 'staff' ||
-        (user.authProvider && user.authProvider !== p)
-      ) {
-        return res.status(403).json({
-          error: 'Cannot sign in via social login for this account. Please use password login.'
-        });
+    const rawToken = [body.idToken, body.accessToken, body.token].find((t) => typeof t === 'string' && t.trim());
+    if (!rawToken) {
+      return res.status(400).json({
+        error: 'A provider token is required (idToken for Google, accessToken for Facebook).'
+      });
+    }
+
+    let profile;
+    try {
+      profile = await socialAuth.verifyProviderToken(p, rawToken.trim());
+    } catch (err) {
+      if (err instanceof socialAuth.SocialAuthError) {
+        return res.status(err.status).json({ error: err.message });
+      }
+      throw err;
+    }
+
+    const idField = p === 'gmail' ? 'googleId' : 'facebookId';
+    let user = UserModel.findBySocialId(p, profile.providerId);
+    let isNewUser = false;
+
+    // First time with this provider account: try to attach it to an existing social account by verified email
+    if (!user && profile.email) {
+      if (!profile.emailVerified) {
+        return res.status(403).json({ error: 'The email address of this account has not been verified by the provider.' });
+      }
+      const existing = UserModel.findByEmail(profile.email);
+      if (existing) {
+        if (
+          existing.role !== 'customer' ||
+          existing.authProvider === 'local'
+        ) {
+          return res.status(403).json({ error: SOCIAL_FORBIDDEN_MSG });
+        }
+        // A provider-verified matching email can link another social login to this customer account.
+        user = UserModel.update(existing.id, { [idField]: profile.providerId });
       }
     }
 
-    if (!user) {
-      const displayName = name ? String(name).trim() : (effectiveEmail ? effectiveEmail.split('@')[0] : `User ${p}`);
-      const fallbackEmail =
-        effectiveEmail ||
-        (effectivePhone ? `${effectivePhone}@phone.sim` : `social_${uuidv4().slice(0, 8)}@tickethub.sim`);
+    // Social login is never allowed for privileged accounts (even if a role was changed later)
+    if (user && user.role !== 'customer') {
+      return res.status(403).json({ error: SOCIAL_FORBIDDEN_MSG });
+    }
 
+    if (!user) {
+      const email = profile.email || `${profile.providerId}@${p}.noemail.invalid`;
       user = UserModel.create({
-        name: displayName,
-        email: fallbackEmail,
-        phone: effectivePhone || '',
-        age: 20,
-        dob: '2004-01-01',
+        name: profile.name || (profile.email ? profile.email.split('@')[0] : `User ${p}`),
+        email,
+        phone: '',
+        age: 0,
+        dob: '',
         gender: 'Unspecified',
         nationalId: '',
         address: '',
-        avatarUrl: '',
+        avatarUrl: profile.avatarUrl || '',
         passwordHash: '',
         authProvider: p,
+        [idField]: profile.providerId,
         role: 'customer',
         points: 100,
         bookmarks: []
       });
+      isNewUser = true;
     }
 
-    const token = signToken(user);
-    res.cookie('tickethub_token', token, {
-      httpOnly: true,
-      maxAge: COOKIE_MAX_AGE_MS
-    });
-
+    const token = issueSession(res, user);
     return res.json({
       message: `Logged in via ${p}`,
       token,
+      isNewUser,
       user: sanitizeUser(user)
     });
   } catch (err) {
@@ -405,6 +494,7 @@ module.exports = {
   register,
   login,
   socialLogin,
+  getSocialConfig,
   logout,
   getMe,
   getProfile: getMe,

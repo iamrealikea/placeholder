@@ -2,7 +2,7 @@
 /**
  * TicketHub - Staff & Admin Operations Portal Controller (public/js/admin.js)
  * Consolidates Admin Dashboard, Gate Admission Scanner, and User & Role Management
- * into a unified 5-tab Operations Portal.
+ * into a unified Operations Portal.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    if (requestedTab && ['overview', 'events', 'scanner', 'roles', 'support'].includes(requestedTab)) {
+    if (requestedTab && ['overview', 'events', 'categories', 'scanner', 'roles', 'support'].includes(requestedTab)) {
       switchTab(requestedTab, false);
     } else {
       switchTab('overview', false);
@@ -235,6 +235,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (tabName === 'events' && isUserAdmin) {
       loadEvents();
       loadAuditTransactions();
+    } else if (tabName === 'categories' && isUserAdmin) {
+      if (typeof window.loadAdminCategories === 'function') window.loadAdminCategories();
     } else if (tabName === 'roles' && isUserAdmin) {
       loadUsers();
     } else if (tabName === 'support' && isUserAdmin) {

@@ -87,16 +87,28 @@
       <div class="filter-selects">
         <select id="categoryFilter" class="filter-select">
           <option value="">All Categories</option>
-          <option value="Concert">Concerts</option>
-          <option value="Seminar">Seminars</option>
-          <option value="Festival">Festivals</option>
-          <option value="Exhibition">Exhibitions</option>
         </select>
         <select id="statusFilter" class="filter-select">
           <option value="">All Statuses</option>
           <option value="On Sale">On Sale</option>
           <option value="Coming Soon">Coming Soon</option>
         </select>
+        <select id="provinceFilter" class="filter-select" aria-label="Filter by province">
+          <option value="">All Provinces</option>
+          <!-- Populated by index.js from event data -->
+        </select>
+        <select id="monthFilter" class="filter-select" aria-label="Filter by month">
+          <option value="">Any Month</option>
+          <!-- Populated by index.js from event round dates -->
+        </select>
+        <select id="sortFilter" class="filter-select" aria-label="Sort events">
+          <option value="">Sort: Default</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+        <button type="button" id="resetFilters" class="filter-reset-btn">
+          <i class="fa-solid fa-rotate-left"></i> Clear
+        </button>
       </div>
     </section>
 

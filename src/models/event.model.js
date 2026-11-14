@@ -3,7 +3,7 @@ const { store } = require('../store/jsonStore');
 
 class EventModel {
   static findAll(filters = {}) {
-    const { search, category, status, date, artist, featured, saleActive } = filters;
+    const { search, category, status, date, artist, featured, saleActive, province, location, month, sort } = filters;
     let list = store.getAll('events');
 
     if (search) {
@@ -12,7 +12,8 @@ class EventModel {
         (e) =>
           (e.title && e.title.toLowerCase().includes(q)) ||
           (e.artist && e.artist.toLowerCase().includes(q)) ||
-          (e.venue && e.venue.toLowerCase().includes(q))
+          (e.venue && e.venue.toLowerCase().includes(q)) ||
+          (e.province && e.province.toLowerCase().includes(q))
       );
     }
 
@@ -33,6 +34,38 @@ class EventModel {
       list = list.filter((e) => (e.rounds || []).some((r) => r.date === date));
     }
 
+    // Province filter: case-insensitive exact match on the province field
+    if (province) {
+      const p = String(province).trim().toLowerCase();
+      list = list.filter((e) => e.province && e.province.trim().toLowerCase() === p);
+    }
+
+    // Location filter: case-insensitive partial match on province OR venue
+    if (location) {
+      const l = String(location).trim().toLowerCase();
+      list = list.filter(
+        (e) =>
+          (e.province && e.province.toLowerCase().includes(l)) ||
+          (e.venue && e.venue.toLowerCase().includes(l))
+      );
+    }
+
+    // Month filter: "YYYY-MM" (specific year) or "MM" / "M" (any year); matches any round date
+    if (month) {
+      const m = String(month).trim();
+      const full = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(m);
+      const num = /^(0?[1-9]|1[0-2])$/.exec(m);
+      list = list.filter((e) =>
+        (e.rounds || []).some((r) => {
+          if (!r || !r.date) return false;
+          const [y, mo] = String(r.date).split('-');
+          if (full) return y === full[1] && mo === full[2];
+          if (num) return Number(mo) === Number(num[1]);
+          return false;
+        })
+      );
+    }
+
     if (featured === 'true') {
       list = list.filter((e) => e.isFeatured);
     }
@@ -42,7 +75,38 @@ class EventModel {
       list = list.filter((e) => this.isSaleOpen(e, now));
     }
 
+    // Sort by lowest zone price. Events without any priced zone always go last.
+    if (sort === 'price_asc' || sort === 'price_desc') {
+      const dir = sort === 'price_asc' ? 1 : -1;
+      list = list.slice().sort((a, b) => {
+        const pa = this.getMinPrice(a);
+        const pb = this.getMinPrice(b);
+        if (pa === null && pb === null) return 0;
+        if (pa === null) return 1;
+        if (pb === null) return -1;
+        return (pa - pb) * dir;
+      });
+    }
+
     return list;
+  }
+
+  static get SORT_OPTIONS() {
+    return ['price_asc', 'price_desc'];
+  }
+
+  /** Accepts "YYYY-MM" or "MM"/"M" (1-12). */
+  static isValidMonth(value) {
+    const m = String(value).trim();
+    return /^\d{4}-(0[1-9]|1[0-2])$/.test(m) || /^(0?[1-9]|1[0-2])$/.test(m);
+  }
+
+  /** Lowest zone price of an event, or null when no zone has a valid price. */
+  static getMinPrice(event) {
+    const prices = ((event && event.zones) || [])
+      .map((z) => Number(z && z.price))
+      .filter((n) => Number.isFinite(n));
+    return prices.length ? Math.min(...prices) : null;
   }
 
   static findById(id) {
@@ -155,6 +219,7 @@ class EventModel {
       galleryUrl,
       description,
       venue,
+      province,
       organizer,
       gateOpenTime,
       showTime,
@@ -180,6 +245,7 @@ class EventModel {
         'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80',
       description: description || '',
       venue: venue || 'Main Arena',
+      province: String(province || '').trim(),
       organizer: organizer || 'TicketHub Organizer',
       gateOpenTime: gateOpenTime || '16:00',
       showTime: showTime || '19:00',

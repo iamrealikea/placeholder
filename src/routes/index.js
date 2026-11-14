@@ -1,6 +1,7 @@
 const express = require('express');
 const authRoutes = require('./auth.routes');
 const eventsRoutes = require('./events.routes');
+const categoriesRoutes = require('./categories.routes');
 const bookingRoutes = require('./booking.routes');
 const ticketsRoutes = require('./tickets.routes');
 const adminRoutes = require('./admin.routes');
@@ -14,6 +15,7 @@ const router = express.Router();
 // REST API Routes
 router.use('/api/auth', authRoutes);
 router.use('/api/events', eventsRoutes);
+router.use('/api/categories', categoriesRoutes);
 router.use('/api/bookings', bookingRoutes);
 router.use('/api/tickets', ticketsRoutes);
 router.use('/api/admin', adminRoutes);

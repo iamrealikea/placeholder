@@ -52,6 +52,7 @@
       title: '',
       category: 'Concert',
       venue: '',
+      province: '',
       artist: '',
       organizer: '',
       status: 'On Sale',
@@ -268,6 +269,13 @@
       }
     }
 
+    try {
+      await loadEventCategories();
+    } catch (err) {
+      showToast(`Unable to load categories: ${err.message}`, 'error');
+      return;
+    }
+
     // 4.2 Initialize Canvas
     State.canvas = getEl(['seat-canvas']);
     if (State.canvas) {
@@ -306,6 +314,19 @@
     renderCanvas();
     updateCanvasStats();
   });
+
+  async function loadEventCategories() {
+    const categorySelect = getEl(['event-category']);
+    if (!categorySelect) return;
+    const result = await API.categories.list();
+    const categories = result.categories || [];
+    if (categories.length === 0) {
+      throw new Error('Create a category in the admin portal before creating an event.');
+    }
+    categorySelect.innerHTML = categories
+      .map((category) => `<option value="${escapeHtml(category.name)}">${escapeHtml(category.name)}</option>`)
+      .join('');
+  }
 
   // -------------------------------------------------------------------------
   // 5. Template Catalog Prefetching
@@ -593,6 +614,9 @@
 
     const venueInput = getEl(['event-venue']);
     if (venueInput) venueInput.value = d.venue || '';
+
+    const provinceInput = getEl(['event-province']);
+    if (provinceInput) provinceInput.value = d.province || '';
 
     const artistInput = getEl(['event-artist']);
     if (artistInput) artistInput.value = d.artist || '';
@@ -2084,6 +2108,7 @@
       const title = (getEl(['event-title']) || {}).value.trim();
       const category = (getEl(['event-category']) || {}).value || 'Concert';
       const venue = (getEl(['event-venue']) || {}).value.trim();
+      const province = ((getEl(['event-province']) || {}).value || '').trim();
       const artist = ((getEl(['event-artist']) || {}).value || '').trim();
       const organizer = ((getEl(['event-organizer']) || {}).value || '').trim();
       const status = (getEl(['event-status']) || {}).value || 'On Sale';
@@ -2109,11 +2134,14 @@
         showToast('Venue is required', 'error');
         return;
       }
-      if (!['Concert', 'Seminar'].includes(category)) {
-        showToast('Category must be Concert or Seminar', 'error');
+      if (!province) {
+        showToast('Province is required', 'error');
         return;
       }
-
+      if (province.length > 100) {
+        showToast('Province must be 100 characters or fewer', 'error');
+        return;
+      }
       // Assemble Rounds Payload
       let rounds = State.eventData.rounds && State.eventData.rounds.length > 0
         ? State.eventData.rounds
@@ -2194,6 +2222,7 @@
         title,
         category,
         venue,
+        province,
         artist,
         organizer,
         status,

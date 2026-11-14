@@ -70,13 +70,16 @@
       </div>
     </div>
 
-    <!-- 5 Portal Tabs Navigation -->
+    <!-- 6 Portal Tabs Navigation -->
     <div class="portal-tabs-nav" id="portal-tabs-nav">
       <button class="portal-tab-btn active" data-tab="overview">
         <span><i class="fa-solid fa-chart-line mr-6"></i></span> Overview &amp; Analytics
       </button>
       <button class="portal-tab-btn" data-tab="events">
         <span><i class="fa-solid fa-masks-theater mr-6"></i></span> Events &amp; Seating
+      </button>
+      <button class="portal-tab-btn" data-tab="categories">
+        <span><i class="fa-solid fa-layer-group mr-6"></i></span> Event Categories
       </button>
       <button class="portal-tab-btn" data-tab="scanner">
         <span><i class="fa-solid fa-camera mr-6"></i></span> Gate Admission Scanner
@@ -227,6 +230,41 @@
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB: Event Categories (Admin Only)
+         ========================================================================= -->
+    <div id="tab-content-categories" class="portal-tab-pane" data-tab-content="categories">
+      <section class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title"><i class="fa-solid fa-layer-group"></i> Event Categories</h2>
+            <p class="c-muted m-0">Create categories for admins to assign to events.</p>
+          </div>
+        </div>
+        <form id="create-category-form" class="flex items-c gap-12 wrap">
+          <div class="form-group flex-1 mb-0">
+            <label class="form-label" for="new-category-name">New category name</label>
+            <input id="new-category-name" class="form-control" type="text" maxlength="50"
+              placeholder="e.g. Workshop" required>
+          </div>
+          <button id="create-category-btn" class="btn-pill-red" type="submit">
+            <i class="fa-solid fa-plus"></i> Create Category
+          </button>
+        </form>
+        <div id="category-manager-message" class="mt-12" role="status" aria-live="polite"></div>
+        <div class="table-responsive mt-16">
+          <table class="data-table">
+            <thead>
+              <tr><th>Category</th><th>Created</th></tr>
+            </thead>
+            <tbody id="admin-categories-table-body">
+              <tr><td colspan="2" class="c-muted tc">Loading categories...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <!-- =========================================================================
@@ -613,6 +651,7 @@
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/notifications.js"></script>
+  <script src="/js/admin-categories.js"></script>
   <script src="/js/admin.js"></script>
 </body>
 

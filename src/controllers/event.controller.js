@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const {
   EventModel,
+  CategoryModel,
   SeatModel,
   UserModel,
   BookingModel,
@@ -55,11 +56,9 @@ store.resetWithSeed = function (...args) {
 };
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
-const VALID_CATEGORIES = ['concert', 'seminar'];
-
 /**
  * Validates event creation or update payload against strict invariants:
- * - Category must be strictly 'Concert' or 'Seminar'
+ * - Category must exist in the admin-managed category list
  * - Hex colors must match /^#[0-9a-fA-F]{6}$/
  * - Prices must be finite numbers >= 0 (0 allowed)
  * - Seat capacity cap: <= 2000 seats per zone
@@ -78,14 +77,10 @@ function validateEventPayload(payload, { isUpdate = false } = {}) {
     }
   }
 
-  // 2. Category validation (strictly Concert or Seminar)
+  // 2. Category validation
   if (!isUpdate || payload.category !== undefined) {
-    if (
-      !payload.category ||
-      typeof payload.category !== 'string' ||
-      !VALID_CATEGORIES.includes(payload.category.trim().toLowerCase())
-    ) {
-      return { valid: false, error: 'Category must be either Concert or Seminar.' };
+    if (typeof payload.category !== 'string' || !CategoryModel.findByName(payload.category)) {
+      return { valid: false, error: 'Category must be selected from the available categories.' };
     }
   }
 
@@ -93,6 +88,16 @@ function validateEventPayload(payload, { isUpdate = false } = {}) {
   if (!isUpdate || payload.venue !== undefined) {
     if (!payload.venue || typeof payload.venue !== 'string' || !payload.venue.trim()) {
       return { valid: false, error: 'Venue is required.' };
+    }
+  }
+
+  // 3.1 Province validation (optional free text, max 100 characters)
+  if (payload.province !== undefined && payload.province !== null) {
+    if (typeof payload.province !== 'string') {
+      return { valid: false, error: 'Province must be a string.' };
+    }
+    if (payload.province.trim().length > 100) {
+      return { valid: false, error: 'Province must be 100 characters or fewer.' };
     }
   }
 
@@ -358,8 +363,22 @@ function notifyEventChanges(existing, updated, updates) {
 /**
  * FR-06, FR-07, FR-08, FR-09, FR-10: List, search, filter, popular events
  * GET /api/events
+ * Query: search, category, status, artist, date, featured, saleActive,
+ *        province, location, month (YYYY-MM | 1-12), sort (price_asc | price_desc)
  */
 function listEvents(req, res) {
+  const { sort, month } = req.query;
+  if (sort !== undefined && sort !== '' && !EventModel.SORT_OPTIONS.includes(String(sort))) {
+    return res.status(400).json({
+      error: `Invalid sort option. Allowed values: ${EventModel.SORT_OPTIONS.join(', ')}.`
+    });
+  }
+  if (month !== undefined && month !== '' && !EventModel.isValidMonth(month)) {
+    return res.status(400).json({
+      error: 'Invalid month. Use YYYY-MM (e.g. 2026-11) or a month number 1-12.'
+    });
+  }
+
   SeatModel.expireHeldSeats();
   const list = EventModel.findAll(req.query);
   const userBookmarks = req.user && req.user.bookmarks ? req.user.bookmarks : [];
@@ -473,8 +492,7 @@ function createEvent(req, res) {
 
   const payload = { ...req.body };
   if (payload.category) {
-    const c = payload.category.trim().toLowerCase();
-    payload.category = c === 'seminar' ? 'Seminar' : 'Concert';
+    payload.category = CategoryModel.findByName(payload.category).name;
   }
 
   const newEvent = EventModel.create(payload);
@@ -506,8 +524,7 @@ function updateEvent(req, res) {
   delete updates.id;
 
   if (updates.category) {
-    const c = updates.category.trim().toLowerCase();
-    updates.category = c === 'seminar' ? 'Seminar' : 'Concert';
+    updates.category = CategoryModel.findByName(updates.category).name;
   }
 
   const hasZones = Array.isArray(updates.zones);

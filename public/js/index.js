@@ -1,6 +1,7 @@
 /**
  * TicketHub - Home Page Controller (public/js/index.js)
- * Loads featured hero, popular events, and coming soon events, and manages search & filtering.
+ * Loads featured hero, popular events, and coming soon events, and manages search, filtering and sorting.
+ * Filtering/sorting is performed by the backend (GET /api/events?province=&month=&sort=...).
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,15 +11,80 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.getElementById('searchInput');
   const categoryFilter = document.getElementById('categoryFilter');
   const statusFilter = document.getElementById('statusFilter');
+  const provinceFilter = document.getElementById('provinceFilter');
+  const monthFilter = document.getElementById('monthFilter');
+  const sortFilter = document.getElementById('sortFilter');
+  const resetFilters = document.getElementById('resetFilters');
 
-  let allEvents = [];
+  let allEvents = []; // unfiltered list: used for hero + to build province/month options
+  let requestSeq = 0; // guards against out-of-order responses while typing/changing filters
+  let searchTimer = null;
+
+  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function venueText(e) {
+    const text = e.province ? `${e.venue}, ${e.province}` : (e.venue || '');
+    return window.escapeHtml ? window.escapeHtml(text) : text;
+  }
+
+  function populateFilterOptions(events, categories) {
+    if (categoryFilter) {
+      const categoryNames = new Set([
+        ...(categories || []).map((category) => category.name),
+        ...events.map((event) => event.category)
+      ].filter((name) => typeof name === 'string' && name.trim()));
+      const selectedCategory = categoryFilter.value;
+      categoryFilter.innerHTML =
+        '<option value="">All Categories</option>' +
+        Array.from(categoryNames)
+          .sort((a, b) => a.localeCompare(b))
+          .map((name) => `<option value="${window.escapeHtml(name)}">${window.escapeHtml(name)}</option>`)
+          .join('');
+      categoryFilter.value = selectedCategory;
+    }
+
+    if (provinceFilter) {
+      const provinces = Array.from(new Set(events.map((e) => (e.province || '').trim()).filter(Boolean)))
+        .sort((a, b) => a.localeCompare(b));
+      provinceFilter.innerHTML =
+        '<option value="">All Provinces</option>' +
+        provinces.map((p) => `<option value="${window.escapeHtml(p)}">${window.escapeHtml(p)}</option>`).join('');
+    }
+    if (monthFilter) {
+      const months = new Set();
+      events.forEach((e) => (e.rounds || []).forEach((r) => {
+        if (r && /^\d{4}-\d{2}/.test(r.date || '')) months.add(r.date.slice(0, 7));
+      }));
+      monthFilter.innerHTML =
+        '<option value="">Any Month</option>' +
+        Array.from(months).sort().map((ym) => {
+          const [y, m] = ym.split('-');
+          return `<option value="${ym}">${MONTH_NAMES[Number(m) - 1]} ${y}</option>`;
+        }).join('');
+    }
+  }
+
+  function buildFilterParams() {
+    return {
+      search: (searchInput.value || '').trim(),
+      category: categoryFilter.value,
+      status: statusFilter.value,
+      province: provinceFilter ? provinceFilter.value : '',
+      month: monthFilter ? monthFilter.value : '',
+      sort: sortFilter ? sortFilter.value : ''
+    };
+  }
 
   async function loadEvents() {
     try {
-      const res = await API.events.list();
+      const [res, categoryRes] = await Promise.all([
+        API.events.list(),
+        API.categories.list()
+      ]);
       allEvents = (res && res.events) || [];
       renderFeaturedHero(allEvents);
-      filterAndRenderEvents();
+      populateFilterOptions(allEvents, (categoryRes && categoryRes.categories) || []);
+      await filterAndRenderEvents();
     } catch (err) {
       console.error('Failed to load events:', err);
     }
@@ -66,24 +132,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
   }
 
-  function filterAndRenderEvents() {
-    const query = (searchInput.value || '').trim().toLowerCase();
-    const cat = categoryFilter.value;
-    const stat = statusFilter.value;
-
-    let filtered = allEvents.filter((e) => {
-      const matchQ =
-        !query ||
-        e.title.toLowerCase().includes(query) ||
-        (e.artist && e.artist.toLowerCase().includes(query)) ||
-        (e.venue && e.venue.toLowerCase().includes(query));
-      const matchCat = !cat || e.category.toLowerCase() === cat.toLowerCase();
-      const matchStat = !stat || e.status.toLowerCase() === stat.toLowerCase();
-      return matchQ && matchCat && matchStat;
-    });
-
-    renderPopular(filtered);
-    renderSoon(filtered);
+  async function filterAndRenderEvents() {
+    const seq = ++requestSeq;
+    try {
+      const res = await API.events.list(buildFilterParams());
+      if (seq !== requestSeq) return; // a newer request superseded this one
+      const events = (res && res.events) || [];
+      renderPopular(events);
+      renderSoon(events);
+    } catch (err) {
+      if (seq !== requestSeq) return;
+      console.error('Failed to filter events:', err);
+      const msg = `<p style="grid-column: 1/-1; text-align: center; color: #6B7280; padding: 32px;">Unable to load events. Please try again.</p>`;
+      if (popularContainer) popularContainer.innerHTML = msg;
+      if (soonContainer) soonContainer.innerHTML = msg;
+    }
   }
 
   function renderPopular(events) {
@@ -111,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="card-subtitle">${e.artist || 'Special Performance'}</div>
               <h3 class="card-title">${e.title}</h3>
               <div class="card-meta">
-                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${e.venue}</span>
+                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${venueText(e)}</span>
                 <span>•</span>
                 <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${round.date || 'TBD'}</span>
               </div>
@@ -156,7 +219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="card-subtitle">${e.artist || 'Special Exhibition'}</div>
               <h3 class="card-title">${e.title}</h3>
               <div class="card-meta">
-                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${e.venue}</span>
+                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${venueText(e)}</span>
                 <span>•</span>
                 <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${round.date || 'Announcing Soon'}</span>
               </div>
@@ -177,9 +240,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Event Listeners for Filters
-  searchInput.addEventListener('input', () => filterAndRenderEvents());
-  categoryFilter.addEventListener('change', () => filterAndRenderEvents());
-  statusFilter.addEventListener('change', () => filterAndRenderEvents());
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(filterAndRenderEvents, 250); // debounce typing
+  });
+  [categoryFilter, statusFilter, provinceFilter, monthFilter, sortFilter].forEach((el) => {
+    if (el) el.addEventListener('change', () => filterAndRenderEvents());
+  });
+  if (resetFilters) {
+    resetFilters.addEventListener('click', () => {
+      searchInput.value = '';
+      [categoryFilter, statusFilter, provinceFilter, monthFilter, sortFilter].forEach((el) => {
+        if (el) el.value = '';
+      });
+      filterAndRenderEvents();
+    });
+  }
 
   const navSearchTrigger = document.getElementById('navSearchTrigger');
   if (navSearchTrigger && searchInput) {

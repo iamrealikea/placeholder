@@ -30,6 +30,14 @@ class UserModel {
     return store.findOne('users', (u) => u.phone && u.phone === trimmed);
   }
 
+  /** provider: 'gmail' | 'facebook'. Looks a user up by the provider's stable account ID. */
+  static findBySocialId(provider, providerId) {
+    const field = provider === 'gmail' ? 'googleId' : provider === 'facebook' ? 'facebookId' : null;
+    if (!field || !providerId) return null;
+    const id = String(providerId);
+    return store.findOne('users', (u) => u[field] && u[field] === id);
+  }
+
   static create(data) {
     const newUser = {
       id: data.id || `usr-${uuidv4().slice(0, 8)}`,
@@ -44,6 +52,8 @@ class UserModel {
       avatarUrl: data.avatarUrl || '',
       passwordHash: data.passwordHash || '',
       authProvider: data.authProvider || 'local',
+      googleId: data.googleId ? String(data.googleId) : '',
+      facebookId: data.facebookId ? String(data.facebookId) : '',
       role: data.role || 'customer',
       points: data.points !== undefined ? Number(data.points) : 100,
       bookmarks: Array.isArray(data.bookmarks) ? data.bookmarks : [],

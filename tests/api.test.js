@@ -12,6 +12,10 @@
  * - Suite 7: Cancellation & Refund Policy Calculation (FR-38, FR-39)
  * - Suite 8: Admin Dashboard, RBAC & Backup/Restore (FR-40 to FR-44, NFR-06, NFR-11, NFR-12)
  * - Suite 10: Admin Event Inspection & Transaction Audit (FR-42, FR-43)
+ * - Suite 12: Event Filter by Province/Location, Month & Price Sort (FR-08, FR-09)
+ * - Suite 13: Booking Access Control & Booking History (FR-23, FR-32)
+ * - Suite 14: Google & Facebook Social Login (FR-01)
+ * - Suite 15: Social Token Verification Service (Google & Facebook)
  *
  * Execution: npm test (node --test tests/api.test.js)
  */
@@ -25,6 +29,7 @@ const http = require('http');
 const { app, expirationInterval } = require('../server');
 const { store } = require('../src/store/jsonStore');
 const { generateSeedData, ensureTicketQrCodes } = require('../src/store/seed');
+const socialAuth = require('../src/services/socialAuth');
 
 let server;
 let BASE_URL;
@@ -191,34 +196,7 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.strictEqual(res.data.user.email, regEmail);
     });
 
-    it('FR-01: Authenticates via simulated social login (Gmail, Facebook, Phone OTP)', async () => {
-      // 1. Gmail Social Login
-      const gmailRes = await request('/api/auth/social-login', {
-        method: 'POST',
-        body: {
-          provider: 'gmail',
-          email: `social.google.${Date.now()}@gmail.com`,
-          name: 'Somchai Google'
-        }
-      });
-      assert.strictEqual(gmailRes.status, 200);
-      assert.ok(gmailRes.data.token);
-      assert.strictEqual(gmailRes.data.user.authProvider, 'gmail');
-
-      // 2. Facebook Social Login
-      const fbRes = await request('/api/auth/social-login', {
-        method: 'POST',
-        body: {
-          provider: 'facebook',
-          email: `social.fb.${Date.now()}@facebook.com`,
-          name: 'Somying Facebook'
-        }
-      });
-      assert.strictEqual(fbRes.status, 200);
-      assert.ok(fbRes.data.token);
-      assert.strictEqual(fbRes.data.user.authProvider, 'facebook');
-
-      // 3. Phone OTP Login
+    it('FR-01: Demo phone OTP login still works outside production (200 OK)', async () => {
       const phoneRes = await request('/api/auth/social-login', {
         method: 'POST',
         body: {
@@ -1246,5 +1224,614 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.match(checkoutPageRes.data, /403 Forbidden|Access Denied/i);
     });
   });
-});
 
+  // =========================================================================
+  // Suite 12: Event Filtering by Province / Location / Month and Price Sorting (FR-08, FR-09)
+  // Uses events created through the admin API with a unique tag, so the assertions
+  // do not depend on whichever events the seed data happens to contain.
+  // =========================================================================
+  describe('Suite 12: Event Filter by Province/Location, Month & Price Sort (FR-08, FR-09)', () => {
+    const tag = `FLT${Date.now()}`;
+    const fixtures = {
+      A: { province: 'Chiang Mai', venue: 'Nimman Hall', date: '2027-03-10', price: 500 },
+      B: { province: 'Chiang Mai', venue: 'Old City Arena', date: '2027-04-05', price: 900 },
+      C: { province: 'Phuket', venue: 'Patong Beach Stage', date: '2027-03-20', price: 200 }
+    };
+    const created = {};
+    const authAdmin = () => ({ Authorization: `Bearer ${adminToken}` });
+    const titlesOf = (res) => res.data.events.map((e) => e.title.replace(`${tag} `, ''));
+    const minPrice = (e) => Math.min(...e.zones.map((z) => z.price));
+
+    before(async () => {
+      for (const [key, f] of Object.entries(fixtures)) {
+        const res = await request('/api/events', {
+          method: 'POST',
+          headers: authAdmin(),
+          body: {
+            title: `${tag} ${key}`,
+            artist: 'Filter Test Artist',
+            category: 'Concert',
+            status: 'On Sale',
+            venue: f.venue,
+            province: f.province,
+            rounds: [{ date: f.date, time: '19:00' }],
+            zones: [{ name: 'Std', color: '#1D56CF', price: f.price, rows: 2, cols: 4 }]
+          }
+        });
+        assert.strictEqual(res.status, 201, `fixture ${key} must be created`);
+        created[key] = res.data.event;
+      }
+    });
+
+    it('Province is stored on create and returned by GET /api/events/:id', async () => {
+      assert.strictEqual(created.A.province, 'Chiang Mai');
+      const res = await request(`/api/events/${created.C.id}`);
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.data.event.province, 'Phuket');
+    });
+
+    it('?province= returns only events of that province (case-insensitive, exact match)', async () => {
+      const res = await request(`/api/events?province=Chiang Mai&search=${tag}`);
+      assert.strictEqual(res.status, 200);
+      assert.deepStrictEqual(titlesOf(res).sort(), ['A', 'B']);
+
+      const lower = await request(`/api/events?province=chiang mai&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(lower).sort(), ['A', 'B']);
+
+      // Without the search tag, every returned event must still belong to the province
+      const all = await request('/api/events?province=Phuket');
+      assert.strictEqual(all.status, 200);
+      assert.ok(all.data.events.length >= 1);
+      assert.ok(all.data.events.every((e) => (e.province || '').toLowerCase() === 'phuket'));
+
+      // Partial province name is NOT an exact match
+      const partial = await request(`/api/events?province=Chiang&search=${tag}`);
+      assert.strictEqual(partial.data.events.length, 0);
+    });
+
+    it('?location= matches province or venue by partial text', async () => {
+      const byVenue = await request(`/api/events?location=patong&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(byVenue), ['C']);
+
+      const byProvince = await request(`/api/events?location=chiang&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(byProvince).sort(), ['A', 'B']);
+    });
+
+    it('?month=YYYY-MM returns only events having a round in that month', async () => {
+      const res = await request(`/api/events?month=2027-03&search=${tag}`);
+      assert.strictEqual(res.status, 200);
+      assert.deepStrictEqual(titlesOf(res).sort(), ['A', 'C']);
+
+      const april = await request(`/api/events?month=2027-04&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(april), ['B']);
+
+      const none = await request(`/api/events?month=2027-12&search=${tag}`);
+      assert.strictEqual(none.status, 200);
+      assert.strictEqual(none.data.total, 0);
+      assert.deepStrictEqual(none.data.events, []);
+    });
+
+    it('?month=MM (any year) matches on the month number only', async () => {
+      const res = await request('/api/events?month=3');
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.data.events.length >= 2);
+      for (const e of res.data.events) {
+        assert.ok(
+          e.rounds.some((r) => r.date.split('-')[1] === '03'),
+          `${e.id} must have a round in March`
+        );
+      }
+      const ids = res.data.events.map((e) => e.id);
+      assert.ok(ids.includes(created.A.id) && ids.includes(created.C.id));
+      assert.ok(!ids.includes(created.B.id));
+    });
+
+    it('Combines province + month + category filters (AND logic)', async () => {
+      const res = await request(`/api/events?province=Chiang Mai&month=2027-03&category=Concert&search=${tag}`);
+      assert.strictEqual(res.status, 200);
+      assert.deepStrictEqual(titlesOf(res), ['A']);
+    });
+
+    it('?sort=price_asc / price_desc orders by lowest zone price', async () => {
+      const asc = await request(`/api/events?sort=price_asc&search=${tag}`);
+      assert.strictEqual(asc.status, 200);
+      assert.deepStrictEqual(titlesOf(asc), ['C', 'A', 'B']); // 200, 500, 900
+
+      const desc = await request(`/api/events?sort=price_desc&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(desc), ['B', 'A', 'C']);
+
+      // Global ordering over every event in the database
+      const allAsc = await request('/api/events?sort=price_asc');
+      const ascPrices = allAsc.data.events.map(minPrice);
+      for (let i = 0; i < ascPrices.length - 1; i++) {
+        assert.ok(ascPrices[i] <= ascPrices[i + 1], 'price_asc must be non-decreasing');
+      }
+      const allDesc = await request('/api/events?sort=price_desc');
+      const descPrices = allDesc.data.events.map(minPrice);
+      for (let i = 0; i < descPrices.length - 1; i++) {
+        assert.ok(descPrices[i] >= descPrices[i + 1], 'price_desc must be non-increasing');
+      }
+    });
+
+    it('Sort is applied after filtering (province + price_desc)', async () => {
+      const res = await request(`/api/events?province=Chiang Mai&sort=price_desc&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(res), ['B', 'A']);
+    });
+
+    it('Rejects invalid sort and month values with HTTP 400', async () => {
+      const badSort = await request('/api/events?sort=price_sideways');
+      assert.strictEqual(badSort.status, 400);
+      assert.ok(typeof badSort.data.error === 'string' && badSort.data.error.length > 0);
+
+      for (const bad of ['13', '0', '2027-13', '2027-3', 'march']) {
+        const res = await request(`/api/events?month=${bad}`);
+        assert.strictEqual(res.status, 400, `month=${bad} must be rejected`);
+      }
+    });
+
+    it('Empty filter values are ignored (no filtering, HTTP 200)', async () => {
+      const base = await request(`/api/events?search=${tag}`);
+      const blank = await request(`/api/events?search=${tag}&province=&month=&sort=&location=`);
+      assert.strictEqual(blank.status, 200);
+      assert.strictEqual(blank.data.total, base.data.total);
+      assert.strictEqual(blank.data.total, 3);
+    });
+
+    it('Admin can change province with PUT and the filter reflects it', async () => {
+      const upd = await request(`/api/events/${created.B.id}`, {
+        method: 'PUT',
+        headers: authAdmin(),
+        body: { province: 'Chiang Rai' }
+      });
+      assert.strictEqual(upd.status, 200);
+      assert.strictEqual(upd.data.event.province, 'Chiang Rai');
+
+      const oldProv = await request(`/api/events?province=Chiang Mai&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(oldProv), ['A']);
+      const newProv = await request(`/api/events?province=Chiang Rai&search=${tag}`);
+      assert.deepStrictEqual(titlesOf(newProv), ['B']);
+    });
+
+    it('Rejects a non-string province on create and update with HTTP 400', async () => {
+      const bad = await request('/api/events', {
+        method: 'POST',
+        headers: authAdmin(),
+        body: {
+          title: `${tag} BAD`,
+          category: 'Concert',
+          venue: 'X',
+          province: 12345,
+          rounds: [{ date: '2027-05-01', time: '19:00' }],
+          zones: [{ name: 'Std', price: 100, rows: 1, cols: 2 }]
+        }
+      });
+      assert.strictEqual(bad.status, 400);
+      assert.match(bad.data.error, /province/i);
+
+      const badUpdate = await request(`/api/events/${created.A.id}`, {
+        method: 'PUT',
+        headers: authAdmin(),
+        body: { province: ['Chiang Mai'] }
+      });
+      assert.strictEqual(badUpdate.status, 400);
+    });
+  });
+
+  describe('Admin-managed event categories', () => {
+    const categoryName = `Workshop ${Date.now()}`;
+    const adminHeaders = () => ({ Authorization: `Bearer ${adminToken}` });
+
+    it('lists default categories publicly and restricts category creation to admins', async () => {
+      const list = await request('/api/categories');
+      assert.strictEqual(list.status, 200);
+      assert.ok(list.data.categories.some((category) => category.name === 'Concert'));
+
+      const unauthorized = await request('/api/categories', {
+        method: 'POST',
+        body: { name: categoryName }
+      });
+      assert.strictEqual(unauthorized.status, 401);
+
+      const staffRequest = await request('/api/categories', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${staffToken}` },
+        body: { name: categoryName }
+      });
+      assert.strictEqual(staffRequest.status, 403);
+    });
+
+    it('lets an admin create a category and use it for an event', async () => {
+      const created = await request('/api/categories', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: { name: categoryName }
+      });
+      assert.strictEqual(created.status, 201);
+      assert.strictEqual(created.data.category.name, categoryName);
+
+      const duplicate = await request('/api/categories', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: { name: categoryName.toLowerCase() }
+      });
+      assert.strictEqual(duplicate.status, 409);
+
+      const event = await request('/api/events', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: {
+          title: `Category test ${Date.now()}`,
+          category: categoryName,
+          status: 'On Sale',
+          venue: 'Test Hall',
+          province: 'Bangkok',
+          rounds: [{ date: '2027-05-01', time: '19:00' }],
+          zones: [{ name: 'Standard', price: 500, rows: 1, cols: 2 }]
+        }
+      });
+      assert.strictEqual(event.status, 201);
+      assert.strictEqual(event.data.event.category, categoryName);
+    });
+
+    it('rejects invalid category names and event categories that were not created', async () => {
+      const empty = await request('/api/categories', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: { name: '   ' }
+      });
+      assert.strictEqual(empty.status, 400);
+
+      const event = await request('/api/events', {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: {
+          title: 'Unregistered category test',
+          category: 'Not Created',
+          venue: 'Test Hall',
+          province: 'Bangkok',
+          rounds: [{ date: '2027-05-01', time: '19:00' }],
+          zones: [{ name: 'Standard', price: 500, rows: 1, cols: 2 }]
+        }
+      });
+      assert.strictEqual(event.status, 400);
+      assert.match(event.data.error, /category/i);
+    });
+  });
+
+  // =========================================================================
+  // Suite 13: Booking Access Control & Booking History (FR-23, FR-32)
+  // =========================================================================
+  describe('Suite 13: Booking Access Control & Booking History (FR-23, FR-32)', () => {
+    it('Holding seats without authentication returns HTTP 401', async () => {
+      const res = await request('/api/bookings/hold', {
+        method: 'POST',
+        body: {
+          eventId: 'evt-1',
+          roundId: 'rnd-1a',
+          seatIds: ['seat-evt-1-rnd-1a-zone-vip-B3']
+        }
+      });
+      assert.strictEqual(res.status, 401);
+    });
+
+    it('Booking history requires authentication (HTTP 401)', async () => {
+      const res = await request('/api/tickets/history');
+      assert.strictEqual(res.status, 401);
+    });
+
+    it('History lists the customer\'s paid booking with status PAID', async () => {
+      const res = await request('/api/tickets/history', {
+        headers: { Authorization: `Bearer ${customerToken}` }
+      });
+      assert.strictEqual(res.status, 200);
+      const paid = res.data.history.find((b) => b.id === paidBookingId);
+      assert.ok(paid, 'paid booking must appear in history');
+      assert.strictEqual(paid.status, 'PAID');
+    });
+
+    it('History is private: a brand-new customer sees none of another user\'s bookings', async () => {
+      const ts = Date.now();
+      const reg = await request('/api/auth/register', {
+        method: 'POST',
+        body: {
+          name: 'History Isolation User',
+          email: `history.isolation.${ts}@example.com`,
+          password: 'Password123!',
+          phone: '0833333333',
+          nationalId: `110070${ts.toString().slice(-7)}`
+        }
+      });
+      assert.strictEqual(reg.status, 201);
+
+      const res = await request('/api/tickets/history', {
+        headers: { Authorization: `Bearer ${reg.data.token}` }
+      });
+      assert.strictEqual(res.status, 200);
+      assert.ok(Array.isArray(res.data.history));
+      assert.strictEqual(res.data.history.length, 0);
+      assert.ok(!res.data.history.some((b) => b.id === paidBookingId));
+    });
+  });
+
+  // =========================================================================
+  // Suite 14: Google & Facebook Social Login (FR-01)
+  // Provider verification is stubbed (no real Google/Facebook calls are made);
+  // the controller logic around it is exercised end-to-end over HTTP.
+  // =========================================================================
+  describe('Suite 14: Google & Facebook Social Login (FR-01)', () => {
+    const ts = Date.now();
+    const profiles = {
+      'g-new': { provider: 'gmail', providerId: `g-${ts}`, email: `social.g.${ts}@gmail.com`, emailVerified: true, name: 'Gina Google', avatarUrl: '' },
+      'g-unverified': { provider: 'gmail', providerId: `gu-${ts}`, email: `unverified.${ts}@gmail.com`, emailVerified: false, name: 'Una Verified', avatarUrl: '' },
+      'g-admin-email': { provider: 'gmail', providerId: `ga-${ts}`, email: 'admin@ticket.com', emailVerified: true, name: 'Not Admin', avatarUrl: '' },
+      'g-local-email': { provider: 'gmail', providerId: `gl-${ts}`, email: 'user@ticket.com', emailVerified: true, name: 'Not Chanita', avatarUrl: '' },
+      'g-facebook-email': { provider: 'gmail', providerId: `gf-${ts}`, email: `social.fb.${ts}@example.com`, emailVerified: true, name: 'Fon Google', avatarUrl: '' },
+      'fb-no-email': { provider: 'facebook', providerId: `fb-${ts}`, email: null, emailVerified: false, name: 'Fai Facebook', avatarUrl: '' },
+      'fb-with-email': { provider: 'facebook', providerId: `fb2-${ts}`, email: `social.fb.${ts}@example.com`, emailVerified: true, name: 'Fon Facebook', avatarUrl: '' }
+    };
+    let originalVerify;
+    let googleUserId = '';
+    const envBackup = {};
+
+    before(() => {
+      for (const k of ['GOOGLE_CLIENT_ID', 'FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET']) envBackup[k] = process.env[k];
+      process.env.GOOGLE_CLIENT_ID = 'test-google-client-id.apps.googleusercontent.com';
+      process.env.FACEBOOK_APP_ID = 'test-fb-app-id';
+      process.env.FACEBOOK_APP_SECRET = 'test-fb-app-secret-DO-NOT-LEAK';
+
+      originalVerify = socialAuth.verifyProviderToken;
+      socialAuth.verifyProviderToken = async (provider, token) => {
+        if (token === 'provider-down') throw new socialAuth.SocialAuthError('Google login is not configured on this server.', 503);
+        const p = profiles[token];
+        if (!p || p.provider !== provider) throw new socialAuth.SocialAuthError('Invalid token.', 401);
+        return { ...p };
+      };
+    });
+
+    after(() => {
+      socialAuth.verifyProviderToken = originalVerify;
+      for (const [k, v] of Object.entries(envBackup)) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    });
+
+    const loginWith = (body) => request('/api/auth/social-login', { method: 'POST', body });
+
+    it('GET /api/auth/social-config exposes only public IDs and never the Facebook app secret', async () => {
+      const res = await request('/api/auth/social-config');
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.data.google.enabled, true);
+      assert.strictEqual(res.data.google.clientId, 'test-google-client-id.apps.googleusercontent.com');
+      assert.strictEqual(res.data.facebook.enabled, true);
+      assert.strictEqual(res.data.facebook.appId, 'test-fb-app-id');
+      assert.ok(!JSON.stringify(res.data).includes('DO-NOT-LEAK'));
+    });
+
+    it('SECURITY: the old simulated payload (provider + email/name, no token) is rejected with 400', async () => {
+      const res = await loginWith({ provider: 'gmail', email: 'admin@ticket.com', name: 'Hacker' });
+      assert.strictEqual(res.status, 400);
+      assert.ok(!res.data.token);
+
+      const fb = await loginWith({ provider: 'facebook', identifier: 'fb_user_12345', name: 'Hacker' });
+      assert.strictEqual(fb.status, 400);
+    });
+
+    it('Invalid provider token returns 401, and a token for the other provider is rejected', async () => {
+      const bad = await loginWith({ provider: 'gmail', idToken: 'totally-invalid' });
+      assert.strictEqual(bad.status, 401);
+      assert.ok(!bad.data.token);
+
+      const mismatch = await loginWith({ provider: 'facebook', accessToken: 'g-new' });
+      assert.strictEqual(mismatch.status, 401);
+    });
+
+    it('Provider configuration error is surfaced as 503', async () => {
+      const res = await loginWith({ provider: 'gmail', idToken: 'provider-down' });
+      assert.strictEqual(res.status, 503);
+    });
+
+    it('Google: first login creates a customer from the verified token, ignoring email/name in the body', async () => {
+      const res = await loginWith({ provider: 'google', idToken: 'g-new', email: 'admin@ticket.com', name: 'IGNORED' });
+      assert.strictEqual(res.status, 200);
+      assert.ok(res.data.token);
+      assert.strictEqual(res.data.isNewUser, true);
+      assert.strictEqual(res.data.user.email, profiles['g-new'].email);
+      assert.strictEqual(res.data.user.name, 'Gina Google');
+      assert.strictEqual(res.data.user.authProvider, 'gmail');
+      assert.strictEqual(res.data.user.role, 'customer');
+      assert.strictEqual(res.data.user.passwordHash, undefined);
+      assert.ok(res.setCookie && res.setCookie.includes('HttpOnly'));
+      googleUserId = res.data.user.id;
+
+      // The issued JWT is accepted by protected routes
+      const me = await request('/api/auth/profile', { headers: { Authorization: `Bearer ${res.data.token}` } });
+      assert.strictEqual(me.status, 200);
+      assert.strictEqual(me.data.user.id, googleUserId);
+    });
+
+    it('Google: second login with the same Google account reuses the same user', async () => {
+      const res = await loginWith({ provider: 'gmail', idToken: 'g-new' });
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.data.isNewUser, false);
+      assert.strictEqual(res.data.user.id, googleUserId);
+      assert.strictEqual(res.data.user.points, 100);
+    });
+
+    it('Facebook: account without an email address gets a placeholder email and can log in again', async () => {
+      const first = await loginWith({ provider: 'facebook', accessToken: 'fb-no-email' });
+      assert.strictEqual(first.status, 200);
+      assert.strictEqual(first.data.isNewUser, true);
+      assert.strictEqual(first.data.user.authProvider, 'facebook');
+      assert.match(first.data.user.email, /\.invalid$/);
+
+      const again = await loginWith({ provider: 'facebook', accessToken: 'fb-no-email' });
+      assert.strictEqual(again.data.user.id, first.data.user.id);
+      assert.strictEqual(again.data.isNewUser, false);
+    });
+
+    it('Facebook: account with an email uses the email returned by Facebook', async () => {
+      const res = await loginWith({ provider: 'facebook', accessToken: 'fb-with-email' });
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.data.user.email, profiles['fb-with-email'].email);
+    });
+
+    it('links a verified Google login to an existing customer Facebook account with the same email', async () => {
+      const facebook = await loginWith({ provider: 'facebook', accessToken: 'fb-with-email' });
+      const google = await loginWith({ provider: 'gmail', idToken: 'g-facebook-email' });
+      assert.strictEqual(google.status, 200);
+      assert.strictEqual(google.data.isNewUser, false);
+      assert.strictEqual(google.data.user.id, facebook.data.user.id);
+
+      const googleAgain = await loginWith({ provider: 'gmail', idToken: 'g-facebook-email' });
+      assert.strictEqual(googleAgain.status, 200);
+      assert.strictEqual(googleAgain.data.user.id, facebook.data.user.id);
+    });
+
+    it('Rejects a provider email that is not verified (403)', async () => {
+      const res = await loginWith({ provider: 'gmail', idToken: 'g-unverified' });
+      assert.strictEqual(res.status, 403);
+      assert.ok(!res.data.token);
+    });
+
+    it('SECURITY: a social account can never take over an admin or password (local) account via its email', async () => {
+      const admin = await loginWith({ provider: 'gmail', idToken: 'g-admin-email' });
+      assert.strictEqual(admin.status, 403);
+      assert.ok(!admin.data.token);
+
+      const local = await loginWith({ provider: 'gmail', idToken: 'g-local-email' });
+      assert.strictEqual(local.status, 403);
+      assert.ok(!local.data.token);
+    });
+
+    it('SECURITY: social login is blocked once the account has been promoted to staff', async () => {
+      store.update('users', googleUserId, { role: 'staff' });
+      const res = await loginWith({ provider: 'gmail', idToken: 'g-new' });
+      assert.strictEqual(res.status, 403);
+      assert.ok(!res.data.token);
+      store.update('users', googleUserId, { role: 'customer' });
+    });
+  });
+
+  // =========================================================================
+  // Suite 15: Provider token verification (calls to Google / Facebook are faked)
+  // =========================================================================
+  describe('Suite 15: Social Token Verification Service (Google & Facebook)', () => {
+    const GOOGLE_URL = 'https://oauth2.googleapis.com/tokeninfo';
+    const FB_DEBUG_URL = 'https://graph.facebook.com/v27.0/debug_token';
+    const FB_ME_URL = 'https://graph.facebook.com/v27.0/me';
+    const envBackup = {};
+
+    const goodGoogle = () => ({
+      sub: 'g-123',
+      aud: 'unit-google-client',
+      iss: 'https://accounts.google.com',
+      exp: String(Math.floor(Date.now() / 1000) + 600),
+      email: 'Person@Gmail.com',
+      email_verified: 'true',
+      name: 'Person One',
+      picture: 'https://lh3.googleusercontent.com/a/photo'
+    });
+
+    /** Replaces global fetch only for the duration of fn(), so the HTTP test helper is never affected. */
+    async function withFakeFetch(routes, fn) {
+      const original = global.fetch;
+      global.fetch = async (url) => {
+        const key = Object.keys(routes).find((k) => String(url).startsWith(k));
+        if (!key) throw new Error(`unexpected fetch: ${url}`);
+        const r = routes[key];
+        return { ok: r.ok !== false, json: async () => r.data };
+      };
+      try {
+        return await fn();
+      } finally {
+        global.fetch = original;
+      }
+    }
+
+    const rejects = async (promiseFn, status) => {
+      await assert.rejects(promiseFn, (err) => err instanceof socialAuth.SocialAuthError && err.status === status);
+    };
+
+    before(() => {
+      for (const k of ['GOOGLE_CLIENT_ID', 'FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET']) envBackup[k] = process.env[k];
+      process.env.GOOGLE_CLIENT_ID = 'unit-google-client';
+      process.env.FACEBOOK_APP_ID = 'unit-fb-app';
+      process.env.FACEBOOK_APP_SECRET = 'unit-fb-secret';
+    });
+
+    after(() => {
+      for (const [k, v] of Object.entries(envBackup)) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    });
+
+    it('Google: accepts a valid ID token and normalises the profile', async () => {
+      const p = await withFakeFetch({ [GOOGLE_URL]: { data: goodGoogle() } }, () => socialAuth.verifyGoogleIdToken('tok'));
+      assert.strictEqual(p.provider, 'gmail');
+      assert.strictEqual(p.providerId, 'g-123');
+      assert.strictEqual(p.email, 'person@gmail.com');
+      assert.strictEqual(p.emailVerified, true);
+    });
+
+    it('Google: rejects wrong audience, wrong issuer, expired and invalid tokens (401)', async () => {
+      const cases = [
+        { ...goodGoogle(), aud: 'someone-elses-client' },
+        { ...goodGoogle(), iss: 'https://evil.example.com' },
+        { ...goodGoogle(), exp: '1' }
+      ];
+      for (const data of cases) {
+        await rejects(() => withFakeFetch({ [GOOGLE_URL]: { data } }, () => socialAuth.verifyGoogleIdToken('tok')), 401);
+      }
+      await rejects(
+        () => withFakeFetch({ [GOOGLE_URL]: { ok: false, data: { error: 'invalid_token' } } }, () => socialAuth.verifyGoogleIdToken('tok')),
+        401
+      );
+    });
+
+    it('Google: returns 503 when GOOGLE_CLIENT_ID is not configured and 502 when Google is unreachable', async () => {
+      process.env.GOOGLE_CLIENT_ID = '';
+      await rejects(() => socialAuth.verifyGoogleIdToken('tok'), 503);
+      process.env.GOOGLE_CLIENT_ID = 'unit-google-client';
+      await rejects(() => withFakeFetch({}, () => socialAuth.verifyGoogleIdToken('tok')), 502);
+    });
+
+    it('Facebook: accepts a valid token for this app and returns the profile', async () => {
+      const routes = {
+        [FB_DEBUG_URL]: { data: { data: { is_valid: true, app_id: 'unit-fb-app', user_id: 'fb-1' } } },
+        [FB_ME_URL]: { data: { id: 'fb-1', name: 'Fai', email: 'Fai@Example.com' } }
+      };
+      const p = await withFakeFetch(routes, () => socialAuth.verifyFacebookAccessToken('tok'));
+      assert.strictEqual(p.provider, 'facebook');
+      assert.strictEqual(p.providerId, 'fb-1');
+      assert.strictEqual(p.email, 'fai@example.com');
+      assert.strictEqual(p.emailVerified, true);
+    });
+
+    it('Facebook: rejects tokens from another app, invalid tokens, and user/profile mismatches (401)', async () => {
+      const me = { data: { id: 'fb-1', name: 'Fai' } };
+      const bad = [
+        { data: { data: { is_valid: true, app_id: 'another-app', user_id: 'fb-1' } } },
+        { data: { data: { is_valid: false } } },
+        { data: { data: { is_valid: true, app_id: 'unit-fb-app', user_id: 'someone-else' } } }
+      ];
+      for (const debug of bad) {
+        await rejects(
+          () => withFakeFetch({ [FB_DEBUG_URL]: debug, [FB_ME_URL]: me }, () => socialAuth.verifyFacebookAccessToken('tok')),
+          401
+        );
+      }
+    });
+
+    it('Facebook: profile without an email is returned as unverified/no email', async () => {
+      const routes = {
+        [FB_DEBUG_URL]: { data: { data: { is_valid: true, app_id: 'unit-fb-app', user_id: 'fb-9' } } },
+        [FB_ME_URL]: { data: { id: 'fb-9', name: 'No Mail' } }
+      };
+      const p = await withFakeFetch(routes, () => socialAuth.verifyFacebookAccessToken('tok'));
+      assert.strictEqual(p.email, null);
+      assert.strictEqual(p.emailVerified, false);
+    });
+  });
+});

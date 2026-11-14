@@ -234,22 +234,22 @@ const Auth = {
           <!-- Social Login Form -->
           <div id="formSocial" class="d-none tc">
             <p class="fs-09 c-muted mb-16">
-              Select a simulated provider to instantly authenticate without password:
+              Sign in with your Google or Facebook account:
             </p>
-            <button id="btnSocialGoogle" class="btn-pill-outline w-100 mb-10 flex items-c justify-c gap-8">
-              <i class="fa-brands fa-google c-red"></i> Sign in with Google (Gmail)
-            </button>
+            <div id="googleSignInHost" class="flex justify-c mb-10"></div>
             <button id="btnSocialFB" class="btn-pill-outline w-100 mb-10 flex items-c justify-c gap-8 border-blue c-blue">
               <i class="fa-brands fa-facebook c-blue"></i> Sign in with Facebook
             </button>
-            <div class="border-dashed-subtle my-16"></div>
-            <div class="form-group tl">
-              <label class="form-label">Simulated Phone OTP</label>
-              <input type="text" id="socialPhone" class="form-control" placeholder="0899998888">
+            <div id="phoneDemoSection">
+              <div class="border-dashed-subtle my-16"></div>
+              <div class="form-group tl">
+                <label class="form-label">Phone OTP (demo only, no real OTP is sent)</label>
+                <input type="text" id="socialPhone" class="form-control" placeholder="0899998888">
+              </div>
+              <button id="btnSocialOTP" class="th-popup-btn th-popup-btn--primary w-100 fs-105 py-14">
+                Request & Verify OTP
+              </button>
             </div>
-            <button id="btnSocialOTP" class="th-popup-btn th-popup-btn--primary w-100 fs-105 py-14">
-              Request & Verify OTP
-            </button>
           </div>
         </div>
       </div>
@@ -311,7 +311,10 @@ const Auth = {
 
     tabLogin.onclick = () => showTab('login');
     tabRegister.onclick = () => showTab('register');
-    tabSocial.onclick = () => showTab('social');
+    tabSocial.onclick = () => {
+      showTab('social');
+      initSocialProviders();
+    };
 
     // Handle Login Submit
     formLogin.onsubmit = async (e) => {
@@ -357,52 +360,126 @@ const Auth = {
       }
     };
 
-    // Social & Phone OTP Handlers
-    modal.querySelector('#btnSocialGoogle').onclick = async () => {
+    // Social login (Google / Facebook): the provider returns a token, the server verifies it.
+    const finishLogin = (res) => {
+      API.setToken(res.token);
+      this.currentUser = res.user;
+      closeModal();
+      this.renderNavbarAuth();
+      this.notifyAuthChange();
+      if (this.onSuccessCallback) this.onSuccessCallback(res.user);
+    };
+
+    const socialLoginWith = async (body) => {
+      hideAlert();
       try {
-        const res = await API.auth.socialLogin({ provider: 'gmail', name: 'Google User', email: 'google.user@example.com' });
-        API.setToken(res.token);
-        this.currentUser = res.user;
-        closeModal();
-        this.renderNavbarAuth();
-        this.notifyAuthChange();
-        if (this.onSuccessCallback) this.onSuccessCallback(res.user);
+        finishLogin(await API.auth.socialLogin(body));
       } catch (err) {
         showAlert(err.message);
       }
     };
 
-    modal.querySelector('#btnSocialFB').onclick = async () => {
+    const scriptPromises = {};
+    const loadScript = (src) => {
+      if (!scriptPromises[src]) {
+        scriptPromises[src] = new Promise((resolve, reject) => {
+          const el = document.createElement('script');
+          el.src = src;
+          el.async = true;
+          el.onload = resolve;
+          el.onerror = () => reject(new Error(`Failed to load ${src}`));
+          document.head.appendChild(el);
+        });
+      }
+      return scriptPromises[src];
+    };
+
+    let socialInitStarted = false;
+    const initSocialProviders = async () => {
+      if (socialInitStarted) return;
+      socialInitStarted = true;
+
+      const googleHost = modal.querySelector('#googleSignInHost');
+      const fbBtn = modal.querySelector('#btnSocialFB');
+      const phoneSection = modal.querySelector('#phoneDemoSection');
+
+      let cfg;
       try {
-        const res = await API.auth.socialLogin({ provider: 'facebook', name: 'Facebook User', identifier: 'fb_user_12345' });
-        API.setToken(res.token);
-        this.currentUser = res.user;
-        closeModal();
-        this.renderNavbarAuth();
-        this.notifyAuthChange();
-        if (this.onSuccessCallback) this.onSuccessCallback(res.user);
+        cfg = await API.auth.socialConfig();
       } catch (err) {
-        showAlert(err.message);
+        socialInitStarted = false; // allow retry next time the tab is opened
+        showAlert('Unable to load social login settings. Please try again.');
+        return;
+      }
+
+      const g = cfg.google || {};
+      const f = cfg.facebook || {};
+      if (phoneSection) phoneSection.classList.toggle('d-none', !cfg.phoneDemo);
+
+      // Google Identity Services renders its own official button
+      if (g.enabled && g.clientId) {
+        try {
+          await loadScript('https://accounts.google.com/gsi/client');
+          window.google.accounts.id.initialize({
+            client_id: g.clientId,
+            callback: (resp) => {
+              if (resp && resp.credential) {
+                socialLoginWith({ provider: 'gmail', idToken: resp.credential });
+              }
+            }
+          });
+          window.google.accounts.id.renderButton(googleHost, {
+            theme: 'outline',
+            size: 'large',
+            shape: 'pill',
+            text: 'signin_with',
+            width: 280
+          });
+        } catch (err) {
+          googleHost.textContent = 'Google sign-in is currently unavailable.';
+        }
+      } else {
+        googleHost.textContent = 'Google sign-in is not configured.';
+      }
+
+      // Facebook JS SDK
+      if (f.enabled && f.appId) {
+        try {
+          await loadScript('https://connect.facebook.net/en_US/sdk.js');
+          window.FB.init({ appId: f.appId, cookie: false, xfbml: false, version: 'v27.0' });
+        } catch (err) {
+          fbBtn.disabled = true;
+          fbBtn.title = 'Facebook sign-in is currently unavailable.';
+        }
+      } else {
+        fbBtn.disabled = true;
+        fbBtn.title = 'Facebook sign-in is not configured.';
       }
     };
 
+    // Must call FB.login directly from the click so the popup is not blocked
+    modal.querySelector('#btnSocialFB').onclick = () => {
+      if (!window.FB) {
+        showAlert('Facebook sign-in is not available right now.');
+        return;
+      }
+      window.FB.login((resp) => {
+        if (resp && resp.authResponse && resp.authResponse.accessToken) {
+          socialLoginWith({ provider: 'facebook', accessToken: resp.authResponse.accessToken });
+        } else {
+          showAlert('Facebook login was cancelled.');
+        }
+      }, { scope: 'public_profile,email' });
+    };
+
+    // Demo-only simulated phone OTP (server disables it in production)
     modal.querySelector('#btnSocialOTP').onclick = async () => {
       const phone = document.getElementById('socialPhone').value.trim();
       if (!phone) {
         showAlert('Please enter a valid phone number.');
         return;
       }
-      try {
-        const res = await API.auth.socialLogin({ provider: 'phone', phone, identifier: phone });
-        API.setToken(res.token);
-        this.currentUser = res.user;
-        closeModal();
-        this.renderNavbarAuth();
-        this.notifyAuthChange();
-        if (this.onSuccessCallback) this.onSuccessCallback(res.user);
-      } catch (err) {
-        showAlert(err.message);
-      }
+      await socialLoginWith({ provider: 'phone', phone, identifier: phone });
     };
   },
 

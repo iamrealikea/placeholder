@@ -7,6 +7,7 @@ const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const COLLECTIONS = [
   'users',
   'events',
+  'categories',
   'seats',
   'bookings',
   'payments',
@@ -45,8 +46,17 @@ class JsonStore {
         this.save(col);
       }
     } else {
+      const categoriesPath = this.filePath('categories');
+      const seedCategories = !fs.existsSync(categoriesPath)
+        ? (seedGenerator().categories || [])
+        : null;
       for (const col of COLLECTIONS) {
-        this.load(col);
+        if (col === 'categories' && seedCategories) {
+          this.cache[col] = seedCategories;
+          this.save(col);
+        } else {
+          this.load(col);
+        }
       }
     }
   }

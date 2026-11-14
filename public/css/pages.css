@@ -135,6 +135,24 @@
   border-color: var(--monday-blue);
 }
 
+.filter-reset-btn {
+  padding: 10px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: #FFFFFF;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.filter-reset-btn:hover,
+.filter-reset-btn:focus-visible {
+  border-color: var(--monday-blue);
+  color: var(--monday-blue);
+  outline: none;
+}
+
 /* Event Sections & Horizontal Cards */
 .section-header {
   display: flex;

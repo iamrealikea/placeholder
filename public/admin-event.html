@@ -109,12 +109,11 @@
               placeholder="e.g. Symphony of Lights 2026">
           </div>
 
-          <!-- Category (Strictly Concert or Seminar per validateEventPayload) -->
+          <!-- Category (managed in the admin portal) -->
           <div class="form-group">
             <label class="form-label" for="event-category">Category <span class="required-asterisk">*</span></label>
             <select id="event-category" name="category" class="form-control" required>
-              <option value="Concert">Concert</option>
-              <option value="Seminar">Seminar</option>
+              <option value="">Loading categories...</option>
             </select>
           </div>
 
@@ -123,6 +122,93 @@
             <label class="form-label" for="event-venue">Venue <span class="required-asterisk">*</span></label>
             <input type="text" id="event-venue" name="venue" class="form-control" required
               placeholder="e.g. Impact Arena, Hall 1">
+          </div>
+
+          <!-- Province (used by the public province filter on the home page) -->
+          <div class="form-group">
+            <label class="form-label" for="event-province">Province <span class="required-asterisk">*</span></label>
+            <input type="text" id="event-province" name="province" class="form-control" required
+              list="province-options" maxlength="100" autocomplete="off"
+              placeholder="e.g. Bangkok">
+          <datalist id="province-options">
+            <option value="Amnat Charoen">
+            <option value="Ang Thong">
+            <option value="Bangkok">
+            <option value="Bueng Kan">
+            <option value="Buriram">
+            <option value="Chachoengsao">
+            <option value="Chai Nat">
+            <option value="Chaiyaphum">
+            <option value="Chanthaburi">
+            <option value="Chiang Mai">
+            <option value="Chiang Rai">
+            <option value="Chonburi">
+            <option value="Chumphon">
+            <option value="Kalasin">
+            <option value="Kamphaeng Phet">
+            <option value="Kanchanaburi">
+            <option value="Khon Kaen">
+            <option value="Krabi">
+            <option value="Lampang">
+            <option value="Lamphun">
+            <option value="Loei">
+            <option value="Lopburi">
+            <option value="Mae Hong Son">
+            <option value="Maha Sarakham">
+            <option value="Mukdahan">
+            <option value="Nakhon Nayok">
+            <option value="Nakhon Pathom">
+            <option value="Nakhon Phanom">
+            <option value="Nakhon Ratchasima">
+            <option value="Nakhon Sawan">
+            <option value="Nakhon Si Thammarat">
+            <option value="Nan">
+            <option value="Narathiwat">
+            <option value="Nong Bua Lamphu">
+            <option value="Nong Khai">
+            <option value="Nonthaburi">
+            <option value="Pathum Thani">
+            <option value="Pattani">
+            <option value="Phang Nga">
+            <option value="Phatthalung">
+            <option value="Phayao">
+            <option value="Phetchabun">
+            <option value="Phetchaburi">
+            <option value="Phichit">
+            <option value="Phitsanulok">
+            <option value="Phra Nakhon Si Ayutthaya">
+            <option value="Phrae">
+            <option value="Phuket">
+            <option value="Prachinburi">
+            <option value="Prachuap Khiri Khan">
+            <option value="Ranong">
+            <option value="Ratchaburi">
+            <option value="Rayong">
+            <option value="Roi Et">
+            <option value="Sa Kaeo">
+            <option value="Sakon Nakhon">
+            <option value="Samut Prakan">
+            <option value="Samut Sakhon">
+            <option value="Samut Songkhram">
+            <option value="Saraburi">
+            <option value="Satun">
+            <option value="Sing Buri">
+            <option value="Sisaket">
+            <option value="Songkhla">
+            <option value="Sukhothai">
+            <option value="Suphan Buri">
+            <option value="Surat Thani">
+            <option value="Surin">
+            <option value="Tak">
+            <option value="Trang">
+            <option value="Trat">
+            <option value="Ubon Ratchathani">
+            <option value="Udon Thani">
+            <option value="Uthai Thani">
+            <option value="Uttaradit">
+            <option value="Yala">
+            <option value="Yasothon">
+          </datalist>
           </div>
 
           <!-- Artist / Performer -->

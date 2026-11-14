@@ -55,6 +55,7 @@ const API = {
   auth: {
     login: (body) => API.request('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
     register: (body) => API.request('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+    socialConfig: () => API.request('/auth/social-config'),
     socialLogin: (body) => API.request('/auth/social-login', { method: 'POST', body: JSON.stringify(body) }),
     logout: () => API.request('/auth/logout', { method: 'POST' }),
     getMe: () => API.request('/auth/me'),
@@ -64,8 +65,16 @@ const API = {
   },
 
   events: {
+    // Supported params: search, category, status, province, location, month (YYYY-MM | 1-12), sort (price_asc | price_desc)
+    // Empty / null / undefined values are dropped so they are never sent as "?province=".
     list: (params = {}) => {
-      const q = new URLSearchParams(params).toString();
+      const clean = new URLSearchParams();
+      for (const [key, val] of Object.entries(params || {})) {
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          clean.set(key, String(val).trim());
+        }
+      }
+      const q = clean.toString();
       return API.request(`/events${q ? `?${q}` : ''}`);
     },
     getById: (id) => API.request(`/events/${id}`),
@@ -74,6 +83,11 @@ const API = {
     create: (body) => API.request('/events', { method: 'POST', body: JSON.stringify(body) }),
     update: (id, body) => API.request(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
     delete: (id, password) => API.request(`/events/${id}`, { method: 'DELETE', body: JSON.stringify(typeof password === 'object' && password !== null ? password : { password }) })
+  },
+
+  categories: {
+    list: () => API.request('/categories'),
+    create: (body) => API.request('/categories', { method: 'POST', body: JSON.stringify(body) })
   },
 
   booking: {

@@ -187,6 +187,13 @@ function generateSeedData() {
     }
   ];
 
+  const categories = [
+    { id: 'cat-concert', name: 'Concert', createdAt: '2026-01-01T00:00:00.000Z' },
+    { id: 'cat-seminar', name: 'Seminar', createdAt: '2026-01-01T00:00:00.000Z' },
+    { id: 'cat-festival', name: 'Festival', createdAt: '2026-01-01T00:00:00.000Z' },
+    { id: 'cat-exhibition', name: 'Exhibition', createdAt: '2026-01-01T00:00:00.000Z' }
+  ];
+
   const events = [
     {
       id: 'evt-1',
@@ -199,7 +206,7 @@ function generateSeedData() {
       galleryUrl: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80',
       description:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel volutpat lectus. Phasellus eleifend feugiat orci, eget accumsan quam scelerisque eu. Sed sapien sem, rhoncus non consectetur nec, fringilla id metus. Experience the ultimate Tokyo-inspired festival stage with full surround laser production and live electronic sets.',
-      venue: 'Impact Arena, Muang Thong Thani',
+      venue: 'Impact Arena, Muang Thong Thani', province: 'Nonthaburi',
       organizer: 'kys show',
       gateOpenTime: '16:00',
       showTime: '19:00',
@@ -230,7 +237,7 @@ function generateSeedData() {
       galleryUrl: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=900&q=80',
       description:
         'An intimate yet high-energy live concert experience featuring the viral fih tour production. Select your preferred zone and seat directly on our interactive seating chart.',
-      venue: 'Thunder Dome, Nonthaburi',
+      venue: 'Thunder Dome, Nonthaburi', province: 'Nonthaburi',
       organizer: 'TicketHub Live',
       gateOpenTime: '17:00',
       showTime: '19:30',
@@ -260,7 +267,7 @@ function generateSeedData() {
       galleryUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=900&q=80',
       description:
         'Full-day technology seminar covering scalable ticketing systems, high-concurrency seat locking, cloud architecture, and AI engineering workshops.',
-      venue: 'Queen Sirikit National Convention Center (QSNCC)',
+      venue: 'Queen Sirikit National Convention Center (QSNCC)', province: 'Bangkok',
       organizer: 'Thai Tech Guild',
       gateOpenTime: '08:30',
       showTime: '09:30',
@@ -289,7 +296,7 @@ function generateSeedData() {
       galleryUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80',
       description:
         'Upcoming winter showcase and fan-meet concert featuring special stage performances, limited plush collectibles, and interactive fan zones.',
-      venue: 'Siam Paragon Royal Paragon Hall',
+      venue: 'Siam Paragon Royal Paragon Hall', province: 'Bangkok',
       organizer: 'Mascot Live Asia',
       gateOpenTime: '15:00',
       showTime: '17:00',
@@ -318,7 +325,7 @@ function generateSeedData() {
       galleryUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=900&q=80',
       description:
         'Deep dive into Figma design tokens, accessible ticketing interfaces, and agile product management for modern engineering teams.',
-      venue: 'True Digital Park Grand Hall',
+      venue: 'True Digital Park Grand Hall', province: 'Bangkok',
       organizer: 'Designers TH',
       gateOpenTime: '12:30',
       showTime: '13:30',
@@ -346,7 +353,7 @@ function generateSeedData() {
       galleryUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=900&q=80',
       description:
         'All seats for the Midnight Symphony Stadium Finale have been sold out. Stay tuned for additional encore dates!',
-      venue: 'Rajamangala National Stadium',
+      venue: 'Rajamangala National Stadium', province: 'Bangkok',
       organizer: 'Symphony Live',
       gateOpenTime: '16:00',
       showTime: '20:00',
@@ -619,6 +626,7 @@ function generateSeedData() {
   return {
     users,
     events,
+    categories,
     seats,
     bookings,
     payments,
