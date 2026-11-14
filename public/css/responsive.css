@@ -58,4 +58,8 @@
   .filter-selects {
     grid-template-columns: 1fr;
   }
+  .event-horizontal-grid > .card-popular,
+  .event-horizontal-grid > .card-soon {
+    flex: 0 0 85%;
+  }
 }

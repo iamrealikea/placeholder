@@ -4,6 +4,7 @@ const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public');
 
 const VIEW_FILES = {
   home: 'index.html',
+  events: 'events.html',
   event: 'event.html',
   booking: 'booking.html',
   checkout: 'checkout.html',

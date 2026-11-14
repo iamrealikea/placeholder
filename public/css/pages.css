@@ -6,11 +6,34 @@
 .hero-section {
   width: 100%;
   position: relative;
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.35) 0%, rgba(17, 24, 39, 0.85) 100%),
-              url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.55) 0%, rgba(17, 24, 39, 0.9) 100%);
   padding: 24px 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  transition: background 0.3s ease;
+}
+
+.hero-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.hero-section > .container {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-bookmark-btn {
+  color: #FFFFFF;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.hero-bookmark-btn:hover {
+  background: rgba(0, 0, 0, 0.65);
 }
 
 .hero-banner {
@@ -198,10 +221,41 @@
 }
 
 .event-horizontal-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  touch-action: manipulation;
+  padding-bottom: 12px;
+  margin-bottom: 48px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .event-horizontal-grid {
+    scroll-behavior: smooth;
+  }
+}
+
+.event-horizontal-grid > .card-popular,
+.event-horizontal-grid > .card-soon {
+  flex: 0 0 360px;
+  scroll-snap-align: start;
+}
+
+.events-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
   margin-bottom: 48px;
+}
+
+.empty-events-msg {
+  width: 100%;
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px;
 }
 
 /* Popular Card: 3px solid Candy Apple Red */
@@ -262,6 +316,105 @@
   top: 12px;
   left: 12px;
   z-index: 2;
+}
+
+.card-bookmark-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  color: #FFFFFF;
+  background: rgba(17, 24, 39, 0.55);
+}
+
+.card-bookmark-btn:hover {
+  background: rgba(17, 24, 39, 0.78);
+}
+
+.filter-check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: #FFFFFF;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.event-meta-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.event-artist-line {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--monday-blue);
+  margin-top: 6px;
+}
+
+.event-round-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.zone-price-row {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.event-seat-preview {
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 18px;
+  margin-top: 12px;
+}
+
+.event-seat-zone-group {
+  margin-bottom: 14px;
+}
+
+.event-seat-zone-group:last-child {
+  margin-bottom: 0;
+}
+
+.event-seat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.seat.seat-mini {
+  width: 28px;
+  height: 28px;
+  font-size: 10px;
+  cursor: default;
+}
+
+.seat.seat-mini:hover {
+  transform: none;
 }
 
 .card-body {
