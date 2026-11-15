@@ -10,5 +10,18 @@
     "status": "RESOLVED",
     "adminReply": "Yes! VIP Stage Front ticket holders can access the priority lane starting at 15:30 at Gate 1.",
     "createdAt": "2026-10-16T10:30:00.000Z"
+  },
+  {
+    "id": "sup-d0d2caad",
+    "userId": "usr-83766457",
+    "name": "Napat Srisawat (Updated)",
+    "email": "integration.user.1794720213230@example.com",
+    "subject": "Question regarding parking facilities",
+    "category": "Venue & Parking",
+    "message": "Is parking included with VIP tickets at Impact Arena?",
+    "status": "RESOLVED",
+    "adminReply": "Yes, VIP tickets include complimentary parking at P1.",
+    "createdAt": "2026-11-15T05:23:34.281Z",
+    "repliedAt": "2026-11-15T05:23:34.284Z"
   }
 ]

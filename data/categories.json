@@ -18,5 +18,10 @@
     "id": "cat-exhibition",
     "name": "Exhibition",
     "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "cat-e2808537",
+    "name": "Workshop 1794720213234",
+    "createdAt": "2026-11-15T05:23:34.528Z"
   }
 ]
