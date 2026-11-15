@@ -101,7 +101,7 @@ jobs:
           aws elasticbeanstalk create-application-version \
             --application-name "${EB_APPLICATION_NAME}" \
             --version-label "${{ github.sha }}" \
-            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="app-${{ github.sha }}.zip"
+            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="tickethub-${VERSION_LABEL}.zip"
 
       - name: Deploy to Elastic Beanstalk environment
         run: |
