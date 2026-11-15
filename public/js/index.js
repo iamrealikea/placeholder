@@ -1,11 +1,12 @@
 /**
  * TicketHub - Home Page Controller (public/js/index.js)
- * Loads featured hero, popular events, and coming soon events, and manages search, filtering and sorting.
- * Filtering/sorting is performed by the backend (GET /api/events?province=&month=&sort=...).
+ * Loads featured hero, popular events carousel, and upcoming/other events carousel,
+ * and manages search, filtering, and sorting.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
   const heroBanner = document.getElementById('heroBanner');
+  const heroBgImg = document.getElementById('heroBgImg');
   const popularContainer = document.getElementById('popularContainer');
   const soonContainer = document.getElementById('soonContainer');
   const searchInput = document.getElementById('searchInput');
@@ -16,40 +17,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sortFilter = document.getElementById('sortFilter');
   const resetFilters = document.getElementById('resetFilters');
 
-  let allEvents = []; // unfiltered list: used for hero + to build province/month options
-  let requestSeq = 0; // guards against out-of-order responses while typing/changing filters
+  const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const DEFAULT_HERO_BG = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1920&q=80';
+
+  let requestSeq = 0;
   let searchTimer = null;
 
-  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-  function venueText(e) {
-    const text = e.province ? `${e.venue}, ${e.province}` : (e.venue || '');
-    return window.escapeHtml ? window.escapeHtml(text) : text;
-  }
-
   function populateFilterOptions(events, categories) {
-    if (categoryFilter) {
-      const categoryNames = new Set([
-        ...(categories || []).map((category) => category.name),
-        ...events.map((event) => event.category)
-      ].filter((name) => typeof name === 'string' && name.trim()));
-      const selectedCategory = categoryFilter.value;
-      categoryFilter.innerHTML =
-        '<option value="">All Categories</option>' +
-        Array.from(categoryNames)
-          .sort((a, b) => a.localeCompare(b))
-          .map((name) => `<option value="${window.escapeHtml(name)}">${window.escapeHtml(name)}</option>`)
-          .join('');
-      categoryFilter.value = selectedCategory;
-    }
+    EventCard.populateSelectOptions(events, categories, {
+      categoryEl: categoryFilter,
+      provinceEl: provinceFilter
+    });
 
-    if (provinceFilter) {
-      const provinces = Array.from(new Set(events.map((e) => (e.province || '').trim()).filter(Boolean)))
-        .sort((a, b) => a.localeCompare(b));
-      provinceFilter.innerHTML =
-        '<option value="">All Provinces</option>' +
-        provinces.map((p) => `<option value="${window.escapeHtml(p)}">${window.escapeHtml(p)}</option>`).join('');
-    }
     if (monthFilter) {
       const months = new Set();
       events.forEach((e) => (e.rounds || []).forEach((r) => {
@@ -59,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         '<option value="">Any Month</option>' +
         Array.from(months).sort().map((ym) => {
           const [y, m] = ym.split('-');
-          return `<option value="${ym}">${MONTH_NAMES[Number(m) - 1]} ${y}</option>`;
+          return `<option value="${EventCard.esc(ym)}">${MONTH_NAMES[Number(m) - 1]} ${EventCard.esc(y)}</option>`;
         }).join('');
     }
   }
@@ -75,21 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
-  async function loadEvents() {
-    try {
-      const [res, categoryRes] = await Promise.all([
-        API.events.list(),
-        API.categories.list()
-      ]);
-      allEvents = (res && res.events) || [];
-      renderFeaturedHero(allEvents);
-      populateFilterOptions(allEvents, (categoryRes && categoryRes.categories) || []);
-      await filterAndRenderEvents();
-    } catch (err) {
-      console.error('Failed to load events:', err);
-    }
-  }
-
   function renderFeaturedHero(events) {
     if (!heroBanner) return;
     const featured = events.find((e) => e.isFeatured) || events[0];
@@ -97,156 +64,101 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const round = (featured.rounds && featured.rounds[0]) || {};
     const dateStr = round.date ? `${round.date} • ${round.time || ''}` : 'Upcoming 2026';
-    const bgImage = featured.posterUrl || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1920&q=80';
+    const bgImage = EventCard.safeImg(featured.posterUrl, DEFAULT_HERO_BG);
 
-    // Update full-width hero section background so it fills the screen width
-    const heroSection = document.getElementById('heroSection') || heroBanner.closest('.hero-section') || heroBanner;
-    if (heroSection) {
-      heroSection.style.background = `linear-gradient(180deg, rgba(17, 24, 39, 0.35) 0%, rgba(17, 24, 39, 0.85) 100%), url('${bgImage}') center/cover no-repeat`;
-    }
-    heroBanner.style.background = 'rgba(17, 24, 39, 0.3)';
-    heroBanner.style.backdropFilter = 'blur(2px)';
-    heroBanner.style.webkitBackdropFilter = 'blur(2px)';
+    if (heroBgImg) heroBgImg.src = bgImage;
 
     heroBanner.innerHTML = `
       <div class="hero-top">
         <span class="badge-pill-red">Feature Event</span>
-        <button class="btn-icon" style="color: #FFFFFF; background: rgba(0,0,0,0.4);" onclick="toggleBookmark('${featured.id}', this)" title="Bookmark event">
-          ${featured.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i>' : '<i class="fa-regular fa-heart"></i>'}
+        <button type="button" class="btn-icon hero-bookmark-btn" data-bookmark-id="${EventCard.esc(featured.id)}"
+          title="Bookmark event" aria-label="Bookmark ${EventCard.esc(featured.title)}">
+          ${EventCard.heartMarkup(Boolean(featured.isBookmarked))}
         </button>
       </div>
       <div class="hero-content">
-        <h1 class="hero-title">${featured.title}</h1>
-        <p class="hero-desc">${(featured.description || '').slice(0, 150)}...</p>
+        <h1 class="hero-title">${EventCard.esc(featured.title)}</h1>
+        <p class="hero-desc">${EventCard.esc((featured.description || '').slice(0, 150))}...</p>
         <div class="hero-meta">
-          <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${featured.venue || 'Bangkok Arena'}</span>
+          <span><i class="fa-solid fa-location-dot c-blue mr-4"></i> ${EventCard.esc(featured.venue || 'Bangkok Arena')}</span>
           <span>•</span>
-          <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${dateStr}</span>
+          <span><i class="fa-solid fa-calendar-days mr-4"></i> ${EventCard.esc(dateStr)}</span>
         </div>
       </div>
       <div class="hero-bottom">
-        <a href="/event?id=${featured.id}" class="btn-pill-red" style="font-size: 1.1rem; padding: 12px 32px;">
+        <a href="/event?id=${encodeURIComponent(featured.id)}" class="btn-pill-red fs-11 p-12-32">
           Buy Now
         </a>
       </div>
     `;
+
+    EventCard.bindBookmarkButtons(heroBanner);
+  }
+
+  function renderCarouselSection(container, events, emptyMsg, cardOptions) {
+    if (!container) return;
+    if (events.length === 0) {
+      container.innerHTML = `<p class="empty-events-msg">${EventCard.esc(emptyMsg)}</p>`;
+      return;
+    }
+
+    container.innerHTML = events.map((e) => EventCard.renderCard(e, cardOptions(e))).join('');
+    EventCard.bindBookmarkButtons(container);
   }
 
   async function filterAndRenderEvents() {
     const seq = ++requestSeq;
     try {
       const res = await API.events.list(buildFilterParams());
-      if (seq !== requestSeq) return; // a newer request superseded this one
+      if (seq !== requestSeq) return;
       const events = (res && res.events) || [];
-      renderPopular(events);
-      renderSoon(events);
+
+      const popular = events.filter((e) => e.status === 'On Sale' || e.isFeatured);
+      const soon = events.filter((e) => e.status !== 'On Sale');
+
+      renderCarouselSection(popularContainer, popular, 'No popular events match your search criteria.', (e) => ({
+        layout: 'home',
+        variant: 'popular',
+        ctaText: e.status === 'On Sale' ? 'Buy Now' : (e.status || 'View')
+      }));
+
+      renderCarouselSection(soonContainer, soon, 'No upcoming events in this category.', (e) => ({
+        layout: 'home',
+        variant: 'soon',
+        ctaText: e.status === 'Coming Soon' ? 'Soon' : (e.status || 'View'),
+        preferPoster: true
+      }));
     } catch (err) {
       if (seq !== requestSeq) return;
       console.error('Failed to filter events:', err);
-      const msg = `<p style="grid-column: 1/-1; text-align: center; color: #6B7280; padding: 32px;">Unable to load events. Please try again.</p>`;
+      const msg = '<p class="empty-events-msg">Unable to load events. Please try again.</p>';
       if (popularContainer) popularContainer.innerHTML = msg;
       if (soonContainer) soonContainer.innerHTML = msg;
     }
   }
 
-  function renderPopular(events) {
-    if (!popularContainer) return;
-    const popular = events.filter((e) => e.status === 'On Sale' || e.isFeatured);
-
-    if (popular.length === 0) {
-      popularContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #6B7280; padding: 32px;">No popular events match your search criteria.</p>`;
-      return;
-    }
-
-    popularContainer.innerHTML = popular
-      .map((e) => {
-        const round = (e.rounds && e.rounds[0]) || {};
-        const minPrice = e.zones && e.zones.length > 0 ? Math.min(...e.zones.map((z) => z.price)) : 1200;
-        const img = e.galleryUrl || e.posterUrl || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=800&q=80';
-
-        return `
-          <div class="card-popular">
-            <div class="card-image-wrap">
-              <span class="card-badge-floating badge-pill-red">${e.category || 'Concert'}</span>
-              <img src="${img}" alt="${e.title}" loading="lazy">
-            </div>
-            <div class="card-body">
-              <div class="card-subtitle">${e.artist || 'Special Performance'}</div>
-              <h3 class="card-title">${e.title}</h3>
-              <div class="card-meta">
-                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${venueText(e)}</span>
-                <span>•</span>
-                <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${round.date || 'TBD'}</span>
-              </div>
-              <div class="card-footer">
-                <div class="card-price">
-                  <small>Starts from</small><br>
-                  ${minPrice.toLocaleString()} THB
-                </div>
-                <a href="/event?id=${e.id}" class="btn-pill-red">
-                  Buy Now
-                </a>
-              </div>
-            </div>
-          </div>
-        `;
-      })
-      .join('');
+  try {
+    const [res, categoryRes] = await Promise.all([
+      API.events.list(),
+      API.categories.list()
+    ]);
+    const allEvents = (res && res.events) || [];
+    renderFeaturedHero(allEvents);
+    populateFilterOptions(allEvents, (categoryRes && categoryRes.categories) || []);
+    await filterAndRenderEvents();
+  } catch (err) {
+    console.error('Failed to load events:', err);
   }
 
-  function renderSoon(events) {
-    if (!soonContainer) return;
-    const soon = events.filter((e) => e.status === 'Coming Soon' || e.status !== 'On Sale');
-
-    if (soon.length === 0) {
-      soonContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #6B7280; padding: 32px;">No upcoming events in this category.</p>`;
-      return;
-    }
-
-    soonContainer.innerHTML = soon
-      .map((e) => {
-        const round = (e.rounds && e.rounds[0]) || {};
-        const minPrice = e.zones && e.zones.length > 0 ? Math.min(...e.zones.map((z) => z.price)) : 900;
-        const img = e.posterUrl || 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=800&q=80';
-
-        return `
-          <div class="card-soon">
-            <div class="card-image-wrap">
-              <span class="card-badge-floating badge-pill-blue">Coming Soon</span>
-              <img src="${img}" alt="${e.title}" loading="lazy">
-            </div>
-            <div class="card-body">
-              <div class="card-subtitle">${e.artist || 'Special Exhibition'}</div>
-              <h3 class="card-title">${e.title}</h3>
-              <div class="card-meta">
-                <span><i class="fa-solid fa-location-dot" style="color: var(--monday-blue); margin-right: 4px;"></i> ${venueText(e)}</span>
-                <span>•</span>
-                <span><i class="fa-solid fa-calendar-days" style="margin-right: 4px;"></i> ${round.date || 'Announcing Soon'}</span>
-              </div>
-              <div class="card-footer">
-                <div class="card-price">
-                  <small>Expected from</small><br>
-                  ${minPrice.toLocaleString()} THB
-                </div>
-                <a href="/event?id=${e.id}" class="btn-pill-blue">
-                  Soon
-                </a>
-              </div>
-            </div>
-          </div>
-        `;
-      })
-      .join('');
-  }
-
-  // Event Listeners for Filters
   searchInput.addEventListener('input', () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(filterAndRenderEvents, 250); // debounce typing
+    searchTimer = setTimeout(filterAndRenderEvents, 250);
   });
+
   [categoryFilter, statusFilter, provinceFilter, monthFilter, sortFilter].forEach((el) => {
     if (el) el.addEventListener('change', () => filterAndRenderEvents());
   });
+
   if (resetFilters) {
     resetFilters.addEventListener('click', () => {
       searchInput.value = '';
@@ -265,34 +177,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Bookmark toggle
-  window.toggleBookmark = async (eventId, btn) => {
-    if (!Auth.isLoggedIn()) {
-      Auth.openAuthModal();
-      return;
-    }
-    try {
-      const res = await API.events.toggleBookmark(eventId);
-      btn.innerHTML = res.isBookmarked ? '<i class="fa-solid fa-heart" style="color: var(--candy-apple);"></i>' : '<i class="fa-regular fa-heart"></i>';
-    } catch (err) {
-      await Popup.alert(err.message, { title: 'Bookmark Error' });
-    }
-  };
-
-  // Carousel Arrow Controls
   document.querySelectorAll('.carousel-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const targetId = btn.dataset.target;
-      const container = document.getElementById(targetId);
+      const container = document.getElementById(btn.dataset.target);
       if (container) {
-        const scrollAmount = 380;
+        const firstCard = container.querySelector('.card-home, .card-popular, .card-soon');
+        const step = firstCard ? firstCard.offsetWidth + 24 : 444;
         container.scrollBy({
-          left: btn.dataset.direction === 'left' ? -scrollAmount : scrollAmount,
+          left: btn.dataset.direction === 'left' ? -step : step,
           behavior: 'smooth'
         });
       }
     });
   });
-
-  await loadEvents();
 });

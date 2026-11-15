@@ -5,8 +5,9 @@ function renderHome(_req, res) {
   return renderView(res, 'home');
 }
 
-function renderEvent(_req, res) {
-  return renderView(res, 'event');
+function renderEvent(req, res) {
+  const id = typeof req.query.id === 'string' ? req.query.id.trim() : '';
+  return renderView(res, id ? 'event' : 'events');
 }
 
 function renderBooking(_req, res) {

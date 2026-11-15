@@ -56,7 +56,9 @@
     <!-- Title + Location Header (Figma prototype alignment) -->
     <div class="event-detail-header">
       <div class="event-detail-title-group">
+        <div id="eventMetaBadges" class="event-meta-badges"></div>
         <h1 id="eventTitle">Loading Event...</h1>
+        <div id="eventArtist" class="event-artist-line"></div>
       </div>
       <div class="event-detail-location" id="eventVenue">
         <i class="fa-solid fa-location-dot c-blue mr-4"></i> Impact Arena
@@ -88,6 +90,16 @@
           <!-- Populated by event.js -->
         </div>
 
+        <h3 class="fs-125 mb-12 mt-24">Zones &amp; Ticket Prices</h3>
+        <div id="zonesPricingList">
+          <!-- Populated by event.js -->
+        </div>
+
+        <h3 class="fs-125 mb-12 mt-24">Seating Plan Preview</h3>
+        <div id="seatPreviewContainer" class="event-seat-preview">
+          <p class="c-muted m-0">Loading seating plan...</p>
+        </div>
+
         <div class="event-actions-bar">
           <button id="bookmarkBtn" class="btn-pill-outline flex items-c gap-8">
             <i class="fa-regular fa-heart"></i> Add to Bookmarks
@@ -114,6 +126,11 @@
               <div>Open gate: 16:00</div>
               <div>Showtime: 19:00</div>
             </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Price Range</div>
+            <div id="infoPriceRange" class="info-value">-</div>
           </div>
 
           <div class="info-row">

@@ -9,6 +9,7 @@ const {
   TicketModel,
   NotificationModel
 } = require('../models');
+const paymentGateway = require('../services/paymentGateway');
 
 /**
  * FR-16, FR-17, FR-18, FR-21, FR-22: Fetch Seat Map for an Event & Round
@@ -258,13 +259,7 @@ async function payBooking(req, res) {
     });
   }
 
-  const { paymentMethod, ticketHolderNames } = req.body;
-  const validMethods = ['PROMPTPAY', 'CREDIT_CARD', 'DEBIT_CARD', 'KBANK', 'KRUNGTHAI', 'TRUEMONEY'];
-  if (!validMethods.includes(paymentMethod)) {
-    return res.status(400).json({
-      error: `Invalid payment method. Allowed: ${validMethods.join(', ')}`
-    });
-  }
+  const { paymentMethod, ticketHolderNames, paymentDetails } = req.body;
 
   if (ticketHolderNames !== undefined && (
     !Array.isArray(ticketHolderNames) ||
@@ -283,16 +278,22 @@ async function payBooking(req, res) {
     });
   }
 
+  // Validate and process payment via separated payment gateway before finalizing seats/booking
+  let paymentRecord;
+  try {
+    paymentRecord = paymentGateway.processPayment({
+      bookingId: booking.id,
+      userId: req.user.id,
+      method: paymentMethod,
+      amount: booking.totalAmount,
+      paymentDetails
+    });
+  } catch (err) {
+    return res.status(err.status || 400).json({ error: err.message });
+  }
+
   // Atomic payment confirmation & seat transition (NFR-09)
   const seats = SeatModel.markBooked(booking.seatIds);
-
-  // Record payment
-  const paymentRecord = PaymentModel.create({
-    bookingId: booking.id,
-    userId: req.user.id,
-    method: paymentMethod,
-    amount: booking.totalAmount
-  });
 
   // Update Booking
   BookingModel.update(booking.id, {

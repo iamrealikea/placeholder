@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/css/pages.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
-  <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 
 <body>
@@ -61,55 +61,81 @@
     <!-- Active Ticket Carousel (UI-12) -->
     <div id="ticketCarouselArea">
 
-      <div class="tc mb-8">
-        <span id="ticketIndexBadge" class="badge-pill-blue fs-085">Ticket 1 of 1</span>
+      <!-- Empty State (shown when user has no tickets) -->
+      <div id="emptyTicketsState" class="empty-tickets-card d-none" hidden>
+        <span class="empty-tickets-icon"><i class="fa-solid fa-ticket" aria-hidden="true"></i></span>
+        <h3 class="empty-tickets-title">No Active Tickets</h3>
+        <p class="empty-tickets-text">You haven't booked any event tickets yet.</p>
+        <a href="/home" class="btn-pill-red">Browse Events</a>
       </div>
 
-      <div class="eticket-carousel-wrap">
-
-        <!-- Red Previous Arrow ◀ -->
-        <button id="prevTicketBtn" class="carousel-arrow-btn" aria-label="Previous Ticket" disabled>
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-
-        <!-- E-Ticket Card with Real QR Image -->
-        <div class="eticket-card">
-          <div class="eticket-header">
-            <span id="ticketStatusBadge" class="badge-pill-red fs-075">VALID</span>
-            <h3 id="ticketEventTitle" class="fs-135 mt-8">Forza Horizon Live</h3>
-            <div id="ticketRound" class="fs-09 opacity-90"><i class="fa-solid fa-calendar-days mr-4"></i> 11 Nov 2026 • 19:00</div>
-          </div>
-
-          <div class="eticket-body">
-            <!-- Real QR Code Image -->
-            <div class="eticket-qr-box">
-              <img id="ticketQrImage" src="" alt="Electronic Ticket QR Code">
-            </div>
-
-            <div id="ticketCode" class="eticket-code">TKT-XXXX-0000</div>
-            <div class="fs-08 c-muted mb-16">Scan via gate scanner for single-entry
-              admission</div>
-
-            <table class="eticket-details-table">
-              <tr>
-                <td>Attendee:</td>
-                <td id="ticketHolder">Alex Rivers</td>
-              </tr>
-              <tr>
-                <td>Seat Assignment:</td>
-                <td id="ticketSeat" class="c-blue">VIP A1</td>
-              </tr>
-            </table>
-          </div>
+      <!-- Active E-Ticket Viewer -->
+      <div id="activeTicketViewer">
+        <div class="tc mb-8">
+          <span id="ticketIndexBadge" class="badge-pill-blue fs-085">Ticket 1 of 1</span>
         </div>
 
-        <!-- Red Next Arrow ▶ -->
-        <button id="nextTicketBtn" class="carousel-arrow-btn" aria-label="Next Ticket" disabled>
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
+        <div class="eticket-carousel-wrap">
 
+          <!-- Red Previous Arrow ◀ -->
+          <button id="prevTicketBtn" class="carousel-arrow-btn" aria-label="Previous Ticket" disabled>
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          <!-- E-Ticket Card with Real QR Image -->
+          <div class="eticket-card">
+            <div class="eticket-header">
+              <span id="ticketStatusBadge" class="badge-pill-red fs-075">VALID</span>
+              <h3 id="ticketEventTitle" class="fs-135 mt-8">Forza Horizon Live</h3>
+              <div id="ticketRound" class="fs-09 opacity-90"><i class="fa-solid fa-calendar-days mr-4"></i> 11 Nov 2026 • 19:00</div>
+            </div>
+
+            <div class="eticket-body">
+              <!-- Real QR Code Image -->
+              <div class="eticket-qr-box">
+                <img id="ticketQrImage" src="" alt="Electronic Ticket QR Code">
+              </div>
+
+              <div id="ticketCode" class="eticket-code">TKT-XXXX-0000</div>
+              <div class="fs-08 c-muted mb-16">Scan via gate scanner for single-entry
+                admission</div>
+
+              <table class="eticket-details-table">
+                <tr>
+                  <td>Attendee:</td>
+                  <td id="ticketHolder">Alex Rivers</td>
+                </tr>
+                <tr>
+                  <td>Seat Assignment:</td>
+                  <td id="ticketSeat" class="c-blue">VIP A1</td>
+                </tr>
+                <tr>
+                  <td>Venue:</td>
+                  <td id="ticketVenue">Impact Arena</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Red Next Arrow ▶ -->
+          <button id="nextTicketBtn" class="carousel-arrow-btn" aria-label="Next Ticket" disabled>
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+
+        </div>
       </div>
 
+    </div>
+
+    <!-- All My Tickets Quick Selector List (FR-28) -->
+    <div id="myTicketsGridSection" class="mt-32">
+      <div class="flex between items-c wrap gap-12 mb-16">
+        <h2 class="fs-15 fw-8 c-dark m-0">My Purchased Tickets (<span id="myTicketsCount">0</span>)</h2>
+        <span class="fs-085 c-muted">Click any ticket card below to view its QR code above</span>
+      </div>
+      <div id="myTicketsGrid" class="my-tickets-grid">
+        <!-- Populated by my-tickets.js -->
+      </div>
     </div>
 
     <!-- Purchase History Section (FR-32) -->
