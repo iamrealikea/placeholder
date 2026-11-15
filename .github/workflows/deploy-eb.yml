@@ -95,21 +95,17 @@ jobs:
 
           echo "Uploading ${BUNDLE_FILE} to s3://${EB_S3_BUCKET}/${S3_KEY}..."
           aws s3 cp "${BUNDLE_FILE}" "s3://${EB_S3_BUCKET}/${S3_KEY}"
-
-          echo "Creating Elastic Beanstalk Application Version ${VERSION_LABEL}..."
+      
+      - name: Create new application version
+        run: |
           aws elasticbeanstalk create-application-version \
-            --application-name "${EB_APPLICATION_NAME}" \
-            --version-label "${VERSION_LABEL}" \
-            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="${S3_KEY}" \
-            --description "GitHub Actions deploy from commit ${GITHUB_SHA::7}"
+            --application-name "${{ secrets.EB_APP_NAME }}" \
+            --version-label "${{ github.sha }}" \
+            --source-bundle S3Bucket="${{ secrets.S3_BUCKET }}",S3Key="app-${{ github.sha }}.zip"
 
-          echo "Updating Elastic Beanstalk Environment ${EB_ENVIRONMENT_NAME}..."
+      - name: Deploy to Elastic Beanstalk environment
+        run: |
           aws elasticbeanstalk update-environment \
-            --application-name "${EB_APPLICATION_NAME}" \
-            --environment-name "${EB_ENVIRONMENT_NAME}" \
-            --version-label "${VERSION_LABEL}"
-
-          echo "Waiting for environment ${EB_ENVIRONMENT_NAME} to become Ready..."
-          aws elasticbeanstalk wait environment-updated \
-            --application-name "${EB_APPLICATION_NAME}" \
-            --environment-names "${EB_ENVIRONMENT_NAME}"
+            --environment-name "${{ secrets.EB_ENV_NAME }}" \
+            --version-label "${{ github.sha }}"
+      
