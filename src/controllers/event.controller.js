@@ -368,13 +368,34 @@ function isLayoutModified(existing = [], incoming = []) {
 }
 
 function notifyEventChanges(existing, updated, updates) {
-  const dateOrVenueChanged =
-    (updates.venue && updates.venue !== existing.venue) ||
-    (updates.showTime && updates.showTime !== existing.showTime) ||
-    (updates.rounds && JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds));
+  const changedDetails = [
+    ['title', 'event title'],
+    ['artist', 'artist'],
+    ['category', 'category'],
+    ['description', 'description'],
+    ['venue', 'venue'],
+    ['province', 'location'],
+    ['organizer', 'organizer'],
+    ['gateOpenTime', 'gate opening time'],
+    ['showTime', 'show time'],
+    ['posterUrl', 'poster'],
+    ['galleryUrl', 'gallery']
+  ]
+    .filter(([field]) =>
+      updates[field] !== undefined &&
+      JSON.stringify(updates[field]) !== JSON.stringify(existing[field])
+    )
+    .map(([, label]) => label);
+
+  if (
+    updates.rounds !== undefined &&
+    JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds)
+  ) {
+    changedDetails.push('event schedule');
+  }
 
   // FR-34: Dispatches notification to users when event details change
-  if (dateOrVenueChanged) {
+  if (changedDetails.length > 0) {
     const bookings = BookingModel.findPaidByEventId(existing.id);
     const userIds = Array.from(new Set(bookings.map((b) => b.userId)));
     for (const uid of userIds) {
@@ -383,7 +404,7 @@ function notifyEventChanges(existing, updated, updates) {
         channel: 'BOTH',
         type: 'EVENT_CHANGE',
         subject: `Update on ${updated.title}`,
-        message: `Important update regarding ${updated.title}: Venue is now "${updated.venue}", showtime "${updated.showTime}". Please review your ticket details.`
+        message: `Important update regarding ${updated.title}: ${changedDetails.join(', ')} changed. Please review your ticket details.`
       });
     }
   }

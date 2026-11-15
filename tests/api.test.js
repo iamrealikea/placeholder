@@ -630,6 +630,47 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.strictEqual(notifsRes.status, 200);
       assert.ok(notifsRes.data.notifications.some((n) => n.type === 'PAYMENT_SUCCESS'));
     });
+
+    it('FR-34: Notifies buyers when event title or description changes', async () => {
+      const eventRes = await request('/api/events/evt-1');
+      assert.strictEqual(eventRes.status, 200);
+      const originalEvent = eventRes.data.event;
+      const updatedTitle = `${originalEvent.title} - Updated`;
+      const updatedDescription = `${originalEvent.description} Updated details.`;
+      const adminHeaders = { Authorization: `Bearer ${adminToken}` };
+
+      try {
+        const updateRes = await request('/api/events/evt-1', {
+          method: 'PUT',
+          headers: adminHeaders,
+          body: { title: updatedTitle, description: updatedDescription }
+        });
+        assert.strictEqual(updateRes.status, 200);
+
+        const notificationsRes = await request('/api/notifications', {
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(notificationsRes.status, 200);
+        assert.ok(
+          notificationsRes.data.notifications.some(
+            (notification) =>
+              notification.type === 'EVENT_CHANGE' &&
+              notification.subject === `Update on ${updatedTitle}` &&
+              notification.message.includes('event title, description')
+          )
+        );
+      } finally {
+        const restoreRes = await request('/api/events/evt-1', {
+          method: 'PUT',
+          headers: adminHeaders,
+          body: {
+            title: originalEvent.title,
+            description: originalEvent.description
+          }
+        });
+        assert.strictEqual(restoreRes.status, 200);
+      }
+    });
   });
 
   // =========================================================================
