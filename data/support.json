@@ -12,16 +12,16 @@
     "createdAt": "2026-10-16T10:30:00.000Z"
   },
   {
-    "id": "sup-e17a8a1b",
-    "userId": "usr-bd71ef20",
+    "id": "sup-d0d2caad",
+    "userId": "usr-83766457",
     "name": "Napat Srisawat (Updated)",
-    "email": "integration.user.1794758596228@example.com",
+    "email": "integration.user.1794720213230@example.com",
     "subject": "Question regarding parking facilities",
     "category": "Venue & Parking",
     "message": "Is parking included with VIP tickets at Impact Arena?",
     "status": "RESOLVED",
     "adminReply": "Yes, VIP tickets include complimentary parking at P1.",
-    "createdAt": "2026-11-15T16:03:16.793Z",
-    "repliedAt": "2026-11-15T16:03:16.798Z"
+    "createdAt": "2026-11-15T05:23:34.281Z",
+    "repliedAt": "2026-11-15T05:23:34.284Z"
   }
 ]

@@ -304,8 +304,8 @@
     "createdAt": "2026-08-01T00:00:00.000Z"
   },
   {
-    "id": "evt-93f56149",
-    "title": "FLT1794758596230 A",
+    "id": "evt-b83bbb84",
+    "title": "FLT1794720213233 A",
     "artist": "Filter Test Artist",
     "category": "Concert",
     "status": "On Sale",
@@ -318,8 +318,8 @@
     "organizer": "TicketHub Organizer",
     "gateOpenTime": "16:00",
     "showTime": "19:00",
-    "saleStartAt": "2026-11-15T16:03:16.927Z",
-    "saleEndAt": "2027-11-15T16:03:16.927Z",
+    "saleStartAt": "2026-11-15T05:23:34.442Z",
+    "saleEndAt": "2027-11-15T05:23:34.442Z",
     "maxTicketsPerUser": 6,
     "allowCancellation": true,
     "refundPolicyPct": 100,
@@ -345,11 +345,11 @@
         "seats": []
       }
     ],
-    "createdAt": "2026-11-15T16:03:16.927Z"
+    "createdAt": "2026-11-15T05:23:34.442Z"
   },
   {
-    "id": "evt-243bb5ae",
-    "title": "FLT1794758596230 B",
+    "id": "evt-3b911e47",
+    "title": "FLT1794720213233 B",
     "artist": "Filter Test Artist",
     "category": "Concert",
     "status": "On Sale",
@@ -362,8 +362,8 @@
     "organizer": "TicketHub Organizer",
     "gateOpenTime": "16:00",
     "showTime": "19:00",
-    "saleStartAt": "2026-11-15T16:03:16.933Z",
-    "saleEndAt": "2027-11-15T16:03:16.933Z",
+    "saleStartAt": "2026-11-15T05:23:34.448Z",
+    "saleEndAt": "2027-11-15T05:23:34.448Z",
     "maxTicketsPerUser": 6,
     "allowCancellation": true,
     "refundPolicyPct": 100,
@@ -389,11 +389,11 @@
         "seats": []
       }
     ],
-    "createdAt": "2026-11-15T16:03:16.933Z"
+    "createdAt": "2026-11-15T05:23:34.448Z"
   },
   {
-    "id": "evt-2ac3429c",
-    "title": "FLT1794758596230 C",
+    "id": "evt-3baa34cb",
+    "title": "FLT1794720213233 C",
     "artist": "Filter Test Artist",
     "category": "Concert",
     "status": "On Sale",
@@ -406,8 +406,8 @@
     "organizer": "TicketHub Organizer",
     "gateOpenTime": "16:00",
     "showTime": "19:00",
-    "saleStartAt": "2026-11-15T16:03:16.938Z",
-    "saleEndAt": "2027-11-15T16:03:16.938Z",
+    "saleStartAt": "2026-11-15T05:23:34.452Z",
+    "saleEndAt": "2027-11-15T05:23:34.452Z",
     "maxTicketsPerUser": 6,
     "allowCancellation": true,
     "refundPolicyPct": 100,
@@ -433,13 +433,13 @@
         "seats": []
       }
     ],
-    "createdAt": "2026-11-15T16:03:16.938Z"
+    "createdAt": "2026-11-15T05:23:34.452Z"
   },
   {
-    "id": "evt-30a2be2e",
-    "title": "Category test 1794758597017",
+    "id": "evt-70b85d41",
+    "title": "Category test 1794720214532",
     "artist": "",
-    "category": "Workshop 1794758596231",
+    "category": "Workshop 1794720213234",
     "status": "On Sale",
     "isFeatured": false,
     "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
@@ -450,8 +450,8 @@
     "organizer": "TicketHub Organizer",
     "gateOpenTime": "16:00",
     "showTime": "19:00",
-    "saleStartAt": "2026-11-15T16:03:17.019Z",
-    "saleEndAt": "2027-11-15T16:03:17.019Z",
+    "saleStartAt": "2026-11-15T05:23:34.534Z",
+    "saleEndAt": "2027-11-15T05:23:34.534Z",
     "maxTicketsPerUser": 6,
     "allowCancellation": true,
     "refundPolicyPct": 100,
@@ -477,6 +477,6 @@
         "seats": []
       }
     ],
-    "createdAt": "2026-11-15T16:03:17.019Z"
+    "createdAt": "2026-11-15T05:23:34.534Z"
   }
 ]

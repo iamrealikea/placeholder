@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "description": "TicketHub - Event Booking and Ticketing System (TOR FR-01 to FR-49)",
   "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "seed": "node src/store/seed-cli.js",
-    "test": "node --test --test-concurrency=1 tests/api.test.js tests/e2e-admin-events.test.js tests/popup-unit.test.js",
-    "dev": "nodemon server.js",
-    "lint": "eslint \"public/js/**/*.js\" \"src/**/*.js\" \"server.js\" \"tests/**/*.js\"",
-    "lint:report": "eslint \"public/js/**/*.js\" \"src/**/*.js\" \"server.js\" \"tests/**/*.js\" --format json --output-file reports/eslint-report.json"
+    "test": "node --test --test-concurrency=1 tests/unit/models.unit.test.js tests/unit/other-classes.unit.test.js tests/integration/api-e2e.test.js",
+    "test:coverage": "node --test --test-concurrency=1 --experimental-test-coverage tests/unit/models.unit.test.js",
+    "test:profile": "node tests/profiling/run-profiling.js",
+    "dev": "nodemon server.js"
   },
-
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
@@ -20,29 +22,9 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.11",
+    "nodemailer": "^10.5.0",
+    "nodemon": "^3.1.14",
     "qrcode": "^1.5.4",
-    "uuid": "^14.0.3"
-  },
-  "directories": {
-    "test": "tests"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.15.0",
-    "globals": "^17.14.0",
-    "plato": "^1.7.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/iamrealikea/placeholder.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/iamrealikea/placeholder/issues"
-  },
-  "homepage": "https://github.com/iamrealikea/placeholder#readme"
+    "uuid": "^10.0.0"
+  }
 }

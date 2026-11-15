@@ -3,3 +3,8 @@ data/backups/
 uploads/
 .env
 .agents/teamwork/
+AUDIT_REPORT.md
+ORIGINAL_REQUEST.md
+docs/admin-id-map.md
+tests/adversarial-results.json
+tests/adversarial-results.json

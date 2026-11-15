@@ -1,0 +1,114 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
+  EB_APPLICATION_NAME: ${{ vars.EB_APPLICATION_NAME || 'tickethub-platform' }}
+  EB_ENVIRONMENT_NAME: ${{ vars.EB_ENVIRONMENT_NAME || 'tickethub-prod-env' }}
+  EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
+
+jobs:
+  test-and-verify:
+    name: Run E2E & Adversarial Verification Suites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run E2E integration tests
+        run: npm test
+
+      - name: Run Adversarial Auth & Concurrency Harness (44/44 checks)
+        run: node tests/adversarial-harness.js
+
+      - name: Restore clean seed data
+        run: npm run seed
+
+  deploy:
+    name: Package & Deploy to Elastic Beanstalk
+    needs: test-and-verify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Ensure clean seed data for initial deployment bundle
+        run: |
+          npm ci
+          npm run seed
+
+      - name: Ensure executable permissions on Elastic Beanstalk hooks
+        run: chmod +x .platform/hooks/predeploy/01_persistent_storage.sh
+
+      - name: Create Elastic Beanstalk deployment package
+        run: |
+          VERSION_LABEL="v-$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          echo "VERSION_LABEL=${VERSION_LABEL}" >> $GITHUB_ENV
+          zip -r "tickethub-${VERSION_LABEL}.zip" \
+            server.js \
+            package.json \
+            package-lock.json \
+            public \
+            src \
+            data/*.json \
+            .ebextensions \
+            .platform \
+            -x "data/backups/*" "node_modules/*" "tests/*" ".git/*"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload bundle to S3 & Deploy to Elastic Beanstalk
+        run: |
+          BUNDLE_FILE="tickethub-${VERSION_LABEL}.zip"
+          S3_KEY="${EB_APPLICATION_NAME}/${BUNDLE_FILE}"
+
+          echo "Uploading ${BUNDLE_FILE} to s3://${EB_S3_BUCKET}/${S3_KEY}..."
+          aws s3 cp "${BUNDLE_FILE}" "s3://${EB_S3_BUCKET}/${S3_KEY}"
+
+          echo "Creating Elastic Beanstalk Application Version ${VERSION_LABEL}..."
+          aws elasticbeanstalk create-application-version \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --version-label "${VERSION_LABEL}" \
+            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="${S3_KEY}" \
+            --description "GitHub Actions deploy from commit ${GITHUB_SHA::7}"
+
+          echo "Updating Elastic Beanstalk Environment ${EB_ENVIRONMENT_NAME}..."
+          aws elasticbeanstalk update-environment \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --environment-name "${EB_ENVIRONMENT_NAME}" \
+            --version-label "${VERSION_LABEL}"
+
+          echo "Waiting for environment ${EB_ENVIRONMENT_NAME} to become Ready..."
+          aws elasticbeanstalk wait environment-updated \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --environment-names "${EB_ENVIRONMENT_NAME}"

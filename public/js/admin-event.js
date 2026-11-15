@@ -603,6 +603,14 @@
   // -------------------------------------------------------------------------
   // 8. Form Data Population & Binding
   // -------------------------------------------------------------------------
+  function toDateTimeLocal(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return '';
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 16);
+  }
+
   function populateFormFields() {
     const d = State.eventData;
 
@@ -637,10 +645,10 @@
     if (galleryInput) galleryInput.value = Array.isArray(d.galleryUrls) ? d.galleryUrls.join(', ') : (d.galleryUrls || '');
 
     const saleStart = getEl(['event-sale-start']);
-    if (saleStart) saleStart.value = d.saleStartDate || d.saleStartAt || '';
+    if (saleStart) saleStart.value = toDateTimeLocal(d.saleStartAt || d.saleStartDate);
 
     const saleEnd = getEl(['event-sale-end']);
-    if (saleEnd) saleEnd.value = d.saleEndDate || d.saleEndAt || '';
+    if (saleEnd) saleEnd.value = toDateTimeLocal(d.saleEndAt || d.saleEndDate);
 
     const gateTime = getEl(['event-gate-time']);
     if (gateTime) gateTime.value = d.gateOpenTime || '';
@@ -2118,8 +2126,25 @@
       const galleryUrls = galleryVal ? galleryVal.split(',').map(s => s.trim()).filter(Boolean) : [];
       const isFeatured = !!(getEl(['event-featured']) || {}).checked;
 
-      const saleStartDate = (getEl(['event-sale-start']) || {}).value || null;
-      const saleEndDate = (getEl(['event-sale-end']) || {}).value || null;
+      const saleStartValue = (getEl(['event-sale-start']) || {}).value || '';
+      const saleEndValue = (getEl(['event-sale-end']) || {}).value || '';
+      if (Boolean(saleStartValue) !== Boolean(saleEndValue)) {
+        showToast('Both sale start and sale end must be set', 'error');
+        return;
+      }
+
+      const saleStartDate = saleStartValue ? new Date(saleStartValue) : null;
+      const saleEndDate = saleEndValue ? new Date(saleEndValue) : null;
+      if (
+        (saleStartDate && !Number.isFinite(saleStartDate.getTime())) ||
+        (saleEndDate && !Number.isFinite(saleEndDate.getTime())) ||
+        (saleStartDate && saleEndDate && saleStartDate > saleEndDate)
+      ) {
+        showToast('Sale start must be before or equal to sale end', 'error');
+        return;
+      }
+      const saleStartAt = saleStartDate ? saleStartDate.toISOString() : null;
+      const saleEndAt = saleEndDate ? saleEndDate.toISOString() : null;
       const gateOpenTime = ((getEl(['event-gate-time']) || {}).value || '').trim() || '17:30';
 
       const dateVal = (getEl(['event-date']) || {}).value;
@@ -2232,8 +2257,8 @@
         isFeatured,
         gateOpenTime,
         showTime: timeVal,
-        saleStartDate,
-        saleEndDate,
+        saleStartAt,
+        saleEndAt,
         rounds,
         zones: zonesPayload
       };

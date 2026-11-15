@@ -2,8 +2,14 @@
   {
     "id": "bkg-demo-1",
     "userId": "usr-customer-1",
+    "userEmail": "user@ticket.com",
+    "userName": "Chanita Chansamrong",
+    "userPhone": "0812345678",
     "eventId": "evt-1",
+    "eventTitle": "Forza Horizon Somethings Live Festival",
+    "venue": "Impact Arena, Muang Thong Thani",
     "roundId": "rnd-1a",
+    "roundLabel": "11 Nov 2026 • 19:00",
     "seatIds": [
       "seat-evt-1-rnd-1a-zone-vip-A1",
       "seat-evt-1-rnd-1a-zone-vip-A2"
@@ -22,13 +28,19 @@
     "paymentMethod": "PROMPTPAY",
     "status": "PAID",
     "holdExpiresAt": null,
-    "createdAt": "2026-10-15T14:20:00.000Z"
+    "createdAt": "2026-01-15T14:20:00.000Z"
   },
   {
     "id": "bkg-hist-1",
     "userId": "usr-customer-1",
+    "userEmail": "user@ticket.com",
+    "userName": "Chanita Chansamrong",
+    "userPhone": "0812345678",
     "eventId": "evt-2",
+    "eventTitle": "Neon Cyberpop World Tour: Bangkok",
+    "venue": "Thunder Dome, Nonthaburi",
     "roundId": "rnd-2a",
+    "roundLabel": "11 Nov 2026 • 19:30",
     "seatIds": [],
     "seatNumbers": [
       "B1",
@@ -44,13 +56,19 @@
     "paymentMethod": "CREDIT_CARD",
     "status": "PAID",
     "holdExpiresAt": null,
-    "createdAt": "2026-07-12T11:00:00.000Z"
+    "createdAt": "2026-01-05T11:00:00.000Z"
   },
   {
     "id": "bkg-hist-2",
     "userId": "usr-customer-1",
+    "userEmail": "user@ticket.com",
+    "userName": "Chanita Chansamrong",
+    "userPhone": "0812345678",
     "eventId": "evt-3",
+    "eventTitle": "Global AI & Cloud Architecture Seminar 2026",
+    "venue": "Queen Sirikit National Convention Center (QSNCC)",
     "roundId": "rnd-3a",
+    "roundLabel": "20 Nov 2026 • 09:30",
     "seatIds": [],
     "seatNumbers": [
       "A3"
@@ -65,13 +83,19 @@
     "paymentMethod": "KBANK",
     "status": "PAID",
     "holdExpiresAt": null,
-    "createdAt": "2026-08-19T16:30:00.000Z"
+    "createdAt": "2026-01-08T16:30:00.000Z"
   },
   {
     "id": "bkg-hist-3",
     "userId": "usr-customer-1",
+    "userEmail": "user@ticket.com",
+    "userName": "Chanita Chansamrong",
+    "userPhone": "0812345678",
     "eventId": "evt-1",
+    "eventTitle": "Forza Horizon Somethings Live Festival",
+    "venue": "Impact Arena, Muang Thong Thani",
     "roundId": "rnd-1b",
+    "roundLabel": "12 Nov 2026 • 18:00",
     "seatIds": [],
     "seatNumbers": [
       "C1",
@@ -90,9 +114,9 @@
     "createdAt": "2026-09-22T18:15:00.000Z"
   },
   {
-    "id": "bkg-c82a2e00",
-    "userId": "usr-bd71ef20",
-    "userEmail": "integration.user.1794758596228@example.com",
+    "id": "bkg-ba8efff3",
+    "userId": "usr-83766457",
+    "userEmail": "integration.user.1794720213230@example.com",
     "userName": "Napat Srisawat (Updated)",
     "userPhone": "0898765432",
     "eventId": "evt-1",
@@ -117,12 +141,12 @@
     "paymentMethod": "PROMPTPAY",
     "status": "PAID",
     "holdExpiresAt": null,
-    "createdAt": "2026-11-15T16:03:16.617Z"
+    "createdAt": "2026-11-15T05:23:33.777Z"
   },
   {
-    "id": "bkg-2b0dae6f",
-    "userId": "usr-bd71ef20",
-    "userEmail": "integration.user.1794758596228@example.com",
+    "id": "bkg-389c037b",
+    "userId": "usr-83766457",
+    "userEmail": "integration.user.1794720213230@example.com",
     "userName": "Napat Srisawat (Updated)",
     "userPhone": "0898765432",
     "eventId": "evt-1",
@@ -147,14 +171,14 @@
     "paymentMethod": "CREDIT_CARD",
     "status": "CANCELLED",
     "holdExpiresAt": null,
-    "createdAt": "2026-11-15T16:03:16.729Z",
+    "createdAt": "2026-11-15T05:23:34.227Z",
     "cancellationReason": "USER_CANCELLED",
-    "cancelledAt": "2026-11-15T16:03:16.768Z"
+    "cancelledAt": "2026-11-15T05:23:34.256Z"
   },
   {
-    "id": "bkg-030de921",
-    "userId": "usr-bd71ef20",
-    "userEmail": "integration.user.1794758596228@example.com",
+    "id": "bkg-c54d760f",
+    "userId": "usr-83766457",
+    "userEmail": "integration.user.1794720213230@example.com",
     "userName": "Napat Srisawat (Updated)",
     "userPhone": "0898765432",
     "eventId": "evt-1",
@@ -178,7 +202,7 @@
     "totalAmount": 4840,
     "paymentMethod": null,
     "status": "PENDING",
-    "holdExpiresAt": "2026-11-15T16:13:16.891Z",
-    "createdAt": "2026-11-15T16:03:16.894Z"
+    "holdExpiresAt": "2026-11-15T05:33:34.378Z",
+    "createdAt": "2026-11-15T05:23:34.380Z"
   }
 ]
