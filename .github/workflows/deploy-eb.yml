@@ -6,14 +6,10 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
-  EB_APPLICATION_NAME: ${{ vars.EB_APPLICATION_NAME || 'tickethub-platform' }}
-  EB_ENVIRONMENT_NAME: ${{ vars.EB_ENVIRONMENT_NAME || 'tickethub-prod-env' }}
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  EB_APPLICATION_NAME: ${{ vars.EB_APPLICATION_NAME || 'TicketHub Placeholder' }}
+  EB_ENVIRONMENT_NAME: ${{ vars.EB_ENVIRONMENT_NAME || 'TicketHub-env ' }}
   EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
 
 jobs:
@@ -44,6 +40,7 @@ jobs:
 
   deploy:
     name: Package & Deploy to Elastic Beanstalk
+    environment: aws-secret
     needs: test-and-verify
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
