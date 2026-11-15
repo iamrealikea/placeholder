@@ -671,6 +671,111 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
         assert.strictEqual(restoreRes.status, 200);
       }
     });
+
+    it('FR-37: Notifies users who bookmarked an event when its details change', async () => {
+      const eventRes = await request('/api/events/evt-4');
+      assert.strictEqual(eventRes.status, 200);
+      const originalEvent = eventRes.data.event;
+      const updatedVenue = `${originalEvent.venue} - Updated`;
+      const adminHeaders = { Authorization: `Bearer ${adminToken}` };
+
+      try {
+        const bookmarkRes = await request('/api/events/evt-4/bookmark', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(bookmarkRes.status, 200);
+        assert.strictEqual(bookmarkRes.data.isBookmarked, true);
+
+        const updateRes = await request('/api/events/evt-4', {
+          method: 'PUT',
+          headers: adminHeaders,
+          body: { venue: updatedVenue }
+        });
+        assert.strictEqual(updateRes.status, 200);
+
+        const notificationsRes = await request('/api/notifications', {
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(notificationsRes.status, 200);
+        assert.ok(
+          notificationsRes.data.notifications.some(
+            (notification) =>
+              notification.type === 'BOOKMARK_ALERT' &&
+              notification.subject === `Event Update: ${originalEvent.title}` &&
+              notification.message.includes('venue')
+          )
+        );
+      } finally {
+        const restoreRes = await request('/api/events/evt-4', {
+          method: 'PUT',
+          headers: adminHeaders,
+          body: { venue: originalEvent.venue }
+        });
+        assert.strictEqual(restoreRes.status, 200);
+        const unbookmarkRes = await request('/api/events/evt-4/bookmark', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(unbookmarkRes.status, 200);
+        assert.strictEqual(unbookmarkRes.data.isBookmarked, false);
+      }
+    });
+
+    it('FR-37: Notifies users who bookmarked an event when ticket sales open', async () => {
+      const eventRes = await request('/api/events/evt-4');
+      assert.strictEqual(eventRes.status, 200);
+      const originalEvent = eventRes.data.event;
+      const adminHeaders = { Authorization: `Bearer ${adminToken}` };
+      const saleStartAt = new Date(Date.now() - 60 * 1000).toISOString();
+      const saleEndAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+      try {
+        const bookmarkRes = await request('/api/events/evt-4/bookmark', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(bookmarkRes.status, 200);
+        assert.strictEqual(bookmarkRes.data.isBookmarked, true);
+
+        const updateRes = await request('/api/events/evt-4', {
+          method: 'PUT',
+          headers: adminHeaders,
+          body: { status: 'On Sale', saleStartAt, saleEndAt }
+        });
+        assert.strictEqual(updateRes.status, 200);
+
+        const notificationsRes = await request('/api/notifications', {
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(notificationsRes.status, 200);
+        assert.ok(
+          notificationsRes.data.notifications.some(
+            (notification) =>
+              notification.type === 'BOOKMARK_ALERT' &&
+              notification.subject === `Tickets Now On Sale: ${originalEvent.title}` &&
+              notification.message.includes('opened ticket sales')
+          )
+        );
+      } finally {
+        const restoreRes = await request('/api/events/evt-4', {
+          method: 'PUT',
+          headers: adminHeaders,
+          body: {
+            status: originalEvent.status,
+            saleStartAt: originalEvent.saleStartAt,
+            saleEndAt: originalEvent.saleEndAt
+          }
+        });
+        assert.strictEqual(restoreRes.status, 200);
+        const unbookmarkRes = await request('/api/events/evt-4/bookmark', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${customerToken}` }
+        });
+        assert.strictEqual(unbookmarkRes.status, 200);
+        assert.strictEqual(unbookmarkRes.data.isBookmarked, false);
+      }
+    });
   });
 
   // =========================================================================

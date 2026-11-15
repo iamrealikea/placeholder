@@ -378,6 +378,9 @@ function notifyEventChanges(existing, updated, updates) {
     ['organizer', 'organizer'],
     ['gateOpenTime', 'gate opening time'],
     ['showTime', 'show time'],
+    ['status', 'availability status'],
+    ['saleStartAt', 'sale start time'],
+    ['saleEndAt', 'sale end time'],
     ['posterUrl', 'poster'],
     ['galleryUrl', 'gallery']
   ]
@@ -394,11 +397,15 @@ function notifyEventChanges(existing, updated, updates) {
     changedDetails.push('event schedule');
   }
 
+  const saleOpened = existing.status !== 'On Sale' && updated.status === 'On Sale';
+
   // FR-34: Dispatches notification to users when event details change
+  const paidUserIds = new Set();
   if (changedDetails.length > 0) {
     const bookings = BookingModel.findPaidByEventId(existing.id);
     const userIds = Array.from(new Set(bookings.map((b) => b.userId)));
     for (const uid of userIds) {
+      paidUserIds.add(uid);
       NotificationModel.create({
         userId: uid,
         channel: 'BOTH',
@@ -409,17 +416,26 @@ function notifyEventChanges(existing, updated, updates) {
     }
   }
 
-  // FR-37: Bookmark notification if status moved to 'On Sale'
-  if (existing.status !== 'On Sale' && updated.status === 'On Sale') {
-    const allUsers = UserModel.findAll();
-    for (const u of allUsers) {
-      if ((u.bookmarks || []).includes(updated.id)) {
+  // FR-37: Notify users who bookmarked the event when it opens or changes.
+  if (saleOpened || changedDetails.length > 0) {
+    const changeMessage = changedDetails.length > 0
+      ? `The event "${updated.title}" you've bookmarked has changed: ${changedDetails.join(', ')}. Please review the updated event details.`
+      : '';
+    const saleMessage = saleOpened
+      ? `Great news! "${updated.title}" has opened ticket sales. Book your seats now!`
+      : '';
+    const message = [saleMessage, changeMessage].filter(Boolean).join(' ');
+
+    for (const user of UserModel.findAll()) {
+      if ((user.bookmarks || []).includes(updated.id) && !paidUserIds.has(user.id)) {
         NotificationModel.create({
-          userId: u.id,
+          userId: user.id,
           channel: 'BOTH',
           type: 'BOOKMARK_ALERT',
-          subject: `Tickets Now On Sale: ${updated.title}`,
-          message: `Great news! "${updated.title}" has opened ticket sales. Book your seats now!`
+          subject: saleOpened
+            ? `Tickets Now On Sale: ${updated.title}`
+            : `Event Update: ${updated.title}`,
+          message
         });
       }
     }
