@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/models/ticket.model.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/models/ticket.model.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">69.47</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">108</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">34.01</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">1.15</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const { v4: uuidv4 } = require(&#039;uuid&#039;);
+const QRCode = require(&#039;qrcode&#039;);
+const { store } = require(&#039;../store/jsonStore&#039;);
+
+class TicketModel {
+  static findAll() {
+    return store.getAll(&#039;tickets&#039;);
+  }
+
+  static findByUserId(userId) {
+    const tickets = store
+      .find(&#039;tickets&#039;, (t) =&gt; t.userId === userId)
+      .map((t, index) =&gt; ({ t, index }));
+    tickets.sort((a, b) =&gt; {
+      const timeDiff = new Date(b.t.createdAt || 0).getTime() - new Date(a.t.createdAt || 0).getTime();
+      return timeDiff !== 0 ? timeDiff : b.index - a.index;
+    });
+    return tickets.map((item) =&gt; item.t);
+  }
+
+  static findByBookingId(bookingId) {
+    return store.find(&#039;tickets&#039;, (t) =&gt; t.bookingId === bookingId);
+  }
+
+  static findByLookupCode(lookupCode) {
+    if (!lookupCode) return null;
+    const raw = String(lookupCode).trim();
+    const upper = raw.toUpperCase();
+    return store.findOne(
+      &#039;tickets&#039;,
+      (t) =&gt;
+        t.ticketCode.toUpperCase() === upper ||
+        t.id === raw ||
+        t.qrPayload === raw ||
+        (raw.startsWith(&#039;data:image/&#039;) &amp;&amp; t.qrDataUrl === raw)
+    );
+  }
+
+  static async issueForBooking(booking, seats, holderNames) {
+    const issuedTickets = [];
+    for (const [index, s] of seats.entries()) {
+      const holderName = holderNames[index];
+      const ticketCode = `TKT-${booking.id.slice(-4).toUpperCase()}-${s.seatNumber}-${Math.round(Math.random() * 1e4)}`;
+      const qrPayload = JSON.stringify({
+        ticketCode,
+        bookingId: booking.id,
+        eventId: booking.eventId,
+        roundId: booking.roundId,
+        seatNumber: s.seatNumber,
+        holder: holderName
+      });
+
+      const qrDataUrl = await QRCode.toDataURL(qrPayload, {
+        width: 320,
+        margin: 1,
+        color: { dark: &#039;#000000&#039;, light: &#039;#FFFFFF&#039; }
+      });
+
+      const ticketItem = {
+        id: `tkt-${uuidv4().slice(0, 8)}`,
+        ticketCode,
+        bookingId: booking.id,
+        userId: booking.userId,
+        eventId: booking.eventId,
+        eventTitle: booking.eventTitle,
+        holderName,
+        venue: booking.venue,
+        roundId: booking.roundId,
+        roundLabel: booking.roundLabel,
+        seatId: s.id,
+        seatNumber: s.seatNumber,
+        zoneName: s.zoneName,
+        price: s.price,
+        qrPayload,
+        qrDataUrl,
+        status: &#039;VALID&#039;,
+        checkedInAt: null,
+        checkedInBy: null,
+        createdAt: new Date().toISOString()
+      };
+      store.insert(&#039;tickets&#039;, ticketItem);
+      issuedTickets.push(ticketItem);
+    }
+    return issuedTickets;
+  }
+
+  static checkIn(ticketId, staffName) {
+    return store.update(&#039;tickets&#039;, ticketId, {
+      status: &#039;CHECKED_IN&#039;,
+      checkedInAt: new Date().toISOString(),
+      checkedInBy: staffName || &#039;Gate Staff&#039;
+    });
+  }
+
+  static cancelByBookingId(bookingId) {
+    const tickets = this.findByBookingId(bookingId);
+    for (const t of tickets) {
+      if (t.status !== &#039;CHECKED_IN&#039;) {
+        t.status = &#039;CANCELLED&#039;;
+      }
+    }
+    store.save(&#039;tickets&#039;);
+    return tickets;
+  }
+}
+
+module.exports = TicketModel;
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

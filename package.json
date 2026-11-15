@@ -7,8 +7,11 @@
     "start": "node server.js",
     "seed": "node src/store/seed-cli.js",
     "test": "node --test --test-concurrency=1 tests/api.test.js tests/e2e-admin-events.test.js tests/popup-unit.test.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "lint": "eslint \"public/js/**/*.js\" \"src/**/*.js\" \"server.js\" \"tests/**/*.js\"",
+    "lint:report": "eslint \"public/js/**/*.js\" \"src/**/*.js\" \"server.js\" \"tests/**/*.js\" --format json --output-file reports/eslint-report.json"
   },
+
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
@@ -20,5 +23,26 @@
     "nodemon": "^3.1.11",
     "qrcode": "^1.5.4",
     "uuid": "^14.0.3"
-  }
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
+    "plato": "^1.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamrealikea/placeholder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/iamrealikea/placeholder/issues"
+  },
+  "homepage": "https://github.com/iamrealikea/placeholder#readme"
 }

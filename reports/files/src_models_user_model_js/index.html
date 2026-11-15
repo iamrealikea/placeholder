@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/models/user.model.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/models/user.model.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">70.74</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">133</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">47.51</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">1.98</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const { v4: uuidv4 } = require(&#039;uuid&#039;);
+const { store } = require(&#039;../store/jsonStore&#039;);
+
+class UserModel {
+  static findAll() {
+    return store.getAll(&#039;users&#039;);
+  }
+
+  static findById(id) {
+    return store.findById(&#039;users&#039;, id);
+  }
+
+  static findByEmail(email) {
+    if (!email || typeof email !== &#039;string&#039;) return null;
+    const normalized = email.trim().toLowerCase();
+    return store.findOne(&#039;users&#039;, (u) =&gt; u.email &amp;&amp; u.email.toLowerCase() === normalized);
+  }
+
+  static findByNationalId(nid) {
+    if (!nid || typeof nid !== &#039;string&#039;) return null;
+    const trimmed = nid.trim();
+    if (!trimmed) return null;
+    return store.findOne(&#039;users&#039;, (u) =&gt; u.nationalId &amp;&amp; u.nationalId === trimmed);
+  }
+
+  static findByPhone(phone) {
+    if (!phone || typeof phone !== &#039;string&#039;) return null;
+    const trimmed = phone.trim();
+    if (!trimmed) return null;
+    return store.findOne(&#039;users&#039;, (u) =&gt; u.phone &amp;&amp; u.phone === trimmed);
+  }
+
+  /** provider: &#039;gmail&#039; | &#039;facebook&#039;. Looks a user up by the provider&#039;s stable account ID. */
+  static findBySocialId(provider, providerId) {
+    const field = provider === &#039;gmail&#039; ? &#039;googleId&#039; : provider === &#039;facebook&#039; ? &#039;facebookId&#039; : null;
+    if (!field || !providerId) return null;
+    const id = String(providerId);
+    return store.findOne(&#039;users&#039;, (u) =&gt; u[field] &amp;&amp; u[field] === id);
+  }
+
+  static create(data) {
+    const newUser = {
+      id: data.id || `usr-${uuidv4().slice(0, 8)}`,
+      name: String(data.name || &#039;&#039;).trim(),
+      email: String(data.email || &#039;&#039;).trim().toLowerCase(),
+      phone: data.phone ? String(data.phone).trim() : &#039;&#039;,
+      age: Number(data.age) || 0,
+      dob: data.dob ? String(data.dob).trim() : &#039;&#039;,
+      gender: data.gender ? String(data.gender).trim() : &#039;Unspecified&#039;,
+      nationalId: data.nationalId ? String(data.nationalId).trim() : &#039;&#039;,
+      address: data.address ? String(data.address).trim() : &#039;&#039;,
+      avatarUrl: data.avatarUrl || &#039;&#039;,
+      passwordHash: data.passwordHash || &#039;&#039;,
+      authProvider: data.authProvider || &#039;local&#039;,
+      googleId: data.googleId ? String(data.googleId) : &#039;&#039;,
+      facebookId: data.facebookId ? String(data.facebookId) : &#039;&#039;,
+      role: data.role || &#039;customer&#039;,
+      points: data.points !== undefined ? Number(data.points) : 100,
+      bookmarks: Array.isArray(data.bookmarks) ? data.bookmarks : [],
+      createdAt: data.createdAt || new Date().toISOString()
+    };
+
+    return store.insert(&#039;users&#039;, newUser);
+  }
+
+  static update(id, updates) {
+    return store.update(&#039;users&#039;, id, updates);
+  }
+
+  static toggleBookmark(userId, eventId) {
+    const user = this.findById(userId);
+    if (!user) return null;
+
+    const bookmarks = new Set(user.bookmarks || []);
+    let isBookmarked = false;
+
+    if (bookmarks.has(eventId)) {
+      bookmarks.delete(eventId);
+      isBookmarked = false;
+    } else {
+      bookmarks.add(eventId);
+      isBookmarked = true;
+    }
+
+    const updatedBookmarks = Array.from(bookmarks);
+    this.update(userId, { bookmarks: updatedBookmarks });
+
+    return {
+      isBookmarked,
+      bookmarks: updatedBookmarks
+    };
+  }
+
+  static adjustPoints(userId, pointsUsed = 0, pointsEarned = 0) {
+    const user = this.findById(userId);
+    if (!user) return null;
+    const newPoints = Math.max(0, (user.points || 0) - (pointsUsed || 0) + (pointsEarned || 0));
+    return this.update(userId, { points: newPoints });
+  }
+
+  static getRoleCounts() {
+    const allUsers = this.findAll();
+    return {
+      total: allUsers.length,
+      admin: allUsers.filter((u) =&gt; u.role === &#039;admin&#039;).length,
+      staff: allUsers.filter((u) =&gt; u.role === &#039;staff&#039;).length,
+      customer: allUsers.filter((u) =&gt; u.role === &#039;customer&#039;).length
+    };
+  }
+
+  static filterUsers({ role, search } = {}) {
+    let filtered = this.findAll();
+
+    if (role &amp;&amp; typeof role === &#039;string&#039; &amp;&amp; role.trim().toLowerCase() !== &#039;all&#039;) {
+      const targetRole = role.trim().toLowerCase();
+      filtered = filtered.filter((u) =&gt; u.role &amp;&amp; u.role.toLowerCase() === targetRole);
+    }
+
+    if (search &amp;&amp; typeof search === &#039;string&#039; &amp;&amp; search.trim()) {
+      const q = search.trim().toLowerCase();
+      filtered = filtered.filter((u) =&gt; {
+        const nameMatch = u.name &amp;&amp; typeof u.name === &#039;string&#039; &amp;&amp; u.name.toLowerCase().includes(q);
+        const emailMatch = u.email &amp;&amp; typeof u.email === &#039;string&#039; &amp;&amp; u.email.toLowerCase().includes(q);
+        const phoneMatch = u.phone &amp;&amp; typeof u.phone === &#039;string&#039; &amp;&amp; u.phone.toLowerCase().includes(q);
+        return Boolean(nameMatch || emailMatch || phoneMatch);
+      });
+    }
+
+    return filtered;
+  }
+}
+
+module.exports = UserModel;</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/store/seed.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/store/seed.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">28.47</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">663</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">49.33</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">7.14</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const bcrypt = require(&#039;bcryptjs&#039;);
+const QRCode = require(&#039;qrcode&#039;);
+
+function getDemoSeatStatus(event, round, zone, seatNumber) {
+  let status = &#039;AVAILABLE&#039;;
+  let bookingId = null;
+
+  if (event.status === &#039;Sold Out&#039;) {
+    status = &#039;BOOKED&#039;;
+  } else if (
+    event.id === &#039;evt-1&#039; &amp;&amp;
+    round.id === &#039;rnd-1a&#039; &amp;&amp;
+    zone.id === &#039;zone-vip&#039; &amp;&amp;
+    (seatNumber === &#039;A1&#039; || seatNumber === &#039;A2&#039;)
+  ) {
+    status = &#039;BOOKED&#039;;
+    bookingId = &#039;bkg-demo-1&#039;;
+  } else if (
+    event.id === &#039;evt-1&#039; &amp;&amp;
+    round.id === &#039;rnd-1a&#039; &amp;&amp;
+    (seatNumber === &#039;B3&#039; || seatNumber === &#039;B4&#039; || seatNumber === &#039;C5&#039;)
+  ) {
+    status = &#039;BOOKED&#039;;
+  }
+
+  return { status, bookingId };
+}
+
+function buildSeatsForEvent(event) {
+  if (!event || typeof event !== &#039;object&#039;) return [];
+  const seats = [];
+  const rounds = Array.isArray(event.rounds) ? event.rounds : [];
+  const zones = Array.isArray(event.zones) ? event.zones : [];
+
+  for (const round of rounds) {
+    if (!round || typeof round !== &#039;object&#039;) continue;
+    for (const zone of zones) {
+      if (!zone || typeof zone !== &#039;object&#039;) continue;
+      if (Array.isArray(zone.seats) &amp;&amp; zone.seats.length &gt; 0) {
+        // Explicit custom or template coordinates
+        for (let idx = 0; idx &lt; zone.seats.length; idx++) {
+          const s = zone.seats[idx];
+          if (!s || typeof s !== &#039;object&#039;) continue;
+          const seatNumber = String(s.label || s.seatNumber || `S${idx + 1}`).trim();
+          const id = `seat-${event.id}-${round.id}-${zone.id}-${seatNumber}`;
+
+          const match = seatNumber.match(/^([A-Za-z]+)(\d+)$/);
+          const row = s.row || (match ? match[1].toUpperCase() : &#039;A&#039;);
+          const col = typeof s.col === &#039;number&#039; ? s.col : (match ? parseInt(match[2], 10) : idx + 1);
+
+          const { status, bookingId } = getDemoSeatStatus(event, round, zone, seatNumber);
+
+          const x = (s.x !== undefined &amp;&amp; s.x !== null) ? Number(s.x) : null;
+          const y = (s.y !== undefined &amp;&amp; s.y !== null) ? Number(s.y) : null;
+          const rawColor = s.color || s.seatColor || null;
+          const seatColor = (rawColor &amp;&amp; /^#[0-9a-fA-F]{6}$/.test(rawColor)) ? rawColor : null;
+          const price = typeof s.price === &#039;number&#039; ? s.price : zone.price;
+
+          seats.push({
+            id,
+            eventId: event.id,
+            roundId: round.id,
+            zoneId: zone.id,
+            zoneName: zone.name,
+            zoneColor: zone.color,
+            seatColor,
+            row,
+            col,
+            seatNumber,
+            x,
+            y,
+            price,
+            status,
+            heldByUserId: null,
+            holdExpiresAt: null,
+            bookingId
+          });
+        }
+      } else {
+        // Matrix grid loop
+        const rowLetters = &#039;ABCDEFGHIJKLMNOPQRSTUVWXYZ&#039;.slice(0, zone.rows || 4).split(&#039;&#039;);
+        const cols = zone.cols || 8;
+        const hasOrigin =
+          zone.originX !== undefined &amp;&amp;
+          zone.originX !== null &amp;&amp;
+          zone.originY !== undefined &amp;&amp;
+          zone.originY !== null;
+        const originX = hasOrigin ? Number(zone.originX) : null;
+        const originY = hasOrigin ? Number(zone.originY) : null;
+
+        for (let r = 0; r &lt; rowLetters.length; r++) {
+          for (let c = 1; c &lt;= cols; c++) {
+            const seatNumber = `${rowLetters[r]}${c}`;
+            const id = `seat-${event.id}-${round.id}-${zone.id}-${seatNumber}`;
+
+            const { status, bookingId } = getDemoSeatStatus(event, round, zone, seatNumber);
+
+            const x = hasOrigin ? originX + (c - 1) * 44 : null;
+            const y = hasOrigin ? originY + r * 44 : null;
+
+            seats.push({
+              id,
+              eventId: event.id,
+              roundId: round.id,
+              zoneId: zone.id,
+              zoneName: zone.name,
+              zoneColor: zone.color,
+              seatColor: null,
+              row: rowLetters[r],
+              col: c,
+              seatNumber,
+              x,
+              y,
+              price: zone.price,
+              status,
+              heldByUserId: null,
+              holdExpiresAt: null,
+              bookingId
+            });
+          }
+        }
+      }
+    }
+  }
+  return seats;
+}
+
+function generateSeedData() {
+  const passwordHashUser = bcrypt.hashSync(&#039;password123&#039;, 8);
+  const passwordHashAdmin = bcrypt.hashSync(&#039;admin123&#039;, 8);
+  const passwordHashStaff = bcrypt.hashSync(&#039;staff123&#039;, 8);
+
+  const users = [
+    {
+      id: &#039;usr-customer-1&#039;,
+      name: &#039;Chanita Chansamrong&#039;,
+      email: &#039;user@ticket.com&#039;,
+      phone: &#039;0812345678&#039;,
+      age: 21,
+      dob: &#039;2005-04-15&#039;,
+      gender: &#039;Female&#039;,
+      nationalId: &#039;1100501234567&#039;,
+      address: &#039;99 Phahonyothin Rd, Chatuchak, Bangkok 10900&#039;,
+      avatarUrl: &#039;&#039;,
+      passwordHash: passwordHashUser,
+      authProvider: &#039;local&#039;,
+      role: &#039;customer&#039;,
+      points: 650,
+      bookmarks: [&#039;evt-1&#039;, &#039;evt-4&#039;],
+      createdAt: &#039;2026-09-01T10:00:00.000Z&#039;
+    },
+    {
+      id: &#039;usr-admin-1&#039;,
+      name: &#039;Sirawit Admin&#039;,
+      email: &#039;admin@ticket.com&#039;,
+      phone: &#039;0899999999&#039;,
+      age: 22,
+      dob: &#039;2004-08-20&#039;,
+      gender: &#039;Male&#039;,
+      nationalId: &#039;1100509876543&#039;,
+      address: &#039;TicketHub HQ, Pathum Wan, Bangkok 10330&#039;,
+      avatarUrl: &#039;&#039;,
+      passwordHash: passwordHashAdmin,
+      authProvider: &#039;local&#039;,
+      role: &#039;admin&#039;,
+      points: 1000,
+      bookmarks: [],
+      createdAt: &#039;2026-08-15T09:00:00.000Z&#039;
+    },
+    {
+      id: &#039;usr-staff-1&#039;,
+      name: &#039;Supakit Gate Scanner&#039;,
+      email: &#039;staff@ticket.com&#039;,
+      phone: &#039;0822223333&#039;,
+      age: 22,
+      dob: &#039;2004-11-10&#039;,
+      gender: &#039;Male&#039;,
+      nationalId: &#039;1100505554443&#039;,
+      address: &#039;Impact Arena Gate 2, Nonthaburi 11120&#039;,
+      avatarUrl: &#039;&#039;,
+      passwordHash: passwordHashStaff,
+      authProvider: &#039;local&#039;,
+      role: &#039;staff&#039;,
+      points: 0,
+      bookmarks: [],
+      createdAt: &#039;2026-08-20T09:00:00.000Z&#039;
+    }
+  ];
+
+  const categories = [
+    { id: &#039;cat-concert&#039;, name: &#039;Concert&#039;, createdAt: &#039;2026-01-01T00:00:00.000Z&#039; },
+    { id: &#039;cat-seminar&#039;, name: &#039;Seminar&#039;, createdAt: &#039;2026-01-01T00:00:00.000Z&#039; },
+    { id: &#039;cat-festival&#039;, name: &#039;Festival&#039;, createdAt: &#039;2026-01-01T00:00:00.000Z&#039; },
+    { id: &#039;cat-exhibition&#039;, name: &#039;Exhibition&#039;, createdAt: &#039;2026-01-01T00:00:00.000Z&#039; }
+  ];
+
+  const events = [
+    {
+      id: &#039;evt-1&#039;,
+      title: &#039;Forza Horizon Somethings Live Festival&#039;,
+      artist: &#039;Horizon Symphony &amp; DJ Pulse&#039;,
+      category: &#039;Concert&#039;,
+      status: &#039;On Sale&#039;,
+      isFeatured: true,
+      posterUrl: &#039;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=1200&amp;q=80&#039;,
+      galleryUrl: &#039;https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description:
+        &#039;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel volutpat lectus. Phasellus eleifend feugiat orci, eget accumsan quam scelerisque eu. Sed sapien sem, rhoncus non consectetur nec, fringilla id metus. Experience the ultimate Tokyo-inspired festival stage with full surround laser production and live electronic sets.&#039;,
+      venue: &#039;Impact Arena, Muang Thong Thani&#039;, province: &#039;Nonthaburi&#039;,
+      organizer: &#039;kys show&#039;,
+      gateOpenTime: &#039;16:00&#039;,
+      showTime: &#039;19:00&#039;,
+      saleStartAt: &#039;2026-01-01T00:00:00.000Z&#039;,
+      saleEndAt: &#039;2027-12-31T23:59:59.000Z&#039;,
+      maxTicketsPerUser: 6,
+      allowCancellation: true,
+      refundPolicyPct: 100,
+      rounds: [
+        { id: &#039;rnd-1a&#039;, date: &#039;2026-11-11&#039;, time: &#039;19:00&#039;, label: &#039;11 Nov 2026 • 19:00&#039; },
+        { id: &#039;rnd-1b&#039;, date: &#039;2026-11-12&#039;, time: &#039;19:00&#039;, label: &#039;12 Nov 2026 • 19:00&#039; }
+      ],
+      zones: [
+        { id: &#039;zone-vip&#039;, name: &#039;VIP Stage Front&#039;, color: &#039;#FF0800&#039;, price: 4500, rows: 4, cols: 8 },
+        { id: &#039;zone-a&#039;, name: &#039;Zone A (Monday Blue)&#039;, color: &#039;#1D56CF&#039;, price: 2800, rows: 4, cols: 8 },
+        { id: &#039;zone-b&#039;, name: &#039;Zone B (Standard)&#039;, color: &#039;#0D9488&#039;, price: 1500, rows: 4, cols: 8 }
+      ],
+      createdAt: &#039;2026-09-01T00:00:00.000Z&#039;
+    },
+    {
+      id: &#039;evt-2&#039;,
+      title: &#039;Event #2 : fih Acoustic &amp; Bass Arena Tour&#039;,
+      artist: &#039;fih Ensemble&#039;,
+      category: &#039;Concert&#039;,
+      status: &#039;On Sale&#039;,
+      isFeatured: true,
+      posterUrl: &#039;https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&amp;fit=crop&amp;w=1000&amp;q=80&#039;,
+      galleryUrl: &#039;https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description:
+        &#039;An intimate yet high-energy live concert experience featuring the viral fih tour production. Select your preferred zone and seat directly on our interactive seating chart.&#039;,
+      venue: &#039;Thunder Dome, Nonthaburi&#039;, province: &#039;Nonthaburi&#039;,
+      organizer: &#039;TicketHub Live&#039;,
+      gateOpenTime: &#039;17:00&#039;,
+      showTime: &#039;19:30&#039;,
+      saleStartAt: &#039;2026-01-01T00:00:00.000Z&#039;,
+      saleEndAt: &#039;2027-12-31T23:59:59.000Z&#039;,
+      maxTicketsPerUser: 4,
+      allowCancellation: true,
+      refundPolicyPct: 100,
+      rounds: [
+        { id: &#039;rnd-2a&#039;, date: &#039;2026-11-11&#039;, time: &#039;19:30&#039;, label: &#039;11 Nov 2026 • 19:30&#039; },
+        { id: &#039;rnd-2b&#039;, date: &#039;2026-11-15&#039;, time: &#039;18:00&#039;, label: &#039;15 Nov 2026 • 18:00&#039; }
+      ],
+      zones: [
+        { id: &#039;zone-2-vip&#039;, name: &#039;VIP Ring&#039;, color: &#039;#FF0800&#039;, price: 3500, rows: 3, cols: 8 },
+        { id: &#039;zone-2-std&#039;, name: &#039;Standard Hall&#039;, color: &#039;#1D56CF&#039;, price: 1800, rows: 4, cols: 8 }
+      ],
+      createdAt: &#039;2026-09-05T00:00:00.000Z&#039;
+    },
+    {
+      id: &#039;evt-3&#039;,
+      title: &#039;Global AI &amp; Cloud Architecture Seminar 2026&#039;,
+      artist: &#039;Dr. Arisa &amp; DeepTech Speakers&#039;,
+      category: &#039;Seminar&#039;,
+      status: &#039;On Sale&#039;,
+      isFeatured: true,
+      posterUrl: &#039;https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&amp;fit=crop&amp;w=1000&amp;q=80&#039;,
+      galleryUrl: &#039;https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description:
+        &#039;Full-day technology seminar covering scalable ticketing systems, high-concurrency seat locking, cloud architecture, and AI engineering workshops.&#039;,
+      venue: &#039;Queen Sirikit National Convention Center (QSNCC)&#039;, province: &#039;Bangkok&#039;,
+      organizer: &#039;Thai Tech Guild&#039;,
+      gateOpenTime: &#039;08:30&#039;,
+      showTime: &#039;09:30&#039;,
+      saleStartAt: &#039;2026-01-01T00:00:00.000Z&#039;,
+      saleEndAt: &#039;2027-12-31T23:59:59.000Z&#039;,
+      maxTicketsPerUser: 6,
+      allowCancellation: true,
+      refundPolicyPct: 100,
+      rounds: [
+        { id: &#039;rnd-3a&#039;, date: &#039;2026-11-20&#039;, time: &#039;09:30&#039;, label: &#039;20 Nov 2026 • 09:30&#039; }
+      ],
+      zones: [
+        { id: &#039;zone-3-exec&#039;, name: &#039;Executive Front Row&#039;, color: &#039;#FF0800&#039;, price: 2500, rows: 3, cols: 6 },
+        { id: &#039;zone-3-gen&#039;, name: &#039;General Delegate&#039;, color: &#039;#1D56CF&#039;, price: 1200, rows: 4, cols: 8 }
+      ],
+      createdAt: &#039;2026-09-10T00:00:00.000Z&#039;
+    },
+    {
+      id: &#039;evt-4&#039;,
+      title: &#039;Event #23 : Kawaii Mascot &amp; Plushie Wonderland&#039;,
+      artist: &#039;Blue Cat &amp; Friends&#039;,
+      category: &#039;Concert&#039;,
+      status: &#039;Coming Soon&#039;,
+      isFeatured: false,
+      posterUrl: &#039;https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&amp;fit=crop&amp;w=1000&amp;q=80&#039;,
+      galleryUrl: &#039;https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description:
+        &#039;Upcoming winter showcase and fan-meet concert featuring special stage performances, limited plush collectibles, and interactive fan zones.&#039;,
+      venue: &#039;Siam Paragon Royal Paragon Hall&#039;, province: &#039;Bangkok&#039;,
+      organizer: &#039;Mascot Live Asia&#039;,
+      gateOpenTime: &#039;15:00&#039;,
+      showTime: &#039;17:00&#039;,
+      saleStartAt: &#039;2026-12-01T10:00:00.000Z&#039;,
+      saleEndAt: &#039;2026-12-20T23:59:59.000Z&#039;,
+      maxTicketsPerUser: 4,
+      allowCancellation: true,
+      refundPolicyPct: 100,
+      rounds: [
+        { id: &#039;rnd-4a&#039;, date: &#039;2026-12-21&#039;, time: &#039;17:00&#039;, label: &#039;21 Dec 2026 • 17:00&#039; }
+      ],
+      zones: [
+        { id: &#039;zone-4-vip&#039;, name: &#039;Fan Meet VIP&#039;, color: &#039;#FF0800&#039;, price: 3200, rows: 3, cols: 8 },
+        { id: &#039;zone-4-b&#039;, name: &#039;Zone B&#039;, color: &#039;#1D56CF&#039;, price: 1600, rows: 4, cols: 8 }
+      ],
+      createdAt: &#039;2026-09-15T00:00:00.000Z&#039;
+    },
+    {
+      id: &#039;evt-5&#039;,
+      title: &#039;Design Systems &amp; Product Leadership Seminar&#039;,
+      artist: &#039;UX Collective Southeast Asia&#039;,
+      category: &#039;Seminar&#039;,
+      status: &#039;Coming Soon&#039;,
+      isFeatured: false,
+      posterUrl: &#039;https://images.unsplash.com/photo-1559223607-a43c990c692c?auto=format&amp;fit=crop&amp;w=1000&amp;q=80&#039;,
+      galleryUrl: &#039;https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description:
+        &#039;Deep dive into Figma design tokens, accessible ticketing interfaces, and agile product management for modern engineering teams.&#039;,
+      venue: &#039;True Digital Park Grand Hall&#039;, province: &#039;Bangkok&#039;,
+      organizer: &#039;Designers TH&#039;,
+      gateOpenTime: &#039;12:30&#039;,
+      showTime: &#039;13:30&#039;,
+      saleStartAt: &#039;2026-12-05T10:00:00.000Z&#039;,
+      saleEndAt: &#039;2026-12-21T23:59:59.000Z&#039;,
+      maxTicketsPerUser: 4,
+      allowCancellation: true,
+      refundPolicyPct: 100,
+      rounds: [
+        { id: &#039;rnd-5a&#039;, date: &#039;2026-12-21&#039;, time: &#039;13:30&#039;, label: &#039;21 Dec 2026 • 13:30&#039; }
+      ],
+      zones: [
+        { id: &#039;zone-5-a&#039;, name: &#039;Workshop Pass&#039;, color: &#039;#1D56CF&#039;, price: 1900, rows: 3, cols: 8 }
+      ],
+      createdAt: &#039;2026-09-18T00:00:00.000Z&#039;
+    },
+    {
+      id: &#039;evt-6&#039;,
+      title: &#039;Midnight Symphony Stadium Finale&#039;,
+      artist: &#039;Bangkok Philharmonic &amp; Guests&#039;,
+      category: &#039;Concert&#039;,
+      status: &#039;Sold Out&#039;,
+      isFeatured: false,
+      posterUrl: &#039;https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&amp;fit=crop&amp;w=1000&amp;q=80&#039;,
+      galleryUrl: &#039;https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description:
+        &#039;All seats for the Midnight Symphony Stadium Finale have been sold out. Stay tuned for additional encore dates!&#039;,
+      venue: &#039;Rajamangala National Stadium&#039;, province: &#039;Bangkok&#039;,
+      organizer: &#039;Symphony Live&#039;,
+      gateOpenTime: &#039;16:00&#039;,
+      showTime: &#039;20:00&#039;,
+      saleStartAt: &#039;2026-08-01T00:00:00.000Z&#039;,
+      saleEndAt: &#039;2026-10-20T23:59:59.000Z&#039;,
+      maxTicketsPerUser: 4,
+      allowCancellation: false,
+      refundPolicyPct: 0,
+      rounds: [
+        { id: &#039;rnd-6a&#039;, date: &#039;2026-10-30&#039;, time: &#039;20:00&#039;, label: &#039;30 Oct 2026 • 20:00&#039; }
+      ],
+      zones: [
+        { id: &#039;zone-6-a&#039;, name: &#039;Arena Bowl&#039;, color: &#039;#FF0800&#039;, price: 4000, rows: 3, cols: 6 }
+      ],
+      createdAt: &#039;2026-08-01T00:00:00.000Z&#039;
+    }
+  ];
+
+  const seats = [];
+  for (const evt of events) {
+    seats.push(...buildSeatsForEvent(evt));
+  }
+
+  const bookings = [
+    {
+      id: &#039;bkg-demo-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      eventId: &#039;evt-1&#039;,
+      roundId: &#039;rnd-1a&#039;,
+      seatIds: [&#039;seat-evt-1-rnd-1a-zone-vip-A1&#039;, &#039;seat-evt-1-rnd-1a-zone-vip-A2&#039;],
+      seatNumbers: [&#039;A1&#039;, &#039;A2&#039;],
+      zoneName: &#039;VIP Stage Front&#039;,
+      subtotal: 9000,
+      serviceFee: 80,
+      discountAmount: 0,
+      pointsUsed: 0,
+      pointsEarned: 90,
+      totalAmount: 9080,
+      paymentMethod: &#039;PROMPTPAY&#039;,
+      status: &#039;PAID&#039;,
+      holdExpiresAt: null,
+      createdAt: &#039;2026-10-15T14:20:00.000Z&#039;
+    },
+    {
+      id: &#039;bkg-hist-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      eventId: &#039;evt-2&#039;,
+      roundId: &#039;rnd-2a&#039;,
+      seatIds: [],
+      seatNumbers: [&#039;B1&#039;, &#039;B2&#039;],
+      zoneName: &#039;VIP Ring&#039;,
+      subtotal: 7000,
+      serviceFee: 80,
+      discountAmount: 0,
+      pointsUsed: 0,
+      pointsEarned: 70,
+      totalAmount: 7080,
+      paymentMethod: &#039;CREDIT_CARD&#039;,
+      status: &#039;PAID&#039;,
+      holdExpiresAt: null,
+      createdAt: &#039;2026-07-12T11:00:00.000Z&#039;
+    },
+    {
+      id: &#039;bkg-hist-2&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      eventId: &#039;evt-3&#039;,
+      roundId: &#039;rnd-3a&#039;,
+      seatIds: [],
+      seatNumbers: [&#039;A3&#039;],
+      zoneName: &#039;Executive Front Row&#039;,
+      subtotal: 2500,
+      serviceFee: 40,
+      discountAmount: 0,
+      pointsUsed: 0,
+      pointsEarned: 25,
+      totalAmount: 2540,
+      paymentMethod: &#039;KBANK&#039;,
+      status: &#039;PAID&#039;,
+      holdExpiresAt: null,
+      createdAt: &#039;2026-08-19T16:30:00.000Z&#039;
+    },
+    {
+      id: &#039;bkg-hist-3&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      eventId: &#039;evt-1&#039;,
+      roundId: &#039;rnd-1b&#039;,
+      seatIds: [],
+      seatNumbers: [&#039;C1&#039;, &#039;C2&#039;],
+      zoneName: &#039;Zone A (Monday Blue)&#039;,
+      subtotal: 5600,
+      serviceFee: 80,
+      discountAmount: 0,
+      pointsUsed: 0,
+      pointsEarned: 56,
+      totalAmount: 5680,
+      paymentMethod: &#039;TRUEMONEY&#039;,
+      status: &#039;PAID&#039;,
+      holdExpiresAt: null,
+      createdAt: &#039;2026-09-22T18:15:00.000Z&#039;
+    }
+  ];
+
+  const payments = [
+    {
+      id: &#039;pay-demo-1&#039;,
+      bookingId: &#039;bkg-demo-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      method: &#039;PROMPTPAY&#039;,
+      amount: 9080,
+      referenceCode: &#039;TH-PP-20261015-001&#039;,
+      status: &#039;SUCCESS&#039;,
+      refundAmount: 0,
+      paidAt: &#039;2026-10-15T14:21:00.000Z&#039;,
+      refundedAt: null
+    },
+    {
+      id: &#039;pay-hist-1&#039;,
+      bookingId: &#039;bkg-hist-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      method: &#039;CREDIT_CARD&#039;,
+      amount: 7080,
+      referenceCode: &#039;TH-CC-20260712-002&#039;,
+      status: &#039;SUCCESS&#039;,
+      refundAmount: 0,
+      paidAt: &#039;2026-07-12T11:01:00.000Z&#039;,
+      refundedAt: null
+    },
+    {
+      id: &#039;pay-hist-2&#039;,
+      bookingId: &#039;bkg-hist-2&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      method: &#039;KBANK&#039;,
+      amount: 2540,
+      referenceCode: &#039;TH-KB-20260819-003&#039;,
+      status: &#039;SUCCESS&#039;,
+      refundAmount: 0,
+      paidAt: &#039;2026-08-19T16:31:00.000Z&#039;,
+      refundedAt: null
+    },
+    {
+      id: &#039;pay-hist-3&#039;,
+      bookingId: &#039;bkg-hist-3&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      method: &#039;TRUEMONEY&#039;,
+      amount: 5680,
+      referenceCode: &#039;TH-TM-20260922-004&#039;,
+      status: &#039;SUCCESS&#039;,
+      refundAmount: 0,
+      paidAt: &#039;2026-09-22T18:16:00.000Z&#039;,
+      refundedAt: null
+    }
+  ];
+
+  const tickets = [
+    {
+      id: &#039;tkt-demo-1&#039;,
+      ticketCode: &#039;TKT-FH26-VIP-A1&#039;,
+      bookingId: &#039;bkg-demo-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      eventId: &#039;evt-1&#039;,
+      eventTitle: &#039;Forza Horizon Somethings Live Festival&#039;,
+      venue: &#039;Impact Arena, Muang Thong Thani&#039;,
+      roundId: &#039;rnd-1a&#039;,
+      roundLabel: &#039;11 Nov 2026 • 19:00&#039;,
+      seatId: &#039;seat-evt-1-rnd-1a-zone-vip-A1&#039;,
+      seatNumber: &#039;A1&#039;,
+      zoneName: &#039;VIP Stage Front&#039;,
+      price: 4500,
+      qrPayload: JSON.stringify({
+        ticketCode: &#039;TKT-FH26-VIP-A1&#039;,
+        eventId: &#039;evt-1&#039;,
+        seatNumber: &#039;A1&#039;
+      }),
+      qrDataUrl: &#039;&#039;,
+      status: &#039;VALID&#039;,
+      checkedInAt: null,
+      checkedInBy: null,
+      createdAt: &#039;2026-10-15T14:21:00.000Z&#039;
+    },
+    {
+      id: &#039;tkt-demo-2&#039;,
+      ticketCode: &#039;TKT-FH26-VIP-A2&#039;,
+      bookingId: &#039;bkg-demo-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      eventId: &#039;evt-1&#039;,
+      eventTitle: &#039;Forza Horizon Somethings Live Festival&#039;,
+      venue: &#039;Impact Arena, Muang Thong Thani&#039;,
+      roundId: &#039;rnd-1a&#039;,
+      roundLabel: &#039;11 Nov 2026 • 19:00&#039;,
+      seatId: &#039;seat-evt-1-rnd-1a-zone-vip-A2&#039;,
+      seatNumber: &#039;A2&#039;,
+      zoneName: &#039;VIP Stage Front&#039;,
+      price: 4500,
+      qrPayload: JSON.stringify({
+        ticketCode: &#039;TKT-FH26-VIP-A2&#039;,
+        eventId: &#039;evt-1&#039;,
+        seatNumber: &#039;A2&#039;
+      }),
+      qrDataUrl: &#039;&#039;,
+      status: &#039;VALID&#039;,
+      checkedInAt: null,
+      checkedInBy: null,
+      createdAt: &#039;2026-10-15T14:21:00.000Z&#039;
+    }
+  ];
+
+  const promotions = [
+    {
+      id: &#039;promo-1&#039;,
+      code: &#039;TICKETHUB10&#039;,
+      description: &#039;10% off ticket subtotal on any event&#039;,
+      discountType: &#039;PERCENT&#039;,
+      discountValue: 10,
+      minSpend: 1000,
+      active: true
+    },
+    {
+      id: &#039;promo-2&#039;,
+      code: &#039;WELCOME200&#039;,
+      description: &#039;200 THB instant discount (min spend 1,500 THB)&#039;,
+      discountType: &#039;FIXED&#039;,
+      discountValue: 200,
+      minSpend: 1500,
+      active: true
+    }
+  ];
+
+  const notifications = [
+    {
+      id: &#039;ntf-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      channel: &#039;BOTH&#039;,
+      type: &#039;PAYMENT_SUCCESS&#039;,
+      subject: &#039;Payment Confirmed: Forza Horizon Somethings Live Festival&#039;,
+      message:
+        &#039;Your payment of 9,080 THB via PromptPay was successful. Tickets TKT-FH26-VIP-A1 and TKT-FH26-VIP-A2 are ready in My Tickets.&#039;,
+      emailTo: &#039;user@ticket.com&#039;,
+      isRead: false,
+      createdAt: &#039;2026-10-15T14:21:05.000Z&#039;
+    },
+    {
+      id: &#039;ntf-2&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      channel: &#039;BOTH&#039;,
+      type: &#039;BOOKMARK_ALERT&#039;,
+      subject: &#039;Bookmarked Event Reminder: Kawaii Mascot &amp; Plushie Wonderland&#039;,
+      message:
+        &#039;An event in your Bookmarks (Event #23 : Kawaii Mascot &amp; Plushie Wonderland) opens for sale on 1 Dec 2026 at 10:00.&#039;,
+      emailTo: &#039;user@ticket.com&#039;,
+      isRead: false,
+      createdAt: &#039;2026-10-20T09:00:00.000Z&#039;
+    }
+  ];
+
+  const support = [
+    {
+      id: &#039;sup-1&#039;,
+      userId: &#039;usr-customer-1&#039;,
+      name: &#039;Chanita Chansamrong&#039;,
+      email: &#039;user@ticket.com&#039;,
+      subject: &#039;Question about VIP gate entry time&#039;,
+      category: &#039;Event Inquiry&#039;,
+      message: &#039;Can VIP ticket holders enter 30 minutes before the standard 16:00 gate open time?&#039;,
+      status: &#039;RESOLVED&#039;,
+      adminReply: &#039;Yes! VIP Stage Front ticket holders can access the priority lane starting at 15:30 at Gate 1.&#039;,
+      createdAt: &#039;2026-10-16T10:30:00.000Z&#039;
+    }
+  ];
+
+  return {
+    users,
+    events,
+    categories,
+    seats,
+    bookings,
+    payments,
+    tickets,
+    promotions,
+    notifications,
+    support
+  };
+}
+
+async function ensureTicketQrCodes(store) {
+  const tickets = store.getAll(&#039;tickets&#039;);
+  let updated = false;
+  for (const t of tickets) {
+    if (!t.qrDataUrl) {
+      t.qrDataUrl = await QRCode.toDataURL(t.qrPayload, {
+        width: 280,
+        margin: 1,
+        color: { dark: &#039;#000000&#039;, light: &#039;#FFFFFF&#039; }
+      });
+      updated = true;
+    }
+  }
+  if (updated) {
+    store.save(&#039;tickets&#039;);
+  }
+}
+
+module.exports = {
+  generateSeedData,
+  buildSeatsForEvent,
+  ensureTicketQrCodes
+};
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

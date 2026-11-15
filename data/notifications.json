@@ -20,5 +20,48 @@
     "emailTo": "user@ticket.com",
     "isRead": false,
     "createdAt": "2026-10-20T09:00:00.000Z"
+  },
+  {
+    "id": "ntf-555b058c",
+    "userId": "usr-bd71ef20",
+    "channel": "BOTH",
+    "type": "PAYMENT_SUCCESS",
+    "subject": "Payment Confirmed: Forza Horizon Somethings Live Festival",
+    "message": "Your payment of 4,090 THB via PROMPTPAY was successful. 1 ticket(s) are ready in My Tickets.",
+    "emailTo": "integration.user.1794758596228@example.com",
+    "isRead": false,
+    "createdAt": "2026-11-15T16:03:16.697Z"
+  },
+  {
+    "id": "ntf-ed072e0e",
+    "userId": "usr-bd71ef20",
+    "channel": "BOTH",
+    "type": "PAYMENT_SUCCESS",
+    "subject": "Payment Confirmed: Forza Horizon Somethings Live Festival",
+    "message": "Your payment of 4,340 THB via CREDIT_CARD was successful. 1 ticket(s) are ready in My Tickets.",
+    "emailTo": "integration.user.1794758596228@example.com",
+    "isRead": false,
+    "createdAt": "2026-11-15T16:03:16.758Z"
+  },
+  {
+    "id": "ntf-2e3310dd",
+    "userId": "usr-bd71ef20",
+    "channel": "BOTH",
+    "type": "REFUND",
+    "subject": "Booking Cancelled & Refunded: Forza Horizon Somethings Live Festival",
+    "message": "Your booking bkg-2b0dae6f has been cancelled. A refund of 4,300 THB has been issued to your payment method (Service fee of 40 THB was non-refundable).",
+    "emailTo": "integration.user.1794758596228@example.com",
+    "isRead": false,
+    "createdAt": "2026-11-15T16:03:16.770Z"
+  },
+  {
+    "id": "ntf-bc8962f9",
+    "userId": "usr-bd71ef20",
+    "channel": "BOTH",
+    "type": "SUPPORT_REPLY",
+    "subject": "Response to your inquiry: Question regarding parking facilities",
+    "message": "Admin reply: \"Yes, VIP tickets include complimentary parking at P1.\"",
+    "isRead": false,
+    "createdAt": "2026-11-15T16:03:16.800Z"
   }
 ]

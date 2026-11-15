@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/controllers/event.controller.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/controllers/event.controller.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">49.66</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">639</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">85.33</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">8.52</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const bcrypt = require(&#039;bcryptjs&#039;);
+const {
+  EventModel,
+  CategoryModel,
+  SeatModel,
+  UserModel,
+  BookingModel,
+  NotificationModel
+} = require(&#039;../models&#039;);
+const { store } = require(&#039;../store/jsonStore&#039;);
+const { getAllTemplates } = require(&#039;../store/seatTemplates&#039;);
+const { cancelAndRefundBooking } = require(&#039;./booking.controller&#039;);
+
+// In-memory tracker for failed delete password attempts (per-admin rate throttle: 5 failed attempts in 10 minutes)
+const failedDeleteAttempts = new Map(); // key: String(adminId) or `${adminId}:${eventId}` -&gt; Array&lt;number&gt; timestamps
+
+function isDeleteRateThrottled(adminId, eventId) {
+  if (!adminId) return false;
+  const key = eventId ? `${adminId}:${eventId}` : String(adminId);
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000; // 10 minutes
+  const timestamps = (failedDeleteAttempts.get(key) || []).filter((ts) =&gt; now - ts &lt; windowMs);
+  failedDeleteAttempts.set(key, timestamps);
+  return timestamps.length &gt;= 5;
+}
+
+function recordDeleteFailedAttempt(adminId, eventId) {
+  if (!adminId) return;
+  const key = eventId ? `${adminId}:${eventId}` : String(adminId);
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000;
+  const timestamps = (failedDeleteAttempts.get(key) || []).filter((ts) =&gt; now - ts &lt; windowMs);
+  timestamps.push(now);
+  failedDeleteAttempts.set(key, timestamps);
+}
+
+function clearDeleteFailedAttempts(adminId, eventId) {
+  if (adminId &amp;&amp; eventId) {
+    failedDeleteAttempts.delete(`${adminId}:${eventId}`);
+  } else if (adminId) {
+    for (const k of failedDeleteAttempts.keys()) {
+      if (k === String(adminId) || k.startsWith(`${adminId}:`)) {
+        failedDeleteAttempts.delete(k);
+      }
+    }
+  } else {
+    failedDeleteAttempts.clear();
+  }
+}
+
+// Hook into store.resetWithSeed to clear throttle when test resets database
+const origResetWithSeed = store.resetWithSeed.bind(store);
+store.resetWithSeed = function (...args) {
+  failedDeleteAttempts.clear();
+  return origResetWithSeed(...args);
+};
+
+const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+/**
+ * Validates event creation or update payload against strict invariants:
+ * - Category must exist in the admin-managed category list
+ * - Hex colors must match /^#[0-9a-fA-F]{6}$/
+ * - Prices must be finite numbers &gt;= 0 (0 allowed)
+ * - Seat capacity cap: &lt;= 2000 seats per zone
+ * - Seat coordinates x, y must be numeric
+ * - Unique seat labels per zone
+ */
+function validateEventPayload(payload, { isUpdate = false } = {}) {
+  if (!payload || typeof payload !== &#039;object&#039; || Array.isArray(payload)) {
+    return { valid: false, error: &#039;Event payload must be a JSON object.&#039; };
+  }
+
+  // 1. Title validation
+  if (!isUpdate || payload.title !== undefined) {
+    if (!payload.title || typeof payload.title !== &#039;string&#039; || !payload.title.trim()) {
+      return { valid: false, error: &#039;Event title is required.&#039; };
+    }
+  }
+
+  // 2. Category validation
+  if (!isUpdate || payload.category !== undefined) {
+    if (typeof payload.category !== &#039;string&#039; || !CategoryModel.findByName(payload.category)) {
+      return { valid: false, error: &#039;Category must be selected from the available categories.&#039; };
+    }
+  }
+
+  // 3. Venue validation
+  if (!isUpdate || payload.venue !== undefined) {
+    if (!payload.venue || typeof payload.venue !== &#039;string&#039; || !payload.venue.trim()) {
+      return { valid: false, error: &#039;Venue is required.&#039; };
+    }
+  }
+
+  // 3.1 Province validation (optional free text, max 100 characters)
+  if (payload.province !== undefined &amp;&amp; payload.province !== null) {
+    if (typeof payload.province !== &#039;string&#039;) {
+      return { valid: false, error: &#039;Province must be a string.&#039; };
+    }
+    if (payload.province.trim().length &gt; 100) {
+      return { valid: false, error: &#039;Province must be 100 characters or fewer.&#039; };
+    }
+  }
+
+  // 4. Rounds validation
+  if (!isUpdate || payload.rounds !== undefined) {
+    if (!Array.isArray(payload.rounds) || payload.rounds.length === 0) {
+      return { valid: false, error: &#039;At least one round is required.&#039; };
+    }
+    for (const r of payload.rounds) {
+      if (!r || typeof r !== &#039;object&#039;) {
+        return { valid: false, error: &#039;Invalid round format.&#039; };
+      }
+    }
+  }
+
+  // 5. Zones validation
+  if (!isUpdate || payload.zones !== undefined) {
+    if (!Array.isArray(payload.zones) || payload.zones.length === 0) {
+      return { valid: false, error: &#039;At least one zone configuration is required.&#039; };
+    }
+
+    for (let i = 0; i &lt; payload.zones.length; i++) {
+      const z = payload.zones[i];
+      if (!z || typeof z !== &#039;object&#039;) {
+        return { valid: false, error: `Zone at index ${i} is invalid.` };
+      }
+
+      // Zone name
+      if (!isUpdate || z.name !== undefined) {
+        if (!z.name || typeof z.name !== &#039;string&#039; || !z.name.trim()) {
+          return { valid: false, error: `Zone name is required for zone ${i + 1}.` };
+        }
+      }
+
+      // Zone color: must match /^#[0-9a-fA-F]{6}$/
+      if (z.color !== undefined &amp;&amp; z.color !== null) {
+        if (typeof z.color !== &#039;string&#039; || !HEX_COLOR_REGEX.test(z.color.trim())) {
+          return { valid: false, error: `Zone color &quot;${z.color}&quot; must be a valid 6-character hex code (e.g. #1D56CF).` };
+        }
+      }
+
+      // Zone price: non-negative finite number (0 allowed)
+      if (z.price !== undefined &amp;&amp; z.price !== null) {
+        if (typeof z.price === &#039;string&#039; &amp;&amp; isNaN(Number(z.price))) {
+          return { valid: false, error: `Zone price &quot;${z.price}&quot; must be a valid non-negative number.` };
+        }
+        const p = Number(z.price);
+        if (!Number.isFinite(p) || p &lt; 0) {
+          return { valid: false, error: &#039;Zone price must be a valid non-negative number.&#039; };
+        }
+      }
+
+      // Capacity &amp; Seat Layout
+      if (Array.isArray(z.seats) &amp;&amp; z.seats.length &gt; 0) {
+        if (z.seats.length &gt; 2000) {
+          return { valid: false, error: `Zone &quot;${z.name || i + 1}&quot; exceeds maximum capacity of 2000 seats.` };
+        }
+
+        const labelSet = new Set();
+        for (const s of z.seats) {
+          if (!s || typeof s !== &#039;object&#039;) {
+            return { valid: false, error: &#039;Invalid seat object in zone.&#039; };
+          }
+          const label = String(s.label || s.seatNumber || &#039;&#039;).trim();
+          if (!label) {
+            return { valid: false, error: &#039;Seat label is required.&#039; };
+          }
+          if (labelSet.has(label)) {
+            return { valid: false, error: `Duplicate seat label &quot;${label}&quot; in zone &quot;${z.name}&quot;.` };
+          }
+          labelSet.add(label);
+
+          if (s.x !== undefined &amp;&amp; s.x !== null) {
+            if ((typeof s.x === &#039;string&#039; &amp;&amp; isNaN(Number(s.x))) || !Number.isFinite(Number(s.x))) {
+              return { valid: false, error: &#039;Seat coordinates x and y must be numeric.&#039; };
+            }
+          }
+          if (s.y !== undefined &amp;&amp; s.y !== null) {
+            if ((typeof s.y === &#039;string&#039; &amp;&amp; isNaN(Number(s.y))) || !Number.isFinite(Number(s.y))) {
+              return { valid: false, error: &#039;Seat coordinates x and y must be numeric.&#039; };
+            }
+          }
+          if (s.color) {
+            if (typeof s.color !== &#039;string&#039; || !HEX_COLOR_REGEX.test(s.color.trim())) {
+              return { valid: false, error: &#039;Seat color override must be a valid 6-character hex code.&#039; };
+            }
+          }
+        }
+      } else {
+        // Matrix mode
+        const rows = z.rows !== undefined ? Number(z.rows) : 4;
+        const cols = z.cols !== undefined ? Number(z.cols) : 8;
+        if (!Number.isFinite(rows) || rows &lt; 1 || !Number.isFinite(cols) || cols &lt; 1) {
+          return { valid: false, error: &#039;Rows and columns must be positive numbers.&#039; };
+        }
+        if (rows * cols &gt; 2000) {
+          return { valid: false, error: `Zone &quot;${z.name || i + 1}&quot; exceeds maximum capacity of 2000 seats.` };
+        }
+        if (z.originX !== undefined &amp;&amp; z.originX !== null &amp;&amp; !Number.isFinite(Number(z.originX))) {
+          return { valid: false, error: &#039;originX must be numeric.&#039; };
+        }
+        if (z.originY !== undefined &amp;&amp; z.originY !== null &amp;&amp; !Number.isFinite(Number(z.originY))) {
+          return { valid: false, error: &#039;originY must be numeric.&#039; };
+        }
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Detects whether incoming zones or rounds represent a structural layout modification.
+ * Changing price, color, or name is non-structural.
+ * Changing rows, cols, originX/Y, seat coordinates/labels, or zone/round structure is structural.
+ *
+ * Supports both signatures:
+ * - isLayoutModified(existingEvent, updates)
+ * - isLayoutModified(existingZones, incomingZones)
+ */
+function isLayoutModified(existing = [], incoming = []) {
+  let existingZones = existing;
+  let incomingZones = incoming;
+
+  // Handle event object signature: isLayoutModified(existingEvent, updates)
+  if (existing &amp;&amp; !Array.isArray(existing) &amp;&amp; typeof existing === &#039;object&#039;) {
+    const existingEvent = existing;
+    const updates = incoming || {};
+
+    // 1. Check round structural changes if incoming payload includes rounds
+    if (Array.isArray(updates.rounds)) {
+      const er = Array.isArray(existingEvent.rounds) ? existingEvent.rounds : [];
+      if (updates.rounds.length !== er.length) return true;
+      for (let i = 0; i &lt; updates.rounds.length; i++) {
+        const ur = updates.rounds[i];
+        const existingRound = er[i];
+        if (!ur || !existingRound) return true;
+        if (!ur.id || ur.id !== existingRound.id) return true;
+      }
+    }
+
+    // If incoming payload does not specify zones, and rounds were unchanged, layout is not modified
+    if (!Array.isArray(updates.zones)) {
+      return false;
+    }
+
+    existingZones = existingEvent.zones || [];
+    incomingZones = updates.zones;
+  }
+
+  if (!Array.isArray(incomingZones)) return false;
+  if (!Array.isArray(existingZones)) return true;
+
+  // 2. Zone count modification (omission, reduction, addition) is structural
+  if (incomingZones.length !== existingZones.length) return true;
+
+  const existingIdMap = new Map();
+  const existingNameMap = new Map();
+  for (const ez of existingZones) {
+    if (ez &amp;&amp; ez.id) existingIdMap.set(ez.id, ez);
+    if (ez &amp;&amp; ez.name) existingNameMap.set(ez.name, ez);
+  }
+
+  const matchedExistingKeys = new Set();
+  for (let i = 0; i &lt; incomingZones.length; i++) {
+    const iz = incomingZones[i];
+    if (!iz || typeof iz !== &#039;object&#039;) return true;
+
+    // Strict lookup: match strictly by ID or Name. Positional index fallback is unsafe and forbidden.
+    const ez = (iz.id &amp;&amp; existingIdMap.get(iz.id)) || (iz.name &amp;&amp; existingNameMap.get(iz.name));
+    if (!ez) return true;
+
+    const ezKey = ez.id || ez.name;
+    if (matchedExistingKeys.has(ezKey)) return true;
+    matchedExistingKeys.add(ezKey);
+
+    const izLayout = iz.layout || (Array.isArray(iz.seats) &amp;&amp; iz.seats.length &gt; 0 ? &#039;custom&#039; : &#039;matrix&#039;);
+    const ezLayout = ez.layout || (Array.isArray(ez.seats) &amp;&amp; ez.seats.length &gt; 0 ? &#039;custom&#039; : &#039;matrix&#039;);
+    if (izLayout !== ezLayout) return true;
+
+    const izRows = iz.rows !== undefined ? Number(iz.rows) : Number(ez.rows || 4);
+    const ezRows = ez.rows !== undefined ? Number(ez.rows) : 4;
+    if (izRows !== ezRows) return true;
+
+    const izCols = iz.cols !== undefined ? Number(iz.cols) : Number(ez.cols || 8);
+    const ezCols = ez.cols !== undefined ? Number(ez.cols) : 8;
+    if (izCols !== ezCols) return true;
+
+    const izOriginX = Number(iz.originX || 0);
+    const ezOriginX = Number(ez.originX || 0);
+    if (Math.abs(izOriginX - ezOriginX) &gt; 0.001) return true;
+
+    const izOriginY = Number(iz.originY || 0);
+    const ezOriginY = Number(ez.originY || 0);
+    if (Math.abs(izOriginY - ezOriginY) &gt; 0.001) return true;
+
+    const izSeats = Array.isArray(iz.seats) ? iz.seats : [];
+    const ezSeats = Array.isArray(ez.seats) ? ez.seats : [];
+
+    if (izSeats.length !== ezSeats.length) return true;
+
+    if (izSeats.length &gt; 0) {
+      const ezSeatMap = new Map();
+      for (const s of ezSeats) {
+        if (s &amp;&amp; typeof s === &#039;object&#039;) {
+          ezSeatMap.set(String(s.label || s.seatNumber).trim(), s);
+        }
+      }
+      for (const s of izSeats) {
+        if (!s || typeof s !== &#039;object&#039;) return true;
+        const label = String(s.label || s.seatNumber).trim();
+        const matched = ezSeatMap.get(label);
+        if (!matched) return true;
+        if (Math.abs(Number(s.x || 0) - Number(matched.x || 0)) &gt; 0.001) return true;
+        if (Math.abs(Number(s.y || 0) - Number(matched.y || 0)) &gt; 0.001) return true;
+      }
+    }
+  }
+
+  if (matchedExistingKeys.size !== existingZones.length) return true;
+
+  return false;
+}
+
+function notifyEventChanges(existing, updated, updates) {
+  const dateOrVenueChanged =
+    (updates.venue &amp;&amp; updates.venue !== existing.venue) ||
+    (updates.showTime &amp;&amp; updates.showTime !== existing.showTime) ||
+    (updates.rounds &amp;&amp; JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds));
+
+  // FR-34: Dispatches notification to users when event details change
+  if (dateOrVenueChanged) {
+    const bookings = BookingModel.findPaidByEventId(existing.id);
+    const userIds = Array.from(new Set(bookings.map((b) =&gt; b.userId)));
+    for (const uid of userIds) {
+      NotificationModel.create({
+        userId: uid,
+        channel: &#039;BOTH&#039;,
+        type: &#039;EVENT_CHANGE&#039;,
+        subject: `Update on ${updated.title}`,
+        message: `Important update regarding ${updated.title}: Venue is now &quot;${updated.venue}&quot;, showtime &quot;${updated.showTime}&quot;. Please review your ticket details.`
+      });
+    }
+  }
+
+  // FR-37: Bookmark notification if status moved to &#039;On Sale&#039;
+  if (existing.status !== &#039;On Sale&#039; &amp;&amp; updated.status === &#039;On Sale&#039;) {
+    const allUsers = UserModel.findAll();
+    for (const u of allUsers) {
+      if ((u.bookmarks || []).includes(updated.id)) {
+        NotificationModel.create({
+          userId: u.id,
+          channel: &#039;BOTH&#039;,
+          type: &#039;BOOKMARK_ALERT&#039;,
+          subject: `Tickets Now On Sale: ${updated.title}`,
+          message: `Great news! &quot;${updated.title}&quot; has opened ticket sales. Book your seats now!`
+        });
+      }
+    }
+  }
+}
+
+/**
+ * FR-06, FR-07, FR-08, FR-09, FR-10: List, search, filter, popular events
+ * GET /api/events
+ * Query: search, category, status, artist, date, featured, saleActive,
+ *        province, location, month (YYYY-MM | 1-12), sort (price_asc | price_desc)
+ */
+function listEvents(req, res) {
+  const { sort, month } = req.query;
+  if (sort !== undefined &amp;&amp; sort !== &#039;&#039; &amp;&amp; !EventModel.SORT_OPTIONS.includes(String(sort))) {
+    return res.status(400).json({
+      error: `Invalid sort option. Allowed values: ${EventModel.SORT_OPTIONS.join(&#039;, &#039;)}.`
+    });
+  }
+  if (month !== undefined &amp;&amp; month !== &#039;&#039; &amp;&amp; !EventModel.isValidMonth(month)) {
+    return res.status(400).json({
+      error: &#039;Invalid month. Use YYYY-MM (e.g. 2026-11) or a month number 1-12.&#039;
+    });
+  }
+
+  SeatModel.expireHeldSeats();
+  const list = EventModel.findAll(req.query);
+  const userBookmarks = req.user &amp;&amp; req.user.bookmarks ? req.user.bookmarks : [];
+
+  const results = list.map((e) =&gt; {
+    const roundAvailability = (e.rounds || []).map((r) =&gt; ({
+      roundId: r.id,
+      date: r.date,
+      time: r.time,
+      label: r.label,
+      zones: SeatModel.getZoneSeatAvailability(e.id, r.id)
+    }));
+
+    let totalSeats = 0;
+    let totalAvailableSeats = 0;
+    let totalBookedSeats = 0;
+    let totalHeldSeats = 0;
+
+    for (const r of roundAvailability) {
+      for (const z of (r.zones || [])) {
+        totalSeats += (z.totalSeats || 0);
+        totalAvailableSeats += (z.availableSeats || 0);
+        totalBookedSeats += (z.bookedSeats || 0);
+        totalHeldSeats += (z.heldSeats || 0);
+      }
+    }
+
+    return {
+      ...e,
+      isBookmarked: userBookmarks.includes(e.id),
+      totalSeats,
+      totalAvailableSeats,
+      totalBookedSeats,
+      totalHeldSeats,
+      roundsSummary: roundAvailability
+    };
+  });
+
+  return res.json({
+    total: results.length,
+    events: results
+  });
+}
+
+/**
+ * FR-12, FR-20: Event Details with Zone Availability
+ * GET /api/events/:id
+ */
+function getEventById(req, res) {
+  SeatModel.expireHeldSeats();
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  const userBookmarks = req.user &amp;&amp; req.user.bookmarks ? req.user.bookmarks : [];
+  const roundsWithZones = (event.rounds || []).map((r) =&gt; ({
+    ...r,
+    zones: SeatModel.getZoneSeatAvailability(event.id, r.id)
+  }));
+
+  const isSaleOpen = EventModel.isSaleOpen(event);
+
+  return res.json({
+    event: {
+      ...event,
+      isBookmarked: userBookmarks.includes(event.id),
+      isSaleOpen,
+      rounds: roundsWithZones
+    }
+  });
+}
+
+/**
+ * FR-11: Bookmark / Unbookmark Event
+ * POST /api/events/:id/bookmark
+ */
+function toggleBookmark(req, res) {
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  const result = UserModel.toggleBookmark(req.user.id, event.id);
+
+  return res.json({
+    message: result.isBookmarked ? &#039;Event bookmarked&#039; : &#039;Event removed from bookmarks&#039;,
+    isBookmarked: result.isBookmarked,
+    bookmarks: result.bookmarks
+  });
+}
+
+/**
+ * F-04: Seat Templates Catalog Presets API
+ * GET /api/events/templates
+ */
+function getTemplates(_req, res) {
+  const templates = getAllTemplates();
+  return res.json({ templates });
+}
+
+/**
+ * FR-13, FR-48: Create Event (Admin)
+ * POST /api/events
+ */
+function createEvent(req, res) {
+  const validation = validateEventPayload(req.body, { isUpdate: false });
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+
+  const payload = { ...req.body };
+  if (payload.category) {
+    payload.category = CategoryModel.findByName(payload.category).name;
+  }
+
+  const newEvent = EventModel.create(payload);
+  const seats = SeatModel.generateForEvent(newEvent);
+
+  return res.status(201).json({
+    message: &#039;Event and seating layout created successfully&#039;,
+    event: newEvent,
+    totalSeatsGenerated: seats.length
+  });
+}
+
+/**
+ * FR-14, FR-34, FR-37, FR-48: Edit Event (Admin)
+ * PUT /api/events/:id
+ */
+function updateEvent(req, res) {
+  const existing = EventModel.findById(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  const validation = validateEventPayload(req.body, { isUpdate: true });
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+
+  const updates = { ...req.body };
+  delete updates.id;
+
+  if (updates.category) {
+    updates.category = CategoryModel.findByName(updates.category).name;
+  }
+
+  const hasZones = Array.isArray(updates.zones);
+  const layoutModified = isLayoutModified(existing, updates);
+
+  if (layoutModified) {
+    if (SeatModel.hasNonAvailableSeats(existing.id)) {
+      return res.status(409).json({
+        error: &#039;Cannot modify seating layout while active bookings or seat holds exist.&#039;,
+        code: &#039;LAYOUT_LOCKED&#039;
+      });
+    }
+
+    const updated = EventModel.update(existing.id, updates);
+    SeatModel.regenerateForEvent(updated, updates.zones);
+
+    notifyEventChanges(existing, updated, updates);
+
+    return res.json({
+      message: &#039;Event updated successfully&#039;,
+      event: updated
+    });
+  }
+
+  const updated = EventModel.update(existing.id, updates);
+
+  if (hasZones) {
+    SeatModel.propagateZoneUpdates(existing.id, updates.zones);
+  }
+
+  notifyEventChanges(existing, updated, updates);
+
+  return res.json({
+    message: &#039;Event updated successfully&#039;,
+    event: updated
+  });
+}
+
+/**
+ * FR-15, F-08, F-09, F-10: Password-Verified Delete Event with Rate Throttle and Auto-Refund (Admin)
+ * DELETE /api/events/:id
+ */
+async function deleteEvent(req, res) {
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  const { password } = req.body || {};
+  if (!password || typeof password !== &#039;string&#039; || password.trim().length === 0) {
+    return res.status(400).json({
+      error: &#039;Administrator password is required.&#039;
+    });
+  }
+
+  const adminId = req.user.id;
+  if (isDeleteRateThrottled(adminId, event.id)) {
+    return res.status(429).json({
+      error: &#039;Too many failed verification attempts. Please try again later.&#039;
+    });
+  }
+
+  const adminUser = UserModel.findById(adminId);
+  if (!adminUser || !adminUser.passwordHash) {
+    return res.status(401).json({ error: &#039;Administrator credentials not found.&#039; });
+  }
+
+  const isMatch = await bcrypt.compare(password, adminUser.passwordHash);
+  if (!isMatch) {
+    recordDeleteFailedAttempt(adminId, event.id);
+    return res.status(403).json({
+      error: &#039;Invalid administrator password.&#039;,
+      code: &#039;INVALID_PASSWORD&#039;
+    });
+  }
+
+  clearDeleteFailedAttempts(adminId, event.id);
+
+  // Auto-cancel and refund all bookings for this event (F-10)
+  const bookings = BookingModel.findByEventId(event.id);
+  let refundedBookingsCount = 0;
+
+  for (const b of bookings) {
+    if (b.status === &#039;PAID&#039;) {
+      cancelAndRefundBooking(b, { reason: &#039;EVENT_CANCELLED&#039; });
+      refundedBookingsCount++;
+    } else if (b.status === &#039;PENDING&#039;) {
+      cancelAndRefundBooking(b, { reason: &#039;EVENT_CANCELLED&#039; });
+    }
+  }
+
+  SeatModel.removeByEvent(event.id);
+  EventModel.remove(event.id);
+
+  return res.json({
+    message: &#039;Event and seat records deleted successfully.&#039;,
+    refundedBookingsCount
+  });
+}
+
+module.exports = {
+  listEvents,
+  getEventById,
+  toggleBookmark,
+  getTemplates,
+  validateEventPayload,
+  isLayoutModified,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  clearDeleteFailedAttempts
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

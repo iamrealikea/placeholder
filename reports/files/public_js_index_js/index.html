@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/index.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/index.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">68.84</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">194</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">31.45</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">2.36</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Home Page Controller (public/js/index.js)
+ * Loads featured hero, popular events carousel, and upcoming/other events carousel,
+ * and manages search, filtering, and sorting.
+ */
+
+document.addEventListener(&#039;DOMContentLoaded&#039;, async () =&gt; {
+  const heroBanner = document.getElementById(&#039;heroBanner&#039;);
+  const heroBgImg = document.getElementById(&#039;heroBgImg&#039;);
+  const popularContainer = document.getElementById(&#039;popularContainer&#039;);
+  const soonContainer = document.getElementById(&#039;soonContainer&#039;);
+  const searchInput = document.getElementById(&#039;searchInput&#039;);
+  const categoryFilter = document.getElementById(&#039;categoryFilter&#039;);
+  const statusFilter = document.getElementById(&#039;statusFilter&#039;);
+  const provinceFilter = document.getElementById(&#039;provinceFilter&#039;);
+  const monthFilter = document.getElementById(&#039;monthFilter&#039;);
+  const sortFilter = document.getElementById(&#039;sortFilter&#039;);
+  const resetFilters = document.getElementById(&#039;resetFilters&#039;);
+
+  const MONTH_NAMES = [
+    &#039;January&#039;, &#039;February&#039;, &#039;March&#039;, &#039;April&#039;, &#039;May&#039;, &#039;June&#039;,
+    &#039;July&#039;, &#039;August&#039;, &#039;September&#039;, &#039;October&#039;, &#039;November&#039;, &#039;December&#039;
+  ];
+  const DEFAULT_HERO_BG = &#039;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=1920&amp;q=80&#039;;
+
+  let requestSeq = 0;
+  let searchTimer = null;
+
+  function populateFilterOptions(events, categories) {
+    EventCard.populateSelectOptions(events, categories, {
+      categoryEl: categoryFilter,
+      provinceEl: provinceFilter
+    });
+
+    if (monthFilter) {
+      const months = new Set();
+      events.forEach((e) =&gt; (e.rounds || []).forEach((r) =&gt; {
+        if (r &amp;&amp; /^\d{4}-\d{2}/.test(r.date || &#039;&#039;)) months.add(r.date.slice(0, 7));
+      }));
+      monthFilter.innerHTML =
+        &#039;&lt;option value=&quot;&quot;&gt;Any Month&lt;/option&gt;&#039; +
+        Array.from(months).sort().map((ym) =&gt; {
+          const [y, m] = ym.split(&#039;-&#039;);
+          return `&lt;option value=&quot;${EventCard.esc(ym)}&quot;&gt;${MONTH_NAMES[Number(m) - 1]} ${EventCard.esc(y)}&lt;/option&gt;`;
+        }).join(&#039;&#039;);
+    }
+  }
+
+  function buildFilterParams() {
+    return {
+      search: (searchInput.value || &#039;&#039;).trim(),
+      category: categoryFilter.value,
+      status: statusFilter.value,
+      province: provinceFilter ? provinceFilter.value : &#039;&#039;,
+      month: monthFilter ? monthFilter.value : &#039;&#039;,
+      sort: sortFilter ? sortFilter.value : &#039;&#039;
+    };
+  }
+
+  function renderFeaturedHero(events) {
+    if (!heroBanner) return;
+    const featured = events.find((e) =&gt; e.isFeatured) || events[0];
+    if (!featured) return;
+
+    const round = (featured.rounds &amp;&amp; featured.rounds[0]) || {};
+    const dateStr = round.date ? `${round.date} • ${round.time || &#039;&#039;}` : &#039;Upcoming 2026&#039;;
+    const bgImage = EventCard.safeImg(featured.posterUrl, DEFAULT_HERO_BG);
+
+    if (heroBgImg) heroBgImg.src = bgImage;
+
+    heroBanner.innerHTML = `
+      &lt;div class=&quot;hero-top&quot;&gt;
+        &lt;span class=&quot;badge-pill-red&quot;&gt;Feature Event&lt;/span&gt;
+        &lt;button type=&quot;button&quot; class=&quot;btn-icon hero-bookmark-btn&quot; data-bookmark-id=&quot;${EventCard.esc(featured.id)}&quot;
+          title=&quot;Bookmark event&quot; aria-label=&quot;Bookmark ${EventCard.esc(featured.title)}&quot;&gt;
+          ${EventCard.heartMarkup(Boolean(featured.isBookmarked))}
+        &lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;hero-content&quot;&gt;
+        &lt;h1 class=&quot;hero-title&quot;&gt;${EventCard.esc(featured.title)}&lt;/h1&gt;
+        &lt;p class=&quot;hero-desc&quot;&gt;${EventCard.esc((featured.description || &#039;&#039;).slice(0, 150))}...&lt;/p&gt;
+        &lt;div class=&quot;hero-meta&quot;&gt;
+          &lt;span&gt;&lt;i class=&quot;fa-solid fa-location-dot c-blue mr-4&quot;&gt;&lt;/i&gt; ${EventCard.esc(featured.venue || &#039;Bangkok Arena&#039;)}&lt;/span&gt;
+          &lt;span&gt;•&lt;/span&gt;
+          &lt;span&gt;&lt;i class=&quot;fa-solid fa-calendar-days mr-4&quot;&gt;&lt;/i&gt; ${EventCard.esc(dateStr)}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;hero-bottom&quot;&gt;
+        &lt;a href=&quot;/event?id=${encodeURIComponent(featured.id)}&quot; class=&quot;btn-pill-red fs-11 p-12-32&quot;&gt;
+          Buy Now
+        &lt;/a&gt;
+      &lt;/div&gt;
+    `;
+
+    EventCard.bindBookmarkButtons(heroBanner);
+  }
+
+  function renderCarouselSection(container, events, emptyMsg, cardOptions) {
+    if (!container) return;
+    if (events.length === 0) {
+      container.innerHTML = `&lt;p class=&quot;empty-events-msg&quot;&gt;${EventCard.esc(emptyMsg)}&lt;/p&gt;`;
+      return;
+    }
+
+    container.innerHTML = events.map((e) =&gt; EventCard.renderCard(e, cardOptions(e))).join(&#039;&#039;);
+    EventCard.bindBookmarkButtons(container);
+  }
+
+  async function filterAndRenderEvents() {
+    const seq = ++requestSeq;
+    try {
+      const res = await API.events.list(buildFilterParams());
+      if (seq !== requestSeq) return;
+      const events = (res &amp;&amp; res.events) || [];
+
+      const popular = events.filter((e) =&gt; e.status === &#039;On Sale&#039; || e.isFeatured);
+      const soon = events.filter((e) =&gt; e.status !== &#039;On Sale&#039;);
+
+      renderCarouselSection(popularContainer, popular, &#039;No popular events match your search criteria.&#039;, (e) =&gt; ({
+        layout: &#039;home&#039;,
+        variant: &#039;popular&#039;,
+        ctaText: e.status === &#039;On Sale&#039; ? &#039;Buy Now&#039; : (e.status || &#039;View&#039;)
+      }));
+
+      renderCarouselSection(soonContainer, soon, &#039;No upcoming events in this category.&#039;, (e) =&gt; ({
+        layout: &#039;home&#039;,
+        variant: &#039;soon&#039;,
+        ctaText: e.status === &#039;Coming Soon&#039; ? &#039;Soon&#039; : (e.status || &#039;View&#039;),
+        preferPoster: true
+      }));
+    } catch (err) {
+      if (seq !== requestSeq) return;
+      console.error(&#039;Failed to filter events:&#039;, err);
+      const msg = &#039;&lt;p class=&quot;empty-events-msg&quot;&gt;Unable to load events. Please try again.&lt;/p&gt;&#039;;
+      if (popularContainer) popularContainer.innerHTML = msg;
+      if (soonContainer) soonContainer.innerHTML = msg;
+    }
+  }
+
+  try {
+    const [res, categoryRes] = await Promise.all([
+      API.events.list(),
+      API.categories.list()
+    ]);
+    const allEvents = (res &amp;&amp; res.events) || [];
+    renderFeaturedHero(allEvents);
+    populateFilterOptions(allEvents, (categoryRes &amp;&amp; categoryRes.categories) || []);
+    await filterAndRenderEvents();
+  } catch (err) {
+    console.error(&#039;Failed to load events:&#039;, err);
+  }
+
+  searchInput.addEventListener(&#039;input&#039;, () =&gt; {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(filterAndRenderEvents, 250);
+  });
+
+  [categoryFilter, statusFilter, provinceFilter, monthFilter, sortFilter].forEach((el) =&gt; {
+    if (el) el.addEventListener(&#039;change&#039;, () =&gt; filterAndRenderEvents());
+  });
+
+  if (resetFilters) {
+    resetFilters.addEventListener(&#039;click&#039;, () =&gt; {
+      searchInput.value = &#039;&#039;;
+      [categoryFilter, statusFilter, provinceFilter, monthFilter, sortFilter].forEach((el) =&gt; {
+        if (el) el.value = &#039;&#039;;
+      });
+      filterAndRenderEvents();
+    });
+  }
+
+  const navSearchTrigger = document.getElementById(&#039;navSearchTrigger&#039;);
+  if (navSearchTrigger &amp;&amp; searchInput) {
+    navSearchTrigger.addEventListener(&#039;click&#039;, () =&gt; {
+      searchInput.focus();
+      searchInput.scrollIntoView({ behavior: &#039;smooth&#039;, block: &#039;center&#039; });
+    });
+  }
+
+  document.querySelectorAll(&#039;.carousel-btn&#039;).forEach((btn) =&gt; {
+    btn.addEventListener(&#039;click&#039;, () =&gt; {
+      const container = document.getElementById(btn.dataset.target);
+      if (container) {
+        const firstCard = container.querySelector(&#039;.card-home, .card-popular, .card-soon&#039;);
+        const step = firstCard ? firstCard.offsetWidth + 24 : 444;
+        container.scrollBy({
+          left: btn.dataset.direction === &#039;left&#039; ? -step : step,
+          behavior: &#039;smooth&#039;
+        });
+      }
+    });
+  });
+});
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

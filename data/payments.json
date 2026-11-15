@@ -46,5 +46,30 @@
     "refundAmount": 0,
     "paidAt": "2026-09-22T18:16:00.000Z",
     "refundedAt": null
+  },
+  {
+    "id": "pay-c7e31eed",
+    "bookingId": "bkg-c82a2e00",
+    "userId": "usr-bd71ef20",
+    "method": "PROMPTPAY",
+    "amount": 4090,
+    "referenceCode": "TH-PR-1794758596649",
+    "status": "SUCCESS",
+    "refundAmount": 0,
+    "paidAt": "2026-11-15T16:03:16.649Z",
+    "refundedAt": null
+  },
+  {
+    "id": "pay-5e0ce3d8",
+    "bookingId": "bkg-2b0dae6f",
+    "userId": "usr-bd71ef20",
+    "method": "CREDIT_CARD",
+    "amount": 4340,
+    "referenceCode": "TH-CR-1794758596738",
+    "status": "REFUNDED",
+    "refundAmount": 4300,
+    "paidAt": "2026-11-15T16:03:16.738Z",
+    "refundedAt": "2026-11-15T16:03:16.765Z",
+    "refundReason": "USER_CANCELLED"
   }
 ]

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/api.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/api.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">73.30</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">546</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">64.30</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">7.41</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Unified API Client (Vanilla JS)
+ * Handles REST requests, JWT tokens, cookie authentication, and error normalization.
+ */
+
+const API = {
+  baseUrl: &#039;/api&#039;,
+
+  getToken() {
+    return localStorage.getItem(&#039;tickethub_token&#039;) || &#039;&#039;;
+  },
+
+  setToken(token) {
+    if (token) {
+      localStorage.setItem(&#039;tickethub_token&#039;, token);
+    } else {
+      localStorage.removeItem(&#039;tickethub_token&#039;);
+    }
+  },
+
+  async request(endpoint, options = {}) {
+    const url = `${this.baseUrl}${endpoint}`;
+    const token = this.getToken();
+    const headers = {
+      ...(options.headers || {})
+    };
+
+    if (!(options.body instanceof FormData)) {
+      headers[&#039;Content-Type&#039;] = &#039;application/json&#039;;
+    }
+
+    if (token) {
+      headers[&#039;Authorization&#039;] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      credentials: &#039;include&#039; // Sends tickethub_token cookie
+    });
+
+    const data = await res.json().catch(() =&gt; ({}));
+
+    if (!res.ok) {
+      const errorMsg = data.error || data.message || `HTTP ${res.status}: Request failed`;
+      const err = new Error(errorMsg);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+
+    return data;
+  },
+
+  auth: {
+    login: (body) =&gt; API.request(&#039;/auth/login&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    register: (body) =&gt; API.request(&#039;/auth/register&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    socialConfig: () =&gt; API.request(&#039;/auth/social-config&#039;),
+    socialLogin: (body) =&gt; API.request(&#039;/auth/social-login&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    logout: () =&gt; API.request(&#039;/auth/logout&#039;, { method: &#039;POST&#039; }),
+    getMe: () =&gt; API.request(&#039;/auth/me&#039;),
+    getProfile: () =&gt; API.request(&#039;/auth/profile&#039;),
+    updateProfile: (body) =&gt; API.request(&#039;/auth/profile&#039;, { method: &#039;PUT&#039;, body: JSON.stringify(body) }),
+    uploadAvatar: (formData) =&gt; API.request(&#039;/auth/avatar&#039;, { method: &#039;POST&#039;, body: formData })
+  },
+
+  events: {
+    // Supported params: search, category, status, province, location, month (YYYY-MM | 1-12), sort (price_asc | price_desc)
+    // Empty / null / undefined values are dropped so they are never sent as &quot;?province=&quot;.
+    list: (params = {}) =&gt; {
+      const clean = new URLSearchParams();
+      for (const [key, val] of Object.entries(params || {})) {
+        if (val !== undefined &amp;&amp; val !== null &amp;&amp; String(val).trim() !== &#039;&#039;) {
+          clean.set(key, String(val).trim());
+        }
+      }
+      const q = clean.toString();
+      return API.request(`/events${q ? `?${q}` : &#039;&#039;}`);
+    },
+    getById: (id) =&gt; API.request(`/events/${id}`),
+    templates: () =&gt; API.request(&#039;/events/templates&#039;),
+    toggleBookmark: (id) =&gt; API.request(`/events/${id}/bookmark`, { method: &#039;POST&#039; }),
+    create: (body) =&gt; API.request(&#039;/events&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    update: (id, body) =&gt; API.request(`/events/${id}`, { method: &#039;PUT&#039;, body: JSON.stringify(body) }),
+    delete: (id, password) =&gt; API.request(`/events/${id}`, { method: &#039;DELETE&#039;, body: JSON.stringify(typeof password === &#039;object&#039; &amp;&amp; password !== null ? password : { password }) })
+  },
+
+  categories: {
+    list: () =&gt; API.request(&#039;/categories&#039;),
+    create: (body) =&gt; API.request(&#039;/categories&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) })
+  },
+
+  booking: {
+    getSeats: (eventId, roundId) =&gt; API.request(`/bookings/events/${eventId}/rounds/${roundId}/seats`),
+    holdSeats: (body) =&gt; API.request(&#039;/bookings/hold&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    getSummary: (bookingId) =&gt; API.request(`/bookings/${bookingId}/summary`),
+    applyDiscount: (bookingId, body) =&gt; API.request(`/bookings/${bookingId}/apply-discount`, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    pay: (bookingId, body) =&gt; API.request(`/bookings/${bookingId}/pay`, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    cancel: (bookingId) =&gt; API.request(`/bookings/${bookingId}/cancel`, { method: &#039;POST&#039; })
+  },
+
+  tickets: {
+    getMyTickets: () =&gt; API.request(&#039;/tickets/my&#039;),
+    getHistory: () =&gt; API.request(&#039;/tickets/history&#039;),
+    validate: (body) =&gt; API.request(&#039;/tickets/validate&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    validateTicket: (ticketCode) =&gt; API.request(&#039;/tickets/validate&#039;, { method: &#039;POST&#039;, body: JSON.stringify({ ticketCode }) })
+  },
+
+  admin: {
+    getDashboard: () =&gt; API.request(&#039;/admin/dashboard&#039;),
+    updateSeating: (eventId, body) =&gt; API.request(`/admin/events/${eventId}/seating`, { method: &#039;PUT&#039;, body: JSON.stringify(body) }),
+    getBackups: () =&gt; API.request(&#039;/admin/backups&#039;),
+    createBackup: (body = {}) =&gt; API.request(&#039;/admin/backups&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    restoreBackup: (body) =&gt; API.request(&#039;/admin/backups/restore&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    getNotifications: () =&gt; API.request(&#039;/admin/notifications&#039;),
+    markNotificationRead: (id) =&gt; API.request(`/admin/notifications/${id}/read`, { method: &#039;PUT&#039; }),
+    getUsers: (params = {}) =&gt; {
+      const q = new URLSearchParams(params).toString();
+      return API.request(`/admin/users${q ? `?${q}` : &#039;&#039;}`);
+    },
+    updateUserRole: (userId, body) =&gt; {
+      return API.request(`/admin/users/${encodeURIComponent(userId)}/role`, {
+        method: &#039;PUT&#039;,
+        body: JSON.stringify(body)
+      });
+    },
+    inspectEvent: (id) =&gt; API.request(&#039;/admin/events/&#039; + encodeURIComponent(id || &#039;&#039;) + &#039;/inspect&#039;),
+    getTransactions: (filters = {}) =&gt; {
+      let q = &#039;&#039;;
+      if (typeof filters === &#039;string&#039;) {
+        q = filters.startsWith(&#039;?&#039;) ? filters.slice(1) : filters;
+      } else if (typeof URLSearchParams !== &#039;undefined&#039; &amp;&amp; filters instanceof URLSearchParams) {
+        q = filters.toString();
+      } else if (filters &amp;&amp; typeof filters === &#039;object&#039;) {
+        const params = new URLSearchParams();
+        for (const [key, val] of Object.entries(filters)) {
+          if (val !== undefined &amp;&amp; val !== null &amp;&amp; String(val).trim() !== &#039;&#039;) {
+            params.set(key, String(val).trim());
+          }
+        }
+        q = params.toString();
+      }
+      return API.request(`/admin/transactions${q ? `?${q}` : &#039;&#039;}`);
+    }
+  },
+
+  support: {
+    submit: (body) =&gt; API.request(&#039;/support&#039;, { method: &#039;POST&#039;, body: JSON.stringify(body) }),
+    getMy: () =&gt; API.request(&#039;/support/my&#039;),
+    getAll: () =&gt; API.request(&#039;/support/all&#039;),
+    reply: (id, body) =&gt; API.request(`/support/${id}/reply`, { method: &#039;PUT&#039;, body: JSON.stringify(body) })
+  }
+};
+
+window.API = API;
+
+/**
+ * TicketHub - Unified Popup Controller (Vanilla JS &amp; Native &lt;dialog&gt;)
+ * Matches Figma 86:214 (Small Option Popup) and 86:161 (Big Option Popup)
+ */
+function escapePopupHtml(str) {
+  if (str === null || str === undefined) return &#039;&#039;;
+  return String(str)
+    .replace(/&amp;/g, &#039;&amp;amp;&#039;)
+    .replace(/&lt;/g, &#039;&amp;lt;&#039;)
+    .replace(/&gt;/g, &#039;&amp;gt;&#039;)
+    .replace(/&quot;/g, &#039;&amp;quot;&#039;)
+    .replace(/&#039;/g, &#039;&amp;#39;&#039;);
+}
+
+function sanitizeSafeUrl(url, fallback = &#039;&#039;) {
+  if (!url || typeof url !== &#039;string&#039;) return fallback;
+  const trimmed = url.trim();
+  if (/^(https?:\/\/|\/uploads\/)/i.test(trimmed)) {
+    return escapePopupHtml(trimmed);
+  }
+  return fallback;
+}
+
+if (typeof window !== &#039;undefined&#039;) {
+  window.escapeHtml = escapePopupHtml;
+  window.sanitizeUrl = sanitizeSafeUrl;
+}
+if (typeof global !== &#039;undefined&#039;) {
+  global.escapeHtml = escapePopupHtml;
+  global.sanitizeUrl = sanitizeSafeUrl;
+}
+
+const Popup = {
+  escapeHtml: escapePopupHtml,
+  sanitizeUrl: sanitizeSafeUrl,
+
+  alert(message, options = {}) {
+    return new Promise((resolve) =&gt; {
+      const opts = typeof options === &#039;string&#039; ? { title: options } : (options || {});
+      const title = opts.title || &#039;Alert&#039;;
+      const buttonText = opts.buttonText || opts.confirmText || opts.okText || &#039;OK&#039;;
+      const variant = opts.variant || &#039;small&#039;;
+      const titleId = &#039;th-popup-title-&#039; + Math.random().toString(36).slice(2, 9);
+
+      const dialog = document.createElement(&#039;dialog&#039;);
+      dialog.className = &#039;th-popup-dialog&#039;;
+      dialog.setAttribute(&#039;closedby&#039;, &#039;any&#039;);
+      dialog.setAttribute(&#039;aria-labelledby&#039;, titleId);
+
+      dialog.innerHTML = `
+        &lt;div class=&quot;th-popup th-popup--${variant}&quot;&gt;
+          &lt;div class=&quot;th-popup-header&quot;&gt;
+            &lt;h3 class=&quot;th-popup-title&quot; id=&quot;${titleId}&quot;&gt;${escapePopupHtml(title)}&lt;/h3&gt;
+            ${variant === &#039;big&#039; ? `
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-close&quot; aria-label=&quot;Close&quot;&gt;
+              &lt;img src=&quot;/images/popup-close-icon.svg&quot; alt=&quot;Close&quot;&gt;
+            &lt;/button&gt;` : &#039;&#039;}
+          &lt;/div&gt;
+          &lt;div class=&quot;th-popup-body&quot;&gt;
+            &lt;p&gt;${escapePopupHtml(message)}&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;th-popup-actions--${variant}&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-btn th-popup-btn--primary&quot; autofocus&gt;${escapePopupHtml(buttonText)}&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      `;
+
+      document.body.appendChild(dialog);
+
+      let resolved = false;
+      const finish = () =&gt; {
+        if (resolved) return;
+        resolved = true;
+        if (dialog.open &amp;&amp; typeof dialog.close === &#039;function&#039;) dialog.close();
+        dialog.remove();
+        resolve();
+      };
+
+      const primaryBtn = dialog.querySelector(&#039;.th-popup-btn--primary&#039;);
+      if (primaryBtn) primaryBtn.onclick = finish;
+
+      const closeBtn = dialog.querySelector(&#039;.th-popup-close&#039;);
+      if (closeBtn) closeBtn.onclick = finish;
+
+      dialog.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Escape&#039; || e.key === &#039;Enter&#039;) {
+          e.preventDefault();
+          finish();
+        }
+      });
+
+      dialog.addEventListener(&#039;close&#039;, finish, { once: true });
+
+      // Fallback for browsers without closedby support (modern-web-guidance)
+      if (!(&#039;closedBy&#039; in HTMLDialogElement.prototype)) {
+        const isOutside = (e) =&gt; {
+          const rect = dialog.getBoundingClientRect();
+          return (
+            e.clientY &lt; rect.top ||
+            e.clientY &gt; rect.bottom ||
+            e.clientX &lt; rect.left ||
+            e.clientX &gt; rect.right
+          );
+        };
+        let pressedOutside = false;
+        dialog.addEventListener(&#039;pointerdown&#039;, (e) =&gt; {
+          pressedOutside = (e.target === dialog) &amp;&amp; isOutside(e);
+        });
+        dialog.addEventListener(&#039;pointerup&#039;, (e) =&gt; {
+          if (pressedOutside &amp;&amp; (e.target === dialog) &amp;&amp; isOutside(e)) {
+            finish();
+          }
+        });
+        dialog.addEventListener(&#039;click&#039;, (e) =&gt; {
+          if ((e.target === dialog) &amp;&amp; isOutside(e)) {
+            finish();
+          }
+        });
+      }
+
+      if (typeof dialog.showModal === &#039;function&#039;) {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute(&#039;open&#039;, &#039;&#039;);
+      }
+    });
+  },
+
+  confirm(message, options = {}) {
+    return new Promise((resolve) =&gt; {
+      const opts = typeof options === &#039;string&#039; ? { title: options } : (options || {});
+      const title = opts.title || &#039;Confirm&#039;;
+      const confirmText = opts.confirmText || opts.buttonText || opts.okText || &#039;Confirm&#039;;
+      const cancelText = opts.cancelText || &#039;Cancel&#039;;
+      const variant = opts.variant || &#039;small&#039;;
+      const destructive = !!opts.destructive;
+      const primaryBtnClass = &#039;th-popup-btn th-popup-btn--primary&#039; + (destructive ? &#039; th-popup-btn--destructive&#039; : &#039;&#039;);
+      const titleId = &#039;th-popup-title-&#039; + Math.random().toString(36).slice(2, 9);
+
+      const dialog = document.createElement(&#039;dialog&#039;);
+      dialog.className = &#039;th-popup-dialog&#039;;
+      dialog.setAttribute(&#039;closedby&#039;, &#039;any&#039;);
+      dialog.setAttribute(&#039;aria-labelledby&#039;, titleId);
+
+      let actionsHtml = &#039;&#039;;
+      if (variant === &#039;big&#039;) {
+        actionsHtml = `
+          &lt;div class=&quot;th-popup-actions--big&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;${primaryBtnClass}&quot; ${destructive ? &#039;&#039; : &#039;autofocus&#039;}&gt;${escapePopupHtml(confirmText)}&lt;/button&gt;
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-btn th-popup-btn--secondary&quot; ${destructive ? &#039;autofocus&#039; : &#039;&#039;}&gt;${escapePopupHtml(cancelText)}&lt;/button&gt;
+          &lt;/div&gt;
+        `;
+      } else {
+        actionsHtml = `
+          &lt;div class=&quot;th-popup-actions--small&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-btn th-popup-btn--secondary&quot; ${destructive ? &#039;autofocus&#039; : &#039;&#039;}&gt;${escapePopupHtml(cancelText)}&lt;/button&gt;
+            &lt;button type=&quot;button&quot; class=&quot;${primaryBtnClass}&quot; ${destructive ? &#039;&#039; : &#039;autofocus&#039;}&gt;${escapePopupHtml(confirmText)}&lt;/button&gt;
+          &lt;/div&gt;
+        `;
+      }
+
+      dialog.innerHTML = `
+        &lt;div class=&quot;th-popup th-popup--${variant}&quot;&gt;
+          &lt;div class=&quot;th-popup-header&quot;&gt;
+            &lt;h3 class=&quot;th-popup-title&quot; id=&quot;${titleId}&quot;&gt;${escapePopupHtml(title)}&lt;/h3&gt;
+            ${variant === &#039;big&#039; ? `
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-close&quot; aria-label=&quot;Close&quot;&gt;
+              &lt;img src=&quot;/images/popup-close-icon.svg&quot; alt=&quot;Close&quot;&gt;
+            &lt;/button&gt;` : &#039;&#039;}
+          &lt;/div&gt;
+          &lt;div class=&quot;th-popup-body&quot;&gt;
+            &lt;p&gt;${escapePopupHtml(message)}&lt;/p&gt;
+          &lt;/div&gt;
+          ${actionsHtml}
+        &lt;/div&gt;
+      `;
+
+      document.body.appendChild(dialog);
+
+      let resolved = false;
+      const finish = (result) =&gt; {
+        if (resolved) return;
+        resolved = true;
+        if (dialog.open &amp;&amp; typeof dialog.close === &#039;function&#039;) dialog.close();
+        dialog.remove();
+        resolve(result);
+      };
+
+      const primaryBtn = dialog.querySelector(&#039;.th-popup-btn--primary&#039;);
+      if (primaryBtn) primaryBtn.onclick = () =&gt; finish(true);
+
+      const secondaryBtn = dialog.querySelector(&#039;.th-popup-btn--secondary&#039;);
+      if (secondaryBtn) secondaryBtn.onclick = () =&gt; finish(false);
+
+      const closeBtn = dialog.querySelector(&#039;.th-popup-close&#039;);
+      if (closeBtn) closeBtn.onclick = () =&gt; finish(false);
+
+      dialog.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Escape&#039;) {
+          e.preventDefault();
+          finish(false);
+        }
+      });
+
+      dialog.addEventListener(&#039;close&#039;, () =&gt; finish(false), { once: true });
+
+      // Fallback for browsers without closedby support
+      if (!(&#039;closedBy&#039; in HTMLDialogElement.prototype)) {
+        const isOutside = (e) =&gt; {
+          const rect = dialog.getBoundingClientRect();
+          return (
+            e.clientY &lt; rect.top ||
+            e.clientY &gt; rect.bottom ||
+            e.clientX &lt; rect.left ||
+            e.clientX &gt; rect.right
+          );
+        };
+        let pressedOutside = false;
+        dialog.addEventListener(&#039;pointerdown&#039;, (e) =&gt; {
+          pressedOutside = (e.target === dialog) &amp;&amp; isOutside(e);
+        });
+        dialog.addEventListener(&#039;pointerup&#039;, (e) =&gt; {
+          if (pressedOutside &amp;&amp; (e.target === dialog) &amp;&amp; isOutside(e)) {
+            finish(false);
+          }
+        });
+        dialog.addEventListener(&#039;click&#039;, (e) =&gt; {
+          if ((e.target === dialog) &amp;&amp; isOutside(e)) {
+            finish(false);
+          }
+        });
+      }
+
+      if (typeof dialog.showModal === &#039;function&#039;) {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute(&#039;open&#039;, &#039;&#039;);
+      }
+    });
+  },
+
+  prompt(message, defaultValue = &#039;&#039;, options = {}) {
+    return new Promise((resolve) =&gt; {
+      let defaultVal = defaultValue;
+      let opts = options;
+      if (typeof defaultValue === &#039;object&#039; &amp;&amp; defaultValue !== null) {
+        opts = Object.assign({}, defaultValue, typeof options === &#039;object&#039; &amp;&amp; options !== null ? options : {});
+        defaultVal = opts.defaultValue !== undefined ? opts.defaultValue : (opts.value !== undefined ? opts.value : &#039;&#039;);
+      } else if (typeof options === &#039;string&#039;) {
+        opts = { title: options };
+      } else {
+        opts = opts || {};
+      }
+
+      const title = opts.title || &#039;Prompt&#039;;
+      const confirmText = opts.confirmText || opts.buttonText || opts.okText || &#039;OK&#039;;
+      const cancelText = opts.cancelText || &#039;Cancel&#039;;
+      const placeholder = opts.placeholder || &#039;&#039;;
+      const inputType = opts.inputType || &#039;text&#039;;
+      const titleId = &#039;th-popup-title-&#039; + Math.random().toString(36).slice(2, 9);
+
+      const dialog = document.createElement(&#039;dialog&#039;);
+      dialog.className = &#039;th-popup-dialog&#039;;
+      dialog.setAttribute(&#039;closedby&#039;, &#039;any&#039;);
+      dialog.setAttribute(&#039;aria-labelledby&#039;, titleId);
+
+      dialog.innerHTML = `
+        &lt;div class=&quot;th-popup th-popup--big&quot;&gt;
+          &lt;div class=&quot;th-popup-header&quot;&gt;
+            &lt;h3 class=&quot;th-popup-title&quot; id=&quot;${titleId}&quot;&gt;${escapePopupHtml(title)}&lt;/h3&gt;
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-close&quot; aria-label=&quot;Close&quot;&gt;
+              &lt;img src=&quot;/images/popup-close-icon.svg&quot; alt=&quot;Close&quot;&gt;
+            &lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;th-popup-body&quot;&gt;
+            &lt;p class=&quot;th-popup-prompt-msg&quot;&gt;${escapePopupHtml(message)}&lt;/p&gt;
+            &lt;input type=&quot;${escapePopupHtml(inputType)}&quot; class=&quot;th-popup-prompt-input form-control&quot; value=&quot;${escapePopupHtml(defaultVal)}&quot; placeholder=&quot;${escapePopupHtml(placeholder)}&quot; autofocus&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;th-popup-actions--big&quot;&gt;
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-btn th-popup-btn--primary&quot;&gt;${escapePopupHtml(confirmText)}&lt;/button&gt;
+            &lt;button type=&quot;button&quot; class=&quot;th-popup-btn th-popup-btn--secondary&quot;&gt;${escapePopupHtml(cancelText)}&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      `;
+
+      document.body.appendChild(dialog);
+
+      const input = dialog.querySelector(&#039;.th-popup-prompt-input&#039;);
+
+      let resolved = false;
+      const finish = (result) =&gt; {
+        if (resolved) return;
+        resolved = true;
+        if (dialog.open &amp;&amp; typeof dialog.close === &#039;function&#039;) dialog.close();
+        dialog.remove();
+        resolve(result);
+      };
+
+      const primaryBtn = dialog.querySelector(&#039;.th-popup-btn--primary&#039;);
+      if (primaryBtn) primaryBtn.onclick = () =&gt; finish(input.value);
+
+      const secondaryBtn = dialog.querySelector(&#039;.th-popup-btn--secondary&#039;);
+      if (secondaryBtn) secondaryBtn.onclick = () =&gt; finish(null);
+
+      const closeBtn = dialog.querySelector(&#039;.th-popup-close&#039;);
+      if (closeBtn) closeBtn.onclick = () =&gt; finish(null);
+
+      input.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Enter&#039;) {
+          e.preventDefault();
+          finish(input.value);
+        } else if (e.key === &#039;Escape&#039;) {
+          e.preventDefault();
+          finish(null);
+        }
+      });
+
+      dialog.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Escape&#039;) {
+          e.preventDefault();
+          finish(null);
+        }
+      });
+
+      dialog.addEventListener(&#039;close&#039;, () =&gt; finish(null), { once: true });
+
+      if (!(&#039;closedBy&#039; in HTMLDialogElement.prototype)) {
+        const isOutside = (e) =&gt; {
+          const rect = dialog.getBoundingClientRect();
+          return (
+            e.clientY &lt; rect.top ||
+            e.clientY &gt; rect.bottom ||
+            e.clientX &lt; rect.left ||
+            e.clientX &gt; rect.right
+          );
+        };
+        let pressedOutside = false;
+        dialog.addEventListener(&#039;pointerdown&#039;, (e) =&gt; {
+          pressedOutside = (e.target === dialog) &amp;&amp; isOutside(e);
+        });
+        dialog.addEventListener(&#039;pointerup&#039;, (e) =&gt; {
+          if (pressedOutside &amp;&amp; (e.target === dialog) &amp;&amp; isOutside(e)) {
+            finish(null);
+          }
+        });
+        dialog.addEventListener(&#039;click&#039;, (e) =&gt; {
+          if ((e.target === dialog) &amp;&amp; isOutside(e)) {
+            finish(null);
+          }
+        });
+      }
+
+      if (typeof dialog.showModal === &#039;function&#039;) {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute(&#039;open&#039;, &#039;&#039;);
+      }
+
+      setTimeout(() =&gt; {
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 50);
+    });
+  },
+
+  toast(message, type = &#039;info&#039;, duration = 3500) {
+    let container = document.querySelector(&#039;.th-toast-container&#039;);
+    if (!container) {
+      container = document.createElement(&#039;div&#039;);
+      container.className = &#039;th-toast-container&#039;;
+      document.body.appendChild(container);
+    }
+
+    const toastEl = document.createElement(&#039;div&#039;);
+    toastEl.className = `th-toast th-toast--${type}`;
+    toastEl.setAttribute(&#039;role&#039;, type === &#039;error&#039; ? &#039;alert&#039; : &#039;status&#039;);
+    toastEl.setAttribute(&#039;aria-live&#039;, type === &#039;error&#039; ? &#039;assertive&#039; : &#039;polite&#039;);
+    toastEl.textContent = message;
+    container.appendChild(toastEl);
+
+    setTimeout(() =&gt; {
+      toastEl.classList.add(&#039;is-fading&#039;);
+      setTimeout(() =&gt; toastEl.remove(), 300);
+    }, duration);
+  }
+};
+
+window.Popup = Popup;</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

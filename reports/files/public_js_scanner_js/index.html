@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/scanner.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/scanner.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">63.09</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">349</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">37.42</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">2.89</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Staff Gate Scanner Controller (public/js/scanner.js)
+ * Implements camera QR scanning (getUserMedia / canvas), manual code input,
+ * ticket check-in validation via POST /api/tickets/validate,
+ * and high-visibility red duplicate scan fraud alert (ALREADY_CHECKED_IN).
+ */
+
+document.addEventListener(&#039;DOMContentLoaded&#039;, async () =&gt; {
+  const scannerGuardEl = document.getElementById(&#039;scannerGuard&#039;);
+  const scannerContentEl = document.getElementById(&#039;scannerContent&#039;);
+
+  // Camera elements
+  const cameraVideo = document.getElementById(&#039;cameraVideo&#039;);
+  const startCameraBtn = document.getElementById(&#039;startCameraBtn&#039;);
+  const stopCameraBtn = document.getElementById(&#039;stopCameraBtn&#039;);
+  const cameraErrorMsg = document.getElementById(&#039;cameraErrorMsg&#039;);
+
+  // Manual code input
+  const manualCodeInput = document.getElementById(&#039;manualTicketCode&#039;);
+  const validateCodeBtn = document.getElementById(&#039;validateCodeBtn&#039;);
+
+  // File upload input
+  const qrFileInput = document.getElementById(&#039;qrFileInput&#039;);
+
+  // Results &amp; Alerts
+  const scanResultArea = document.getElementById(&#039;scanResultArea&#039;);
+  const scanAuditLogBody = document.getElementById(&#039;scanAuditLogBody&#039;);
+
+  let mediaStream = null;
+  let scanAuditLog = [];
+  let isScanningActive = false;
+
+  async function initScanner() {
+    if (!Auth.isLoggedIn()) {
+      showGuard(&#039;Please log in with a Staff or Admin account to access the Gate Scanner.&#039;);
+      return;
+    }
+
+    if (!Auth.isStaff()) {
+      showGuard(`Access Denied: Current user role &quot;${Auth.currentUser.role}&quot; is not authorized for Gate Scanner.`);
+      return;
+    }
+
+    showScanner();
+    bindEvents();
+  }
+
+  function showGuard(msg) {
+    if (scannerGuardEl) {
+      scannerGuardEl.classList.remove(&#039;d-none&#039;);
+      scannerGuardEl.hidden = false;
+      scannerGuardEl.innerHTML = `
+        &lt;div class=&quot;tc p-48 bg-white r-16 max-w-500 mx-auto border-red-alert&quot;&gt;
+          &lt;h2 class=&quot;c-red mb-12&quot;&gt;Staff Verification Required&lt;/h2&gt;
+          &lt;p class=&quot;c-ink-2 mb-24&quot;&gt;${escapeHtml(msg)}&lt;/p&gt;
+          &lt;button class=&quot;btn-pill-blue&quot; onclick=&quot;Auth.openAuthModal()&quot;&gt;Sign in as Staff (staff@ticket.com / staff123)&lt;/button&gt;
+        &lt;/div&gt;
+      `;
+    }
+    if (scannerContentEl) {
+      scannerContentEl.classList.add(&#039;d-none&#039;);
+      scannerContentEl.hidden = true;
+    }
+  }
+
+  function showScanner() {
+    if (scannerGuardEl) {
+      scannerGuardEl.classList.add(&#039;d-none&#039;);
+      scannerGuardEl.hidden = true;
+    }
+    if (scannerContentEl) {
+      scannerContentEl.classList.remove(&#039;d-none&#039;);
+      scannerContentEl.hidden = false;
+    }
+  }
+
+  function bindEvents() {
+    if (startCameraBtn) {
+      startCameraBtn.addEventListener(&#039;click&#039;, () =&gt; startCamera());
+    }
+    if (stopCameraBtn) {
+      stopCameraBtn.addEventListener(&#039;click&#039;, () =&gt; stopCamera());
+    }
+
+    if (validateCodeBtn) {
+      validateCodeBtn.addEventListener(&#039;click&#039;, () =&gt; {
+        const code = manualCodeInput.value.trim();
+        if (code) validateTicket(code);
+      });
+    }
+
+    if (manualCodeInput) {
+      manualCodeInput.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Enter&#039;) {
+          const code = manualCodeInput.value.trim();
+          if (code) validateTicket(code);
+        }
+      });
+    }
+
+    if (qrFileInput) {
+      qrFileInput.addEventListener(&#039;change&#039;, async () =&gt; {
+        if (!qrFileInput.files || !qrFileInput.files[0]) return;
+        const file = qrFileInput.files[0];
+        qrFileInput.value = &#039;&#039;;
+
+        // 1. Try native BarcodeDetector QR decoding if supported
+        if (typeof window.BarcodeDetector === &#039;function&#039; &amp;&amp; typeof window.createImageBitmap === &#039;function&#039;) {
+          try {
+            const detector = new window.BarcodeDetector({ formats: [&#039;qr_code&#039;] });
+            const bitmap = await window.createImageBitmap(file);
+            const barcodes = await detector.detect(bitmap);
+            if (barcodes &amp;&amp; barcodes.length &gt; 0 &amp;&amp; barcodes[0].rawValue) {
+              await validateTicket(barcodes[0].rawValue);
+              return;
+            }
+          } catch (_) {
+            // Fall through to DataURL or manual prompt fallback
+          }
+        }
+
+        // 2. Fallback prompt for ticket code verification
+        const simulatedCode = await Popup.prompt(&#039;File uploaded. Enter or verify ticket code from image:&#039;, &#039;TKT-&#039;, { title: &#039;Ticket Code Verification&#039; });
+        if (simulatedCode) validateTicket(simulatedCode);
+      });
+    }
+  }
+
+  async function startCamera() {
+    try {
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: &#039;environment&#039; }
+      });
+      cameraVideo.srcObject = mediaStream;
+      cameraVideo.play();
+      isScanningActive = true;
+      startCameraBtn.classList.add(&#039;d-none&#039;);
+      stopCameraBtn.classList.remove(&#039;d-none&#039;);
+      stopCameraBtn.hidden = false;
+      cameraErrorMsg.classList.add(&#039;d-none&#039;);
+      cameraErrorMsg.hidden = true;
+
+      // Start scanning loop using BarcodeDetector when available
+      requestAnimationFrame(scanVideoFrame);
+    } catch (err) {
+      console.warn(&#039;Camera access not supported or denied:&#039;, err);
+      cameraErrorMsg.classList.remove(&#039;d-none&#039;);
+      cameraErrorMsg.hidden = false;
+      cameraErrorMsg.textContent = &#039;Camera not available or access denied. Please use manual code entry or file upload below.&#039;;
+    }
+  }
+
+  function stopCamera() {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) =&gt; track.stop());
+      mediaStream = null;
+    }
+    isScanningActive = false;
+    startCameraBtn.classList.remove(&#039;d-none&#039;);
+    stopCameraBtn.classList.add(&#039;d-none&#039;);
+    stopCameraBtn.hidden = true;
+  }
+
+  async function scanVideoFrame() {
+    if (!isScanningActive) return;
+    if (typeof window.BarcodeDetector === &#039;function&#039; &amp;&amp; cameraVideo &amp;&amp; cameraVideo.readyState &gt;= 2) {
+      try {
+        const detector = new window.BarcodeDetector({ formats: [&#039;qr_code&#039;] });
+        const codes = await detector.detect(cameraVideo);
+        if (codes &amp;&amp; codes.length &gt; 0 &amp;&amp; codes[0].rawValue) {
+          stopCamera();
+          await validateTicket(codes[0].rawValue);
+          return;
+        }
+      } catch (_) {
+        // Continue frame loop
+      }
+    }
+    if (isScanningActive) {
+      requestAnimationFrame(scanVideoFrame);
+    }
+  }
+
+  async function validateTicket(inputCode) {
+    if (!inputCode) return;
+
+    validateCodeBtn.disabled = true;
+    validateCodeBtn.textContent = &#039;Validating...&#039;;
+
+    try {
+      const res = await API.tickets.validate({ ticketCode: inputCode });
+      handleValidScan(res.ticket, inputCode);
+    } catch (err) {
+      handleInvalidScan(err, inputCode);
+    } finally {
+      validateCodeBtn.disabled = false;
+      validateCodeBtn.textContent = &#039;Validate Ticket&#039;;
+      manualCodeInput.value = &#039;&#039;;
+    }
+  }
+
+  function handleValidScan(ticket, code) {
+    playAudioBeep(true);
+
+    scanResultArea.innerHTML = `
+      &lt;div class=&quot;r-16 p-24 mb-24 scanner-success-box&quot;&gt;
+        &lt;div class=&quot;flex items-c gap-12 mb-12&quot;&gt;
+          &lt;span class=&quot;c-green fs-2&quot;&gt;&lt;i class=&quot;fa-solid fa-circle-check&quot;&gt;&lt;/i&gt;&lt;/span&gt;
+          &lt;div&gt;
+            &lt;h3 class=&quot;m-0 scanner-success-icon&quot;&gt;ADMISSION GRANTED&lt;/h3&gt;
+            &lt;span class=&quot;fw-7 fs-085 c-green-emerald&quot;&gt;Ticket Status: CHECKED_IN&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;table class=&quot;w-100 fs-095 table-collapse-mt-12&quot;&gt;
+          &lt;tr&gt;
+            &lt;td class=&quot;c-ink-2 py-6&quot;&gt;Ticket Code:&lt;/td&gt;
+            &lt;td class=&quot;mono fw-8 c-blue&quot;&gt;${escapeHtml(ticket.ticketCode)}&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td class=&quot;c-ink-2 py-6&quot;&gt;Attendee Name:&lt;/td&gt;
+            &lt;td class=&quot;fw-7&quot;&gt;${escapeHtml(ticket.holderName || &#039;Alex Rivers&#039;)}&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td class=&quot;c-ink-2 py-6&quot;&gt;Seat / Zone:&lt;/td&gt;
+            &lt;td class=&quot;fw-7 c-ink&quot;&gt;${escapeHtml(ticket.zoneName)} - Seat ${escapeHtml(ticket.seatNumber)}&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td class=&quot;c-ink-2 py-6&quot;&gt;Validated At:&lt;/td&gt;
+            &lt;td class=&quot;c-muted&quot;&gt;${escapeHtml(new Date().toLocaleTimeString())}&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+    `;
+
+    logAuditEntry({
+      code: ticket.ticketCode || code,
+      attendee: ticket.holderName || &#039;Alex Rivers&#039;,
+      seat: `${ticket.zoneName || &#039;&#039;} ${ticket.seatNumber || &#039;&#039;}`,
+      status: &#039;VALID&#039;,
+      badgeClass: &#039;badge-status-valid&#039;,
+      time: new Date().toLocaleTimeString()
+    });
+  }
+
+  function handleInvalidScan(err, code) {
+    playAudioBeep(false);
+
+    const isDuplicate = err.data &amp;&amp; err.data.reason === &#039;ALREADY_CHECKED_IN&#039;;
+    const isCancelled = err.data &amp;&amp; err.data.reason === &#039;CANCELLED_TICKET&#039;;
+
+    if (scanResultArea) {
+      if (isDuplicate) {
+        // High-visibility Candy Apple Red Fraud Warning (FR-31)
+        scanResultArea.innerHTML = `
+          &lt;div class=&quot;fraud-warning-alert&quot;&gt;
+            &lt;h3&gt;
+              &lt;span&gt;&lt;i class=&quot;fa-solid fa-triangle-exclamation mr-6&quot;&gt;&lt;/i&gt;&lt;/span&gt; DUPLICATE SCAN DETECTED - ENTRY DENIED!
+            &lt;/h3&gt;
+            &lt;p class=&quot;fw-7 lh-14 fs-11 my-12&quot;&gt;
+              ${escapeHtml(err.message || &#039;Fraud Warning: This ticket was already checked in and cannot be reused.&#039;)}
+            &lt;/p&gt;
+            &lt;div class=&quot;fs-09 scanner-raw-box&quot;&gt;
+              Ticket Code: &lt;strong&gt;${escapeHtml(code)}&lt;/strong&gt;&lt;br&gt;
+              Action Required: Confiscate badge or verify customer identity at Box Office.
+            &lt;/div&gt;
+          &lt;/div&gt;
+        `;
+      } else {
+        scanResultArea.innerHTML = `
+          &lt;div class=&quot;r-16 p-24 mb-24 scanner-fraud-box&quot;&gt;
+            &lt;div class=&quot;flex items-c gap-12 mb-12&quot;&gt;
+              &lt;span class=&quot;scanner-fraud-icon&quot;&gt;&lt;i class=&quot;fa-solid fa-circle-xmark&quot;&gt;&lt;/i&gt;&lt;/span&gt;
+              &lt;div&gt;
+                &lt;h3 class=&quot;fs-135 m-0 c-red-dark&quot;&gt;INVALID TICKET&lt;/h3&gt;
+                &lt;span class=&quot;fw-7 fs-085 c-red-crimson&quot;&gt;
+                  ${isCancelled ? &#039;Ticket CANCELLED / REFUNDED&#039; : &#039;Ticket Not Found&#039;}
+                &lt;/span&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;p class=&quot;fs-095 c-red-deep&quot;&gt;${escapeHtml(err.message || &#039;Please verify the ticket code with customer.&#039;)}&lt;/p&gt;
+          &lt;/div&gt;
+        `;
+      }
+    }
+
+    logAuditEntry({
+      code,
+      attendee: (err.data &amp;&amp; err.data.ticket &amp;&amp; err.data.ticket.holderName) || &#039;Unknown&#039;,
+      seat: (err.data &amp;&amp; err.data.ticket &amp;&amp; err.data.ticket.seatNumber) || &#039;—&#039;,
+      status: isDuplicate ? &#039;DUPLICATE_ALERT&#039; : (isCancelled ? &#039;CANCELLED&#039; : &#039;INVALID&#039;),
+      badgeClass: &#039;badge-status-alert&#039;,
+      time: new Date().toLocaleTimeString()
+    });
+  }
+
+  function logAuditEntry(entry) {
+    scanAuditLog.unshift(entry);
+    if (!scanAuditLogBody) return;
+
+    scanAuditLogBody.innerHTML = scanAuditLog
+      .map(
+        (item) =&gt; `
+          &lt;tr&gt;
+            &lt;td&gt;&lt;strong&gt;${escapeHtml(item.time)}&lt;/strong&gt;&lt;/td&gt;
+            &lt;td class=&quot;mono fw-7&quot;&gt;${escapeHtml(item.code)}&lt;/td&gt;
+            &lt;td&gt;${escapeHtml(item.attendee)}&lt;/td&gt;
+            &lt;td&gt;${escapeHtml(item.seat)}&lt;/td&gt;
+            &lt;td&gt;
+              &lt;span class=&quot;admin-category-badge ${item.badgeClass || (item.status === &#039;VALID&#039; ? &#039;badge-status-valid&#039; : &#039;badge-status-alert&#039;)}&quot;&gt;
+                ${escapeHtml(item.status)}
+              &lt;/span&gt;
+            &lt;/td&gt;
+          &lt;/tr&gt;
+        `
+      )
+      .join(&#039;&#039;);
+  }
+
+  function playAudioBeep(success) {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (success) {
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } else {
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      }
+    } catch (_) {
+      // AudioContext may be restricted by browser policy
+    }
+  }
+
+  await Auth.ready;
+  await initScanner();
+});
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

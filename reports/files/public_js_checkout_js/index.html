@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/checkout.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/checkout.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">61.38</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">644</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">52.72</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">7.25</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Sequential Checkout &amp; Separated Payment Gateway Controller (public/js/checkout.js)
+ * Sequence: Step 1 Summary (FR-24) -&gt; Step 2 Method &amp; Discounts (FR-25/46/47)
+ *           -&gt; Step 3 Payment Gateway (FR-25/26) -&gt; Step 4 Status Result (FR-26/27)
+ */
+
+document.addEventListener(&#039;DOMContentLoaded&#039;, async () =&gt; {
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingId = urlParams.get(&#039;bookingId&#039;);
+
+  if (!bookingId) {
+    await Popup.alert(&#039;No active booking found. Redirecting to home.&#039;, { title: &#039;No Booking&#039; });
+    window.location.href = &#039;/home&#039;;
+    return;
+  }
+
+  const METHOD_CONFIG = {
+    PROMPTPAY: { label: &#039;PromptPay QR&#039;, type: &#039;qr&#039; },
+    CREDIT_CARD: { label: &#039;Credit Card&#039;, type: &#039;card&#039; },
+    DEBIT_CARD: { label: &#039;Debit Card&#039;, type: &#039;card&#039; },
+    KBANK: {
+      label: &#039;KBank K PLUS&#039;,
+      type: &#039;mobile&#039;,
+      headingClass: &#039;c-green&#039;,
+      subtitle: &#039;App-to-App direct authorization simulation&#039;,
+      inputLabel: &#039;K PLUS Registered Mobile&#039;,
+      placeholder: &#039;0812345678&#039;,
+      statusBgClass: &#039;bg-green-light c-green-dark&#039;,
+      statusText: &#039;Instant push confirmation ready&#039;
+    },
+    KRUNGTHAI: {
+      label: &#039;Krungthai NEXT&#039;,
+      type: &#039;mobile&#039;,
+      headingClass: &#039;c-sky&#039;,
+      subtitle: &#039;Simulated Online Banking Direct Debit&#039;,
+      inputLabel: &#039;Krungthai NEXT Citizen ID / Phone&#039;,
+      placeholder: &#039;0812345678&#039;,
+      statusBgClass: &#039;bg-sky-light c-sky-dark&#039;,
+      statusText: &#039;Seamless single-step approval enabled&#039;
+    },
+    TRUEMONEY: {
+      label: &#039;TrueMoney Wallet&#039;,
+      type: &#039;mobile&#039;,
+      headingClass: &#039;c-orange-dark&#039;,
+      subtitle: &#039;Simulated E-Wallet Balance Deduction&#039;,
+      inputLabel: &#039;TrueMoney Registered Phone&#039;,
+      placeholder: &#039;0891234567&#039;,
+      statusBgClass: &#039;bg-orange-light c-orange-dark&#039;,
+      statusText: &#039;Wallet OTP simulation verified&#039;
+    }
+  };
+
+  const countdownTimerEl = document.getElementById(&#039;countdownTimer&#039;);
+  const countdownBoxEl = document.getElementById(&#039;countdownBox&#039;);
+  const stepContainers = [1, 2, 3, 4].map((n) =&gt; document.getElementById(`checkoutStep${n}`));
+  const stepperItems = Array.from(document.querySelectorAll(&#039;.checkout-step-item&#039;));
+
+  // Step 1 elements
+  const summaryUserNameEl = document.getElementById(&#039;summaryUserName&#039;);
+  const summaryUserEmailEl = document.getElementById(&#039;summaryUserEmail&#039;);
+  const summaryUserPhoneEl = document.getElementById(&#039;summaryUserPhone&#039;);
+  const eventTitleEl = document.getElementById(&#039;checkoutEventTitle&#039;);
+  const roundLabelEl = document.getElementById(&#039;checkoutRound&#039;);
+  const seatsListEl = document.getElementById(&#039;checkoutSeats&#039;);
+  const ticketHolderFields = document.getElementById(&#039;ticketHolderFields&#039;);
+  const step1SubtotalEl = document.getElementById(&#039;step1Subtotal&#039;);
+  const step1ServiceFeeEl = document.getElementById(&#039;step1ServiceFee&#039;);
+  const step1TotalEl = document.getElementById(&#039;step1Total&#039;);
+  const toStep2Btn = document.getElementById(&#039;toStep2Btn&#039;);
+
+  // Step 2 elements
+  const userPointsEl = document.getElementById(&#039;userAvailablePoints&#039;);
+  const promoInput = document.getElementById(&#039;promoCodeInput&#039;);
+  const applyPromoBtn = document.getElementById(&#039;applyPromoBtn&#039;);
+  const pointsInput = document.getElementById(&#039;redeemPointsInput&#039;);
+  const redeemPointsBtn = document.getElementById(&#039;redeemPointsBtn&#039;);
+  const subtotalEl = document.getElementById(&#039;breakdownSubtotal&#039;);
+  const serviceFeeEl = document.getElementById(&#039;breakdownServiceFee&#039;);
+  const discountRowEl = document.getElementById(&#039;breakdownDiscountRow&#039;);
+  const discountAmountEl = document.getElementById(&#039;breakdownDiscount&#039;);
+  const totalAmountEl = document.getElementById(&#039;breakdownTotal&#039;);
+  const backToStep1Btn = document.getElementById(&#039;backToStep1Btn&#039;);
+  const toStep3Btn = document.getElementById(&#039;toStep3Btn&#039;);
+
+  // Step 3 elements
+  const gatewayBookingIdEl = document.getElementById(&#039;gatewayBookingId&#039;);
+  const gatewayMethodBadgeEl = document.getElementById(&#039;gatewayMethodBadge&#039;);
+  const gatewayAmountDueEl = document.getElementById(&#039;gatewayAmountDue&#039;);
+  const gatewayPaymentForm = document.getElementById(&#039;gatewayPaymentForm&#039;);
+  const paymentSimulatorContainer = document.getElementById(&#039;paymentSimulatorContainer&#039;);
+  const backToStep2Btn = document.getElementById(&#039;backToStep2Btn&#039;);
+  const simulateFailBtn = document.getElementById(&#039;simulateFailBtn&#039;);
+  const confirmPaymentBtn = document.getElementById(&#039;confirmPaymentBtn&#039;);
+
+  // Step 4 elements
+  const paymentStatusIconEl = document.getElementById(&#039;paymentStatusIcon&#039;);
+  const paymentStatusTitleEl = document.getElementById(&#039;paymentStatusTitle&#039;);
+  const paymentStatusMessageEl = document.getElementById(&#039;paymentStatusMessage&#039;);
+  const paymentStatusDetailsEl = document.getElementById(&#039;paymentStatusDetails&#039;);
+  const paymentSuccessActionsEl = document.getElementById(&#039;paymentSuccessActions&#039;);
+  const paymentErrorActionsEl = document.getElementById(&#039;paymentErrorActions&#039;);
+  const retryGatewayBtn = document.getElementById(&#039;retryGatewayBtn&#039;);
+  const changeMethodFromErrorBtn = document.getElementById(&#039;changeMethodFromErrorBtn&#039;);
+
+  let bookingData = null;
+  let remainingSeconds = 600;
+  let timerInterval = null;
+  let selectedMethod = &#039;PROMPTPAY&#039;;
+  let holdersRendered = false;
+
+  function escapeHtml(value) {
+    if (value === null || value === undefined) return &#039;&#039;;
+    return String(value).replace(/[&amp;&lt;&gt;&quot;&#039;]/g, (char) =&gt; ({
+      &#039;&amp;&#039;: &#039;&amp;amp;&#039;,
+      &#039;&lt;&#039;: &#039;&amp;lt;&#039;,
+      &#039;&gt;&#039;: &#039;&amp;gt;&#039;,
+      &#039;&quot;&#039;: &#039;&amp;quot;&#039;,
+      &quot;&#039;&quot;: &#039;&amp;#39;&#039;
+    }[char]));
+  }
+
+  function goToStep(stepNumber) {
+    stepContainers.forEach((section, idx) =&gt; {
+      if (!section) return;
+      const isActive = idx + 1 === stepNumber;
+      section.classList.toggle(&#039;d-none&#039;, !isActive);
+      section.hidden = !isActive;
+    });
+
+    stepperItems.forEach((item) =&gt; {
+      const stepVal = Number(item.dataset.step);
+      item.classList.toggle(&#039;step-active&#039;, stepVal === stepNumber);
+      item.classList.toggle(&#039;step-done&#039;, stepVal &lt; stepNumber);
+      if (stepVal === stepNumber) {
+        item.setAttribute(&#039;aria-current&#039;, &#039;step&#039;);
+      } else {
+        item.removeAttribute(&#039;aria-current&#039;);
+      }
+    });
+
+    const activeSection = stepContainers[stepNumber - 1];
+    const heading = activeSection ? activeSection.querySelector(&#039;.checkout-step-heading, h2&#039;) : null;
+    if (heading) {
+      heading.focus();
+    }
+  }
+
+  async function loadBookingSummary({ preserveStep = false } = {}) {
+    try {
+      const res = await API.booking.getSummary(bookingId);
+      bookingData = res.booking;
+      remainingSeconds = res.remainingSeconds || 0;
+
+      if (res.isExpired || remainingSeconds &lt;= 0) {
+        handleExpiredHold();
+        return;
+      }
+
+      renderBookingDetails(res);
+      if (!holdersRendered) {
+        renderTicketHolderFields(res.booking);
+        holdersRendered = true;
+      }
+      if (!timerInterval) {
+        startCountdownTimer();
+      }
+      if (!preserveStep) {
+        goToStep(1);
+      }
+    } catch (err) {
+      console.error(&#039;Failed to load summary:&#039;, err);
+      if (err.status === 403 || err.status === 404) {
+        window.location.href = `/${err.status}?message=${encodeURIComponent(err.message)}`;
+        return;
+      }
+      await Popup.alert(err.message || &#039;Error loading booking summary.&#039;, { title: &#039;Checkout Error&#039; });
+      window.location.href = &#039;/home&#039;;
+    }
+  }
+
+  function renderTicketHolderFields(booking) {
+    if (!ticketHolderFields) return;
+    ticketHolderFields.innerHTML = `
+      &lt;h4 class=&quot;mb-12&quot;&gt;Ticket Holder Names&lt;/h4&gt;
+      ${(booking.seatNumbers || []).map((seatNumber, index) =&gt; `
+        &lt;div class=&quot;form-group&quot;&gt;
+          &lt;label class=&quot;form-label&quot; for=&quot;ticketHolder${index}&quot;&gt;Seat ${escapeHtml(seatNumber)} &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;&lt;/label&gt;
+          &lt;input id=&quot;ticketHolder${index}&quot; name=&quot;ticketHolder${index}&quot; class=&quot;form-control ticket-holder-name&quot; type=&quot;text&quot;
+            autocomplete=&quot;name&quot; value=&quot;${escapeHtml(booking.userName || &#039;&#039;)}&quot; maxlength=&quot;120&quot; required&gt;
+        &lt;/div&gt;
+      `).join(&#039;&#039;)}
+    `;
+    ticketHolderFields.querySelectorAll(&#039;.ticket-holder-name&#039;).forEach((input) =&gt; {
+      input.addEventListener(&#039;input&#039;, () =&gt; {
+        input.setCustomValidity(&#039;&#039;);
+        input.removeAttribute(&#039;aria-invalid&#039;);
+      });
+    });
+  }
+
+  function renderBookingDetails(data) {
+    const b = data.booking;
+    if (summaryUserNameEl) summaryUserNameEl.textContent = b.userName || &#039;-&#039;;
+    if (summaryUserEmailEl) summaryUserEmailEl.textContent = b.userEmail || &#039;-&#039;;
+    if (summaryUserPhoneEl) summaryUserPhoneEl.textContent = b.userPhone || &#039;-&#039;;
+
+    if (eventTitleEl) eventTitleEl.textContent = b.eventTitle;
+    if (roundLabelEl) roundLabelEl.innerHTML = `&lt;i class=&quot;fa-solid fa-calendar-days mr-4&quot;&gt;&lt;/i&gt; ${escapeHtml(b.roundLabel || &#039;General Admission&#039;)}`;
+    if (seatsListEl) seatsListEl.innerHTML = `&lt;i class=&quot;fa-solid fa-chair mr-4&quot;&gt;&lt;/i&gt; ${escapeHtml(b.zoneName)} - Seats: ${(b.seatNumbers || []).map(escapeHtml).join(&#039;, &#039;)}`;
+
+    const preDiscountTotal = b.subtotal + b.serviceFee;
+    if (step1SubtotalEl) step1SubtotalEl.textContent = `${b.subtotal.toLocaleString()} THB`;
+    if (step1ServiceFeeEl) step1ServiceFeeEl.textContent = `${b.serviceFee.toLocaleString()} THB`;
+    if (step1TotalEl) step1TotalEl.textContent = `${preDiscountTotal.toLocaleString()} THB`;
+
+    if (subtotalEl) subtotalEl.textContent = `${b.subtotal.toLocaleString()} THB`;
+    if (serviceFeeEl) serviceFeeEl.textContent = `${b.serviceFee.toLocaleString()} THB`;
+
+    const hasDiscount = b.discountAmount &gt; 0;
+    if (discountRowEl) {
+      discountRowEl.classList.toggle(&#039;d-none&#039;, !hasDiscount);
+      discountRowEl.hidden = !hasDiscount;
+    }
+    if (discountAmountEl &amp;&amp; hasDiscount) {
+      discountAmountEl.textContent = `-${b.discountAmount.toLocaleString()} THB`;
+    }
+
+    if (totalAmountEl) totalAmountEl.textContent = `${b.totalAmount.toLocaleString()} THB`;
+    if (userPointsEl) userPointsEl.textContent = data.userPoints || 0;
+
+    if (gatewayBookingIdEl) gatewayBookingIdEl.textContent = b.id;
+    if (gatewayAmountDueEl) gatewayAmountDueEl.textContent = `${b.totalAmount.toLocaleString()} THB`;
+    updateGatewayHeader();
+  }
+
+  function updateGatewayHeader() {
+    const cfg = METHOD_CONFIG[selectedMethod] || METHOD_CONFIG.PROMPTPAY;
+    if (gatewayMethodBadgeEl) gatewayMethodBadgeEl.textContent = cfg.label;
+    if (confirmPaymentBtn &amp;&amp; bookingData) {
+      confirmPaymentBtn.textContent = `Confirm &amp; Pay ${bookingData.totalAmount.toLocaleString()} THB`;
+    }
+  }
+
+  function validateTicketHolderInputs() {
+    const holderInputs = Array.from(document.querySelectorAll(&#039;.ticket-holder-name&#039;));
+    const invalidInput = holderInputs.find((input) =&gt; !input.value.trim());
+    if (invalidInput) {
+      invalidInput.setCustomValidity(&#039;Please enter the ticket holder name.&#039;);
+      invalidInput.setAttribute(&#039;aria-invalid&#039;, &#039;true&#039;);
+      invalidInput.reportValidity();
+      invalidInput.focus();
+      return null;
+    }
+    holderInputs.forEach((input) =&gt; {
+      input.setCustomValidity(&#039;&#039;);
+      input.removeAttribute(&#039;aria-invalid&#039;);
+    });
+    return holderInputs.map((input) =&gt; input.value.trim());
+  }
+
+  function startCountdownTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() =&gt; {
+      remainingSeconds--;
+      updateTimerDisplay();
+
+      if (remainingSeconds &lt;= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        handleExpiredHold();
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    if (!countdownTimerEl) return;
+    const minutes = Math.floor(Math.max(0, remainingSeconds) / 60);
+    const seconds = Math.max(0, remainingSeconds) % 60;
+    countdownTimerEl.textContent = `${String(minutes).padStart(2, &#039;0&#039;)}:${String(seconds).padStart(2, &#039;0&#039;)}`;
+
+    if (countdownBoxEl) {
+      countdownBoxEl.classList.toggle(&#039;urgent&#039;, remainingSeconds &lt; 120);
+    }
+  }
+
+  async function handleExpiredHold() {
+    if (countdownTimerEl) countdownTimerEl.textContent = &#039;00:00&#039;;
+    if (confirmPaymentBtn) confirmPaymentBtn.disabled = true;
+    await Popup.alert(
+      &#039;Your 10-minute seat reservation has expired. The held seats have been released back to available inventory. Please re-select your seats.&#039;,
+      { title: &#039;Reservation Expired&#039; }
+    );
+    window.location.href = `/booking?eventId=${bookingData ? bookingData.eventId : &#039;evt-1&#039;}`;
+  }
+
+  // Step navigation buttons
+  if (toStep2Btn) {
+    toStep2Btn.addEventListener(&#039;click&#039;, () =&gt; {
+      if (!validateTicketHolderInputs()) return;
+      goToStep(2);
+    });
+  }
+
+  if (backToStep1Btn) {
+    backToStep1Btn.addEventListener(&#039;click&#039;, () =&gt; goToStep(1));
+  }
+
+  if (toStep3Btn) {
+    toStep3Btn.addEventListener(&#039;click&#039;, () =&gt; {
+      updateGatewayHeader();
+      renderPaymentSimulator();
+      goToStep(3);
+    });
+  }
+
+  if (backToStep2Btn) {
+    backToStep2Btn.addEventListener(&#039;click&#039;, () =&gt; goToStep(2));
+  }
+
+  // Promo Code Application
+  if (applyPromoBtn) {
+    applyPromoBtn.addEventListener(&#039;click&#039;, async () =&gt; {
+      const promoCode = promoInput.value.trim();
+      if (!promoCode) {
+        await Popup.alert(&#039;Please enter a promotional code.&#039;, { title: &#039;Promo Code&#039; });
+        return;
+      }
+      try {
+        const res = await API.booking.applyDiscount(bookingId, { promoCode });
+        bookingData = res.booking;
+        await Popup.alert(`Success! Code &quot;${promoCode}&quot; applied.`, { title: &#039;Promo Applied&#039; });
+        await loadBookingSummary({ preserveStep: true });
+      } catch (err) {
+        await Popup.alert(err.message || &#039;Failed to apply promo code.&#039;, { title: &#039;Promo Error&#039; });
+      }
+    });
+  }
+
+  // Loyalty Points Redemption
+  if (redeemPointsBtn) {
+    redeemPointsBtn.addEventListener(&#039;click&#039;, async () =&gt; {
+      const redeemPoints = Number(pointsInput.value);
+      if (!redeemPoints || redeemPoints &lt; 100) {
+        await Popup.alert(&#039;Minimum redemption is 100 points (10 THB discount).&#039;, { title: &#039;Points Redemption&#039; });
+        return;
+      }
+      try {
+        const res = await API.booking.applyDiscount(bookingId, { redeemPoints });
+        bookingData = res.booking;
+        await Popup.alert(`Success! Redeemed ${redeemPoints} points.`, { title: &#039;Points Redeemed&#039; });
+        await loadBookingSummary({ preserveStep: true });
+      } catch (err) {
+        await Popup.alert(err.message || &#039;Failed to redeem points.&#039;, { title: &#039;Redemption Error&#039; });
+      }
+    });
+  }
+
+  // Payment Method Selection
+  document.querySelectorAll(&#039;.payment-method-card&#039;).forEach((card) =&gt; {
+    card.addEventListener(&#039;click&#039;, () =&gt; {
+      document.querySelectorAll(&#039;.payment-method-card&#039;).forEach((c) =&gt; {
+        c.classList.remove(&#039;active&#039;);
+        c.setAttribute(&#039;aria-pressed&#039;, &#039;false&#039;);
+      });
+      card.classList.add(&#039;active&#039;);
+      card.setAttribute(&#039;aria-pressed&#039;, &#039;true&#039;);
+      selectedMethod = card.dataset.method;
+      updateGatewayHeader();
+    });
+  });
+
+  function attachGatewayFieldListeners() {
+    if (!paymentSimulatorContainer) return;
+    paymentSimulatorContainer.querySelectorAll(&#039;input&#039;).forEach((input) =&gt; {
+      input.addEventListener(&#039;input&#039;, () =&gt; {
+        input.setCustomValidity(&#039;&#039;);
+        input.removeAttribute(&#039;aria-invalid&#039;);
+      });
+      input.addEventListener(&#039;blur&#039;, () =&gt; {
+        if (input.value.trim() &amp;&amp; !input.checkValidity()) {
+          input.setAttribute(&#039;aria-invalid&#039;, &#039;true&#039;);
+        }
+      });
+    });
+  }
+
+  function renderPaymentSimulator() {
+    if (!paymentSimulatorContainer) return;
+    const cfg = METHOD_CONFIG[selectedMethod] || METHOD_CONFIG.PROMPTPAY;
+
+    if (cfg.type === &#039;qr&#039;) {
+      paymentSimulatorContainer.innerHTML = `
+        &lt;div class=&quot;tc&quot;&gt;
+          &lt;h3 class=&quot;fs-11 mb-8 c-blue&quot;&gt;PromptPay QR Code Gateway&lt;/h3&gt;
+          &lt;p class=&quot;fs-085 c-muted mb-16&quot;&gt;Scan with any Thai Mobile Banking App, then click Confirm &amp;amp; Pay.&lt;/p&gt;
+          &lt;div class=&quot;promptpay-qr-box&quot;&gt;
+            &lt;img src=&quot;https://api.qrserver.com/v1/create-qr-code/?size=180x180&amp;data=PROMPTPAY_SIMULATOR_${escapeHtml(encodeURIComponent(bookingId))}&quot; alt=&quot;PromptPay QR Code&quot;&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;fs-085 c-ink-2&quot;&gt;
+            Ref: &lt;strong&gt;TH-PP-${Date.now().toString().slice(-6)}&lt;/strong&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      `;
+    } else if (cfg.type === &#039;card&#039;) {
+      const defaultHolder = bookingData ? bookingData.userName : &#039;&#039;;
+      paymentSimulatorContainer.innerHTML = `
+        &lt;div&gt;
+          &lt;h3 class=&quot;fs-11 mb-12 c-ink&quot;&gt;${escapeHtml(cfg.label)} Gateway&lt;/h3&gt;
+          &lt;div class=&quot;form-group&quot;&gt;
+            &lt;label class=&quot;form-label&quot; for=&quot;simCardNumber&quot;&gt;Card Number &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;simCardNumber&quot; name=&quot;cc-number&quot; class=&quot;form-control&quot;
+              autocomplete=&quot;cc-number&quot; inputmode=&quot;numeric&quot; maxlength=&quot;19&quot;
+              pattern=&quot;[\\d ]{13,19}&quot; placeholder=&quot;4123 4567 8901 2345&quot;
+              enterkeyhint=&quot;next&quot; required&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;grid-2col&quot;&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot; for=&quot;simExpiry&quot;&gt;Expiry Date &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;&lt;/label&gt;
+              &lt;span id=&quot;expHint&quot; class=&quot;field-hint&quot;&gt;Format: MM/YY&lt;/span&gt;
+              &lt;input type=&quot;text&quot; id=&quot;simExpiry&quot; name=&quot;cc-exp&quot; class=&quot;form-control&quot;
+                autocomplete=&quot;cc-exp&quot; aria-describedby=&quot;expHint&quot; maxlength=&quot;5&quot;
+                pattern=&quot;(0[1-9]|1[0-2])\\/\\d{2}&quot; placeholder=&quot;12/28&quot;
+                enterkeyhint=&quot;next&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot; for=&quot;simCvv&quot;&gt;Security Code (CVV) &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;&lt;/label&gt;
+              &lt;span id=&quot;cvvHint&quot; class=&quot;field-hint&quot;&gt;3 or 4 digits&lt;/span&gt;
+              &lt;input type=&quot;text&quot; id=&quot;simCvv&quot; name=&quot;cc-csc&quot; class=&quot;form-control&quot;
+                autocomplete=&quot;cc-csc&quot; aria-describedby=&quot;cvvHint&quot; inputmode=&quot;numeric&quot;
+                maxlength=&quot;4&quot; pattern=&quot;[0-9]{3,4}&quot; placeholder=&quot;123&quot;
+                enterkeyhint=&quot;next&quot; required&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;form-group mb-0&quot;&gt;
+            &lt;label class=&quot;form-label&quot; for=&quot;simCardHolder&quot;&gt;Cardholder Name &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;simCardHolder&quot; name=&quot;cc-name&quot; class=&quot;form-control&quot;
+              autocomplete=&quot;cc-name&quot; maxlength=&quot;80&quot; pattern=&quot;[\\p{L} \\-\\.]+&quot;
+              placeholder=&quot;Full Name on Card&quot; value=&quot;${escapeHtml(defaultHolder)}&quot;
+              enterkeyhint=&quot;done&quot; required&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      `;
+    } else {
+      const defaultPhone = bookingData &amp;&amp; bookingData.userPhone ? bookingData.userPhone : &#039;&#039;;
+      paymentSimulatorContainer.innerHTML = `
+        &lt;div class=&quot;tc&quot;&gt;
+          &lt;h3 class=&quot;fs-11 mb-8 ${cfg.headingClass}&quot;&gt;${escapeHtml(cfg.label)} Gateway&lt;/h3&gt;
+          &lt;p class=&quot;fs-085 c-muted mb-16&quot;&gt;${escapeHtml(cfg.subtitle)}&lt;/p&gt;
+          &lt;div class=&quot;form-group max-w-280 mx-auto mb-16 tl&quot;&gt;
+            &lt;label class=&quot;form-label&quot; for=&quot;simGatewayPhone&quot;&gt;${escapeHtml(cfg.inputLabel)} &lt;span aria-hidden=&quot;true&quot;&gt;*&lt;/span&gt;&lt;/label&gt;
+            &lt;input type=&quot;tel&quot; id=&quot;simGatewayPhone&quot; name=&quot;tel&quot; class=&quot;form-control&quot;
+              autocomplete=&quot;tel&quot; inputmode=&quot;numeric&quot; pattern=&quot;[\\d \\-]{9,15}&quot;
+              placeholder=&quot;${escapeHtml(cfg.placeholder)}&quot; value=&quot;${escapeHtml(defaultPhone)}&quot;
+              enterkeyhint=&quot;done&quot; required&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;fs-08 ${cfg.statusBgClass} p-8-12 r-8&quot;&gt;
+            &lt;i class=&quot;fa-solid fa-circle-check mr-4&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt; ${escapeHtml(cfg.statusText)}
+          &lt;/div&gt;
+        &lt;/div&gt;
+      `;
+    }
+
+    attachGatewayFieldListeners();
+  }
+
+  function collectAndValidatePaymentDetails() {
+    const cfg = METHOD_CONFIG[selectedMethod] || METHOD_CONFIG.PROMPTPAY;
+    const fields = Array.from(paymentSimulatorContainer.querySelectorAll(&#039;input&#039;));
+
+    for (const field of fields) {
+      if (!field.checkValidity()) {
+        field.setAttribute(&#039;aria-invalid&#039;, &#039;true&#039;);
+        field.reportValidity();
+        field.focus();
+        return null;
+      }
+      field.removeAttribute(&#039;aria-invalid&#039;);
+    }
+
+    if (cfg.type === &#039;card&#039;) {
+      const cardNumber = document.getElementById(&#039;simCardNumber&#039;).value.trim();
+      const expiry = document.getElementById(&#039;simExpiry&#039;).value.trim();
+      const cvv = document.getElementById(&#039;simCvv&#039;).value.trim();
+      const cardHolder = document.getElementById(&#039;simCardHolder&#039;).value.trim();
+      return { cardNumber, expiry, cvv, cardHolder };
+    }
+
+    if (cfg.type === &#039;mobile&#039;) {
+      const phone = document.getElementById(&#039;simGatewayPhone&#039;).value.trim();
+      return { phone };
+    }
+
+    return {};
+  }
+
+  function renderPaymentResult({ success, payment, tickets, message }) {
+    if (paymentStatusIconEl) {
+      paymentStatusIconEl.className = `payment-status-icon ${success ? &#039;payment-status-icon--success&#039; : &#039;payment-status-icon--error&#039;}`;
+      paymentStatusIconEl.innerHTML = success
+        ? &#039;&lt;i class=&quot;fa-solid fa-circle-check&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&#039;
+        : &#039;&lt;i class=&quot;fa-solid fa-circle-exclamation&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&#039;;
+    }
+
+    if (paymentStatusTitleEl) {
+      paymentStatusTitleEl.textContent = success ? &#039;Payment Successful&#039; : &#039;Payment Failed&#039;;
+    }
+
+    if (paymentStatusMessageEl) {
+      paymentStatusMessageEl.textContent = message;
+    }
+
+    if (paymentStatusDetailsEl) {
+      if (success &amp;&amp; payment) {
+        const cfg = METHOD_CONFIG[payment.method] || { label: payment.method };
+        const ticketList = Array.isArray(tickets) &amp;&amp; tickets.length &gt; 0
+          ? tickets.map((t) =&gt; `${escapeHtml(t.seatNumber)} (${escapeHtml(t.ticketCode)})`).join(&#039;, &#039;)
+          : &#039;-&#039;;
+        paymentStatusDetailsEl.innerHTML = `
+          &lt;div class=&quot;payment-status-row&quot;&gt;&lt;span&gt;Payment Reference&lt;/span&gt;&lt;strong class=&quot;mono&quot;&gt;${escapeHtml(payment.referenceCode)}&lt;/strong&gt;&lt;/div&gt;
+          &lt;div class=&quot;payment-status-row&quot;&gt;&lt;span&gt;Payment Method&lt;/span&gt;&lt;strong&gt;${escapeHtml(cfg.label)}&lt;/strong&gt;&lt;/div&gt;
+          &lt;div class=&quot;payment-status-row&quot;&gt;&lt;span&gt;Amount Paid&lt;/span&gt;&lt;strong class=&quot;c-blue&quot;&gt;${Number(payment.amount).toLocaleString()} THB&lt;/strong&gt;&lt;/div&gt;
+          &lt;div class=&quot;payment-status-row&quot;&gt;&lt;span&gt;Issued Tickets&lt;/span&gt;&lt;strong&gt;${ticketList}&lt;/strong&gt;&lt;/div&gt;
+        `;
+        paymentStatusDetailsEl.classList.remove(&#039;d-none&#039;);
+        paymentStatusDetailsEl.hidden = false;
+      } else {
+        paymentStatusDetailsEl.innerHTML = &#039;&#039;;
+        paymentStatusDetailsEl.classList.add(&#039;d-none&#039;);
+        paymentStatusDetailsEl.hidden = true;
+      }
+    }
+
+    if (paymentSuccessActionsEl) {
+      paymentSuccessActionsEl.classList.toggle(&#039;d-none&#039;, !success);
+      paymentSuccessActionsEl.hidden = !success;
+      const viewTicketsLink = paymentSuccessActionsEl.querySelector(&#039;a[href^=&quot;/my-tickets&quot;]&#039;);
+      if (viewTicketsLink &amp;&amp; bookingId) {
+        viewTicketsLink.href = `/my-tickets?bookingId=${encodeURIComponent(bookingId)}`;
+      }
+    }
+    if (paymentErrorActionsEl) {
+      paymentErrorActionsEl.classList.toggle(&#039;d-none&#039;, success);
+      paymentErrorActionsEl.hidden = success;
+    }
+  }
+
+  async function submitPayment(simulateFailure = false) {
+    const holderNames = validateTicketHolderInputs();
+    if (!holderNames) {
+      goToStep(1);
+      return;
+    }
+
+    let gatewayDetails = {};
+    if (!simulateFailure) {
+      gatewayDetails = collectAndValidatePaymentDetails();
+      if (!gatewayDetails) return;
+    } else {
+      gatewayDetails = { simulateFailure: true };
+    }
+
+    if (confirmPaymentBtn) {
+      confirmPaymentBtn.disabled = true;
+      confirmPaymentBtn.textContent = &#039;Processing Payment...&#039;;
+    }
+    if (simulateFailBtn) {
+      simulateFailBtn.disabled = true;
+    }
+
+    try {
+      const payload = {
+        paymentMethod: selectedMethod,
+        ticketHolderNames: holderNames,
+        paymentDetails: {
+          ...gatewayDetails,
+          simulatedTimestamp: new Date().toISOString(),
+          channel: &#039;WEB_SIMULATOR&#039;
+        }
+      };
+
+      const res = await API.booking.pay(bookingId, payload);
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (countdownBoxEl) {
+        countdownBoxEl.classList.add(&#039;d-none&#039;);
+        countdownBoxEl.hidden = true;
+      }
+
+      renderPaymentResult({
+        success: true,
+        payment: res.payment,
+        tickets: res.tickets,
+        message: &#039;Your booking is confirmed and your electronic QR tickets have been issued.&#039;
+      });
+      goToStep(4);
+    } catch (err) {
+      renderPaymentResult({
+        success: false,
+        message: err.message || &#039;Payment could not be processed. Please review your payment details and try again.&#039;
+      });
+      goToStep(4);
+    } finally {
+      if (confirmPaymentBtn) {
+        confirmPaymentBtn.disabled = false;
+        updateGatewayHeader();
+      }
+      if (simulateFailBtn) {
+        simulateFailBtn.disabled = false;
+      }
+    }
+  }
+
+  if (gatewayPaymentForm) {
+    gatewayPaymentForm.addEventListener(&#039;submit&#039;, async (e) =&gt; {
+      e.preventDefault();
+      await submitPayment(false);
+    });
+  }
+
+  if (simulateFailBtn) {
+    simulateFailBtn.addEventListener(&#039;click&#039;, async () =&gt; {
+      await submitPayment(true);
+    });
+  }
+
+  if (retryGatewayBtn) {
+    retryGatewayBtn.addEventListener(&#039;click&#039;, () =&gt; {
+      goToStep(3);
+    });
+  }
+
+  if (changeMethodFromErrorBtn) {
+    changeMethodFromErrorBtn.addEventListener(&#039;click&#039;, () =&gt; {
+      goToStep(2);
+    });
+  }
+
+  await loadBookingSummary();
+});
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

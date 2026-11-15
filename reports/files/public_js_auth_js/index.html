@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/auth.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/auth.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">69.66</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">518</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">35.43</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">4.45</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Authentication &amp; Session Manager (Vanilla JS)
+ * Manages user session, modal dialogs, and navbar auth state.
+ */
+
+const Auth = {
+  currentUser: null,
+  onAuthChangeCallbacks: [],
+
+  async init() {
+    this.createAuthModalDOM();
+    await this.fetchCurrentUser();
+    this.renderNavbarAuth();
+  },
+
+  onAuthChange(cb) {
+    if (typeof cb === &#039;function&#039;) {
+      this.onAuthChangeCallbacks.push(cb);
+    }
+  },
+
+  notifyAuthChange() {
+    for (const cb of this.onAuthChangeCallbacks) {
+      try {
+        cb(this.currentUser);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  },
+
+  async fetchCurrentUser() {
+    try {
+      const res = await API.auth.getMe();
+      if (res &amp;&amp; res.user) {
+        this.currentUser = res.user;
+        localStorage.setItem(&#039;tickethub_user&#039;, JSON.stringify(res.user));
+        return res.user;
+      }
+    } catch (_) {
+      // If unauthorized or token missing
+      this.currentUser = null;
+      localStorage.removeItem(&#039;tickethub_user&#039;);
+    }
+    return null;
+  },
+
+  isLoggedIn() {
+    return !!this.currentUser;
+  },
+
+  isAdmin() {
+    return this.currentUser &amp;&amp; this.currentUser.role === &#039;admin&#039;;
+  },
+
+  isStaff() {
+    return this.currentUser &amp;&amp; (this.currentUser.role === &#039;staff&#039; || this.currentUser.role === &#039;admin&#039;);
+  },
+
+  renderNavbarAuth() {
+    const avatarPill = document.querySelector(&#039;.avatar-pill&#039;);
+    if (!avatarPill) return;
+
+    if (this.currentUser) {
+      const safeAvatar = typeof window !== &#039;undefined&#039; &amp;&amp; typeof window.sanitizeUrl === &#039;function&#039;
+        ? window.sanitizeUrl(this.currentUser.avatarUrl)
+        : ((this.currentUser.avatarUrl &amp;&amp; /^(https?:\/\/|\/uploads\/)/i.test(this.currentUser.avatarUrl))
+          ? escapeHtml(this.currentUser.avatarUrl)
+          : &#039;&#039;);
+      if (safeAvatar) {
+        avatarPill.innerHTML = `&lt;img src=&quot;${safeAvatar}&quot; alt=&quot;${escapeHtml(this.currentUser.name || &#039;User&#039;)}&quot;&gt;`;
+      } else {
+        const initials = (this.currentUser.name || &#039;U&#039;).slice(0, 2).toUpperCase();
+        avatarPill.textContent = initials;
+      }
+      avatarPill.title = `${this.currentUser.name} (${this.currentUser.email})`;
+      avatarPill.onclick = (e) =&gt; {
+        e.stopPropagation();
+        this.toggleUserMenu(avatarPill);
+      };
+    } else {
+      avatarPill.innerHTML = `&lt;i class=&quot;fa-solid fa-user&quot;&gt;&lt;/i&gt;`;
+      avatarPill.title = &#039;Sign In&#039;;
+      avatarPill.onclick = () =&gt; this.openAuthModal();
+    }
+  },
+
+  toggleUserMenu(anchor) {
+    let menu = document.getElementById(&#039;userDropdownMenu&#039;);
+    if (menu) {
+      menu.remove();
+      return;
+    }
+
+    menu = document.createElement(&#039;div&#039;);
+    menu.id = &#039;userDropdownMenu&#039;;
+    menu.className = &#039;user-dropdown-menu&#039;;
+
+    const points = this.currentUser.points || 0;
+    const currentRole = (this.currentUser.role || &#039;customer&#039;).toLowerCase();
+    const isUserAdmin = this.isAdmin();
+    const isUserStaff = currentRole === &#039;staff&#039;;
+    const roleBadgeText = currentRole.toUpperCase();
+    const roleBadgeClass = isUserAdmin ? &#039;badge-pill-red&#039; : (isUserStaff ? &#039;badge-pill-blue&#039; : &#039;badge-pill-outline&#039;);
+
+    menu.innerHTML = `
+      &lt;div class=&quot;user-dropdown-header&quot;&gt;
+        &lt;div class=&quot;fw-7 c-ink&quot;&gt;${escapeHtml(this.currentUser.name)}&lt;/div&gt;
+        &lt;div class=&quot;fs-08 c-muted&quot;&gt;${escapeHtml(this.currentUser.email)}&lt;/div&gt;
+        &lt;div class=&quot;mt-6 flex items-c gap-6 wrap&quot;&gt;
+          &lt;span class=&quot;user-menu-points-badge&quot;&gt;
+            &lt;i class=&quot;fa-solid fa-star c-blue mr-2&quot;&gt;&lt;/i&gt; ${escapeHtml(points)} Points
+          &lt;/span&gt;
+          &lt;span class=&quot;${roleBadgeClass} fs-075 p-2-7 r-9999 uppercase&quot;&gt;
+            ${escapeHtml(roleBadgeText)}
+          &lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;a href=&quot;/profile&quot; class=&quot;user-dropdown-link&quot;&gt;My Profile&lt;/a&gt;
+      &lt;a href=&quot;/my-tickets&quot; class=&quot;user-dropdown-link&quot;&gt;My Tickets&lt;/a&gt;
+      &lt;a href=&quot;/support&quot; class=&quot;user-dropdown-link&quot;&gt;Help &amp; Support&lt;/a&gt;
+      ${isUserAdmin ? `
+        &lt;a href=&quot;/admin&quot; class=&quot;user-dropdown-link user-dropdown-link--blue&quot;&gt;Staff &amp; Admin Portal&lt;/a&gt;
+        &lt;a href=&quot;/admin?tab=scanner&quot; class=&quot;user-dropdown-link user-dropdown-link--teal&quot;&gt;Gate Scanner&lt;/a&gt;
+      ` : (isUserStaff ? `
+        &lt;a href=&quot;/admin&quot; class=&quot;user-dropdown-link user-dropdown-link--blue&quot;&gt;Staff Operations Portal&lt;/a&gt;
+        &lt;a href=&quot;/admin?tab=scanner&quot; class=&quot;user-dropdown-link user-dropdown-link--teal&quot;&gt;Gate Scanner&lt;/a&gt;
+      ` : &#039;&#039;)}
+      &lt;div class=&quot;border-t-subtle mt-6&quot;&gt;&lt;/div&gt;
+      &lt;button id=&quot;logoutBtn&quot; class=&quot;user-dropdown-logout&quot;&gt;
+        Log Out
+      &lt;/button&gt;
+    `;
+
+    document.body.appendChild(menu);
+
+    const closeHandler = (e) =&gt; {
+      if (!menu.contains(e.target) &amp;&amp; e.target !== anchor) {
+        menu.remove();
+        document.removeEventListener(&#039;click&#039;, closeHandler);
+      }
+    };
+    setTimeout(() =&gt; document.addEventListener(&#039;click&#039;, closeHandler), 10);
+
+    const logoutBtn = menu.querySelector(&#039;#logoutBtn&#039;);
+    logoutBtn.addEventListener(&#039;click&#039;, async () =&gt; {
+      await API.auth.logout().catch(() =&gt; { });
+      API.setToken(&#039;&#039;);
+      this.currentUser = null;
+      menu.remove();
+      this.renderNavbarAuth();
+      this.notifyAuthChange();
+      window.location.reload();
+    });
+  },
+
+  createAuthModalDOM() {
+    if (document.getElementById(&#039;authModal&#039;)) return;
+
+    const modal = document.createElement(&#039;div&#039;);
+    modal.id = &#039;authModal&#039;;
+    modal.className = &#039;modal-overlay d-none&#039;;
+    modal.hidden = true;
+
+    modal.innerHTML = `
+      &lt;div class=&quot;modal-content th-popup th-popup--big auth-modal-dialog&quot;&gt;
+        &lt;div class=&quot;th-popup-header mb-16 border-none p-0&quot;&gt;
+          &lt;h3 id=&quot;authModalTitle&quot; class=&quot;th-popup-title fs-18 fw-7 c-ink&quot;&gt;Sign In to TicketHub&lt;/h3&gt;
+          &lt;button id=&quot;closeAuthModal&quot; class=&quot;th-popup-close&quot; title=&quot;Close&quot; aria-label=&quot;Close&quot;&gt;
+            &lt;img src=&quot;/images/popup-close-icon.svg&quot; alt=&quot;Close&quot; class=&quot;w-24 h-24&quot;&gt;
+          &lt;/button&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;modal-body p-0&quot;&gt;
+          &lt;div class=&quot;auth-tabs&quot;&gt;
+            &lt;button id=&quot;tabLogin&quot; class=&quot;auth-tab active&quot;&gt;Log In&lt;/button&gt;
+            &lt;button id=&quot;tabRegister&quot; class=&quot;auth-tab&quot;&gt;Register&lt;/button&gt;
+            &lt;button id=&quot;tabSocial&quot; class=&quot;auth-tab&quot;&gt;Social / OTP&lt;/button&gt;
+          &lt;/div&gt;
+
+          &lt;!-- Alert area --&gt;
+          &lt;div id=&quot;authAlert&quot; class=&quot;auth-alert d-none&quot;&gt;&lt;/div&gt;
+
+          &lt;!-- Login Form --&gt;
+          &lt;form id=&quot;formLogin&quot;&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot;&gt;Email Address&lt;/label&gt;
+              &lt;input type=&quot;email&quot; id=&quot;loginEmail&quot; class=&quot;form-control&quot; placeholder=&quot;user@ticket.com&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot;&gt;Password&lt;/label&gt;
+              &lt;input type=&quot;password&quot; id=&quot;loginPassword&quot; class=&quot;form-control&quot; placeholder=&quot;••••••••&quot; required&gt;
+            &lt;/div&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;th-popup-btn th-popup-btn--primary auth-submit-btn&quot;&gt;Sign In&lt;/button&gt;
+            
+            &lt;div class=&quot;mt-16 fs-085 c-muted tc&quot;&gt;
+              Demo accounts:&lt;br&gt;
+              &lt;strong&gt;Customer:&lt;/strong&gt; user@ticket.com / password123&lt;br&gt;
+              &lt;strong&gt;Admin:&lt;/strong&gt; admin@ticket.com / admin123&lt;br&gt;
+              &lt;strong&gt;Staff:&lt;/strong&gt; staff@ticket.com / staff123
+            &lt;/div&gt;
+          &lt;/form&gt;
+
+          &lt;!-- Register Form --&gt;
+          &lt;form id=&quot;formRegister&quot; class=&quot;d-none&quot;&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot;&gt;Full Name *&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;regName&quot; class=&quot;form-control&quot; placeholder=&quot;Alex Rivers&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot;&gt;Email Address *&lt;/label&gt;
+              &lt;input type=&quot;email&quot; id=&quot;regEmail&quot; class=&quot;form-control&quot; placeholder=&quot;alex@example.com&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot;&gt;Password *&lt;/label&gt;
+              &lt;input type=&quot;password&quot; id=&quot;regPassword&quot; class=&quot;form-control&quot; placeholder=&quot;At least 6 characters&quot; required&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;grid-2col&quot;&gt;
+              &lt;div class=&quot;form-group&quot;&gt;
+                &lt;label class=&quot;form-label&quot;&gt;Phone&lt;/label&gt;
+                &lt;input type=&quot;text&quot; id=&quot;regPhone&quot; class=&quot;form-control&quot; placeholder=&quot;0812345678&quot;&gt;
+              &lt;/div&gt;
+              &lt;div class=&quot;form-group&quot;&gt;
+                &lt;label class=&quot;form-label&quot;&gt;Age&lt;/label&gt;
+                &lt;input type=&quot;number&quot; id=&quot;regAge&quot; class=&quot;form-control&quot; placeholder=&quot;24&quot;&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;form-group&quot;&gt;
+              &lt;label class=&quot;form-label&quot;&gt;National ID / Passport&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;regNationalId&quot; class=&quot;form-control&quot; placeholder=&quot;13-digit ID&quot;&gt;
+            &lt;/div&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;th-popup-btn th-popup-btn--destructive auth-submit-btn&quot;&gt;Create Account&lt;/button&gt;
+          &lt;/form&gt;
+
+          &lt;!-- Social Login Form --&gt;
+          &lt;div id=&quot;formSocial&quot; class=&quot;d-none tc&quot;&gt;
+            &lt;p class=&quot;fs-09 c-muted mb-16&quot;&gt;
+              Sign in with your Google or Facebook account:
+            &lt;/p&gt;
+            &lt;div id=&quot;googleSignInHost&quot; class=&quot;flex justify-c mb-10&quot;&gt;&lt;/div&gt;
+            &lt;button id=&quot;btnSocialFB&quot; class=&quot;btn-pill-outline w-100 mb-10 flex items-c justify-c gap-8 border-blue c-blue&quot;&gt;
+              &lt;i class=&quot;fa-brands fa-facebook c-blue&quot;&gt;&lt;/i&gt; Sign in with Facebook
+            &lt;/button&gt;
+            &lt;div id=&quot;phoneDemoSection&quot;&gt;
+              &lt;div class=&quot;border-dashed-subtle my-16&quot;&gt;&lt;/div&gt;
+              &lt;div class=&quot;form-group tl&quot;&gt;
+                &lt;label class=&quot;form-label&quot;&gt;Phone OTP (demo only, no real OTP is sent)&lt;/label&gt;
+                &lt;input type=&quot;text&quot; id=&quot;socialPhone&quot; class=&quot;form-control&quot; placeholder=&quot;0899998888&quot;&gt;
+              &lt;/div&gt;
+              &lt;button id=&quot;btnSocialOTP&quot; class=&quot;th-popup-btn th-popup-btn--primary w-100 fs-105 py-14&quot;&gt;
+                Request &amp; Verify OTP
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () =&gt; {
+      modal.classList.add(&#039;d-none&#039;);
+      modal.hidden = true;
+    };
+    const openModal = () =&gt; {
+      modal.classList.remove(&#039;d-none&#039;);
+      modal.hidden = false;
+    };
+
+    const closeBtn = modal.querySelector(&#039;#closeAuthModal&#039;);
+    closeBtn.onclick = closeModal;
+
+    modal.onclick = (e) =&gt; {
+      if (e.target === modal) closeModal();
+    };
+
+    document.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+      if (e.key === &#039;Escape&#039; &amp;&amp; !modal.classList.contains(&#039;d-none&#039;)) {
+        closeModal();
+      }
+    });
+
+    // Tab Switching
+    const tabLogin = modal.querySelector(&#039;#tabLogin&#039;);
+    const tabRegister = modal.querySelector(&#039;#tabRegister&#039;);
+    const tabSocial = modal.querySelector(&#039;#tabSocial&#039;);
+    const formLogin = modal.querySelector(&#039;#formLogin&#039;);
+    const formRegister = modal.querySelector(&#039;#formRegister&#039;);
+    const formSocial = modal.querySelector(&#039;#formSocial&#039;);
+    const authAlert = modal.querySelector(&#039;#authAlert&#039;);
+
+    const showAlert = (msg, isError = true) =&gt; {
+      authAlert.textContent = msg;
+      authAlert.className = `auth-alert ${isError ? &#039;auth-alert--error&#039; : &#039;auth-alert--success&#039;}`;
+      authAlert.classList.remove(&#039;d-none&#039;);
+    };
+    const hideAlert = () =&gt; {
+      authAlert.classList.add(&#039;d-none&#039;);
+      authAlert.textContent = &#039;&#039;;
+    };
+
+    const showTab = (tab) =&gt; {
+      hideAlert();
+      tabLogin.classList.toggle(&#039;active&#039;, tab === &#039;login&#039;);
+      tabRegister.classList.toggle(&#039;active&#039;, tab === &#039;register&#039;);
+      tabSocial.classList.toggle(&#039;active&#039;, tab === &#039;social&#039;);
+
+      formLogin.classList.toggle(&#039;d-none&#039;, tab !== &#039;login&#039;);
+      formRegister.classList.toggle(&#039;d-none&#039;, tab !== &#039;register&#039;);
+      formSocial.classList.toggle(&#039;d-none&#039;, tab !== &#039;social&#039;);
+    };
+
+    tabLogin.onclick = () =&gt; showTab(&#039;login&#039;);
+    tabRegister.onclick = () =&gt; showTab(&#039;register&#039;);
+    tabSocial.onclick = () =&gt; {
+      showTab(&#039;social&#039;);
+      initSocialProviders();
+    };
+
+    // Handle Login Submit
+    formLogin.onsubmit = async (e) =&gt; {
+      e.preventDefault();
+      hideAlert();
+      try {
+        const email = document.getElementById(&#039;loginEmail&#039;).value;
+        const password = document.getElementById(&#039;loginPassword&#039;).value;
+        const res = await API.auth.login({ email, password });
+        API.setToken(res.token);
+        this.currentUser = res.user;
+        closeModal();
+        this.renderNavbarAuth();
+        this.notifyAuthChange();
+        if (this.onSuccessCallback) this.onSuccessCallback(res.user);
+      } catch (err) {
+        showAlert(err.message);
+      }
+    };
+
+    // Handle Register Submit
+    formRegister.onsubmit = async (e) =&gt; {
+      e.preventDefault();
+      hideAlert();
+      try {
+        const body = {
+          name: document.getElementById(&#039;regName&#039;).value,
+          email: document.getElementById(&#039;regEmail&#039;).value,
+          password: document.getElementById(&#039;regPassword&#039;).value,
+          phone: document.getElementById(&#039;regPhone&#039;).value,
+          age: Number(document.getElementById(&#039;regAge&#039;).value) || undefined,
+          nationalId: document.getElementById(&#039;regNationalId&#039;).value || undefined
+        };
+        const res = await API.auth.register(body);
+        API.setToken(res.token);
+        this.currentUser = res.user;
+        closeModal();
+        this.renderNavbarAuth();
+        this.notifyAuthChange();
+        if (this.onSuccessCallback) this.onSuccessCallback(res.user);
+      } catch (err) {
+        showAlert(err.message);
+      }
+    };
+
+    // Social login (Google / Facebook): the provider returns a token, the server verifies it.
+    const finishLogin = (res) =&gt; {
+      API.setToken(res.token);
+      this.currentUser = res.user;
+      closeModal();
+      this.renderNavbarAuth();
+      this.notifyAuthChange();
+      if (this.onSuccessCallback) this.onSuccessCallback(res.user);
+    };
+
+    const socialLoginWith = async (body) =&gt; {
+      hideAlert();
+      try {
+        finishLogin(await API.auth.socialLogin(body));
+      } catch (err) {
+        showAlert(err.message);
+      }
+    };
+
+    const scriptPromises = {};
+    const loadScript = (src) =&gt; {
+      if (!scriptPromises[src]) {
+        scriptPromises[src] = new Promise((resolve, reject) =&gt; {
+          const el = document.createElement(&#039;script&#039;);
+          el.src = src;
+          el.async = true;
+          el.onload = resolve;
+          el.onerror = () =&gt; reject(new Error(`Failed to load ${src}`));
+          document.head.appendChild(el);
+        });
+      }
+      return scriptPromises[src];
+    };
+
+    let socialInitStarted = false;
+    const initSocialProviders = async () =&gt; {
+      if (socialInitStarted) return;
+      socialInitStarted = true;
+
+      const googleHost = modal.querySelector(&#039;#googleSignInHost&#039;);
+      const fbBtn = modal.querySelector(&#039;#btnSocialFB&#039;);
+      const phoneSection = modal.querySelector(&#039;#phoneDemoSection&#039;);
+
+      let cfg;
+      try {
+        cfg = await API.auth.socialConfig();
+      } catch (err) {
+        socialInitStarted = false; // allow retry next time the tab is opened
+        showAlert(&#039;Unable to load social login settings. Please try again.&#039;);
+        return;
+      }
+
+      const g = cfg.google || {};
+      const f = cfg.facebook || {};
+      if (phoneSection) phoneSection.classList.toggle(&#039;d-none&#039;, !cfg.phoneDemo);
+
+      // Google Identity Services renders its own official button
+      if (g.enabled &amp;&amp; g.clientId) {
+        try {
+          await loadScript(&#039;https://accounts.google.com/gsi/client&#039;);
+          window.google.accounts.id.initialize({
+            client_id: g.clientId,
+            callback: (resp) =&gt; {
+              if (resp &amp;&amp; resp.credential) {
+                socialLoginWith({ provider: &#039;gmail&#039;, idToken: resp.credential });
+              }
+            }
+          });
+          window.google.accounts.id.renderButton(googleHost, {
+            theme: &#039;outline&#039;,
+            size: &#039;large&#039;,
+            shape: &#039;pill&#039;,
+            text: &#039;signin_with&#039;,
+            width: 280
+          });
+        } catch (err) {
+          googleHost.textContent = &#039;Google sign-in is currently unavailable.&#039;;
+        }
+      } else {
+        googleHost.textContent = &#039;Google sign-in is not configured.&#039;;
+      }
+
+      // Facebook JS SDK
+      if (f.enabled &amp;&amp; f.appId) {
+        try {
+          await loadScript(&#039;https://connect.facebook.net/en_US/sdk.js&#039;);
+          window.FB.init({ appId: f.appId, cookie: false, xfbml: false, version: &#039;v27.0&#039; });
+        } catch (err) {
+          fbBtn.disabled = true;
+          fbBtn.title = &#039;Facebook sign-in is currently unavailable.&#039;;
+        }
+      } else {
+        fbBtn.disabled = true;
+        fbBtn.title = &#039;Facebook sign-in is not configured.&#039;;
+      }
+    };
+
+    // Must call FB.login directly from the click so the popup is not blocked
+    modal.querySelector(&#039;#btnSocialFB&#039;).onclick = () =&gt; {
+      if (!window.FB) {
+        showAlert(&#039;Facebook sign-in is not available right now.&#039;);
+        return;
+      }
+      window.FB.login((resp) =&gt; {
+        if (resp &amp;&amp; resp.authResponse &amp;&amp; resp.authResponse.accessToken) {
+          socialLoginWith({ provider: &#039;facebook&#039;, accessToken: resp.authResponse.accessToken });
+        } else {
+          showAlert(&#039;Facebook login was cancelled.&#039;);
+        }
+      }, { scope: &#039;public_profile,email&#039; });
+    };
+
+    // Demo-only simulated phone OTP (server disables it in production)
+    modal.querySelector(&#039;#btnSocialOTP&#039;).onclick = async () =&gt; {
+      const phone = document.getElementById(&#039;socialPhone&#039;).value.trim();
+      if (!phone) {
+        showAlert(&#039;Please enter a valid phone number.&#039;);
+        return;
+      }
+      await socialLoginWith({ provider: &#039;phone&#039;, phone, identifier: phone });
+    };
+  },
+
+  openAuthModal(callback) {
+    this.onSuccessCallback = callback;
+    const modal = document.getElementById(&#039;authModal&#039;);
+    if (modal) {
+      modal.classList.remove(&#039;d-none&#039;);
+      modal.hidden = false;
+      const emailField = document.getElementById(&#039;loginEmail&#039;);
+      if (emailField) emailField.focus();
+    }
+  }
+};
+
+window.Auth = Auth;
+
+// Expose a promise pages can await before checking login state
+Auth.ready = new Promise((resolve) =&gt; {
+  const run = async () =&gt; {
+    await Auth.init();
+    resolve();
+  };
+  if (document.readyState === &#039;loading&#039;) {
+    document.addEventListener(&#039;DOMContentLoaded&#039;, run);
+  } else {
+    run();
+  }
+});
+
+// Sync session across tabs: reload whenever another tab changes the token
+window.addEventListener(&#039;storage&#039;, (e) =&gt; {
+  if (e.key === &#039;tickethub_token&#039;) {
+    window.location.reload();
+  }
+});</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>
