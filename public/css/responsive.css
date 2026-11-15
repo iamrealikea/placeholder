@@ -1,0 +1,75 @@
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 16px 0;
+  }
+  .hero-banner {
+    padding: 20px;
+    min-height: 280px;
+  }
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  .event-dual-photos {
+    grid-template-columns: 1fr;
+  }
+  .event-photo-box {
+    height: 240px;
+  }
+  .event-detail-layout {
+    grid-template-columns: 1fr;
+  }
+  .checkout-grid,
+  .profile-grid,
+  .scanner-grid {
+    grid-template-columns: 1fr;
+  }
+  .payment-methods-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .checkout-stepper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .checkout-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .eticket-carousel-wrap {
+    flex-direction: column;
+  }
+  .filter-bar {
+    padding: 16px;
+    gap: 12px;
+    margin: 16px 0 28px;
+  }
+  .filter-input-group {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .filter-selects {
+    flex: 1 1 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+  .filter-reset-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-selects {
+    grid-template-columns: 1fr;
+  }
+  .event-horizontal-grid > .card-popular,
+  .event-horizontal-grid > .card-soon {
+    flex: 0 0 85%;
+  }
+  .event-horizontal-grid > .card-home {
+    flex: 0 0 88%;
+    height: 190px;
+  }
+}

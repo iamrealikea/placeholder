@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff & Admin Operations Portal - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/admin" class="nav-link active">Operations Portal</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge admin-initially-hidden">0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Access Denied / Auth Guard -->
+  <div id="admin-guard" class="container admin-initially-hidden"></div>
+
+  <!-- Unified Operations Portal Content -->
+  <main id="admin-content" class="container admin-initially-hidden">
+
+    <!-- Portal Header with Dynamic Role Badge -->
+    <div class="flex between mb-16 wrap admin-header-row">
+      <div>
+        <h1 class="fw-8 c-ink flex items-c gap-12 wrap admin-portal-header-title">
+          Staff &amp; Admin Operations Portal
+          <span id="portal-role-badge" class="badge-pill-red fs-085 badge-pill-uppercase">ADMIN</span>
+        </h1>
+        <p class="c-muted m-0 fs-1" id="portal-subtitle">
+          Real-time sales performance, seating layouts, user role administration, and operational management.
+        </p>
+      </div>
+    </div>
+
+    <!-- 6 Portal Tabs Navigation -->
+    <div class="portal-tabs-nav" id="portal-tabs-nav">
+      <button class="portal-tab-btn active" data-tab="overview">
+        <span><i class="fa-solid fa-chart-line mr-6"></i></span> Overview &amp; Analytics
+      </button>
+      <button class="portal-tab-btn" data-tab="events">
+        <span><i class="fa-solid fa-masks-theater mr-6"></i></span> Events &amp; Seating
+      </button>
+      <button class="portal-tab-btn" data-tab="categories">
+        <span><i class="fa-solid fa-layer-group mr-6"></i></span> Event Categories
+      </button>
+      <button class="portal-tab-btn" data-tab="scanner">
+        <span><i class="fa-solid fa-camera mr-6"></i></span> Gate Admission Scanner
+      </button>
+      <button class="portal-tab-btn" data-tab="roles">
+        <span><i class="fa-solid fa-users mr-6"></i></span> User &amp; Role Management
+      </button>
+      <button class="portal-tab-btn" data-tab="support">
+        <span><i class="fa-solid fa-wrench mr-6"></i></span> Support &amp; Backups
+      </button>
+    </div>
+
+    <!-- =========================================================================
+         TAB 1: Overview & Analytics (Admin Only)
+         ========================================================================= -->
+    <div id="tab-content-overview" class="portal-tab-pane active" data-tab-content="overview">
+      <!-- 6 KPI Metric Cards (FR-42, FR-43) -->
+      <div class="admin-kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Total Revenue</div>
+          <div id="kpi-revenue" class="kpi-value">0 THB</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Tickets Sold</div>
+          <div id="kpi-tickets" class="kpi-value">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Checked In</div>
+          <div id="kpi-checked-in" class="kpi-value c-green">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Live Events</div>
+          <div id="kpi-events" class="kpi-value">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Available Seats</div>
+          <div id="kpi-available-seats" class="kpi-value c-green-dark">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Booked Seats</div>
+          <div id="kpi-booked-seats" class="kpi-value c-red">0</div>
+        </div>
+      </div>
+
+      <!-- HTML5 Canvas 12-Month Sales Chart (FR-44) -->
+      <div class="chart-card">
+        <div class="flex between items-c mb-20">
+          <h3 class="fw-7 fs-125">12-Month Sales &amp; Ticket Distribution</h3>
+          <span class="fs-085 c-muted">Rendered via HTML5 &lt;canvas&gt;</span>
+        </div>
+        <div class="canvas-container">
+          <canvas class="w-100 h-100" id="sales-chart" width="1120" height="380"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 2: Events & Seating (Admin Only)
+         ========================================================================= -->
+    <div id="tab-content-events" class="portal-tab-pane" data-tab-content="events">
+      <div class="card-checkout mb-32">
+        <div class="flex between items-c mb-16 wrap gap-12">
+          <div>
+            <h3 class="mb-4">Active Events &amp; Seating Layouts</h3>
+            <p class="fs-085 c-muted m-0">Configure zone pricing and manage event matrix.
+            </p>
+          </div>
+          <div>
+            <a id="create-event-btn" href="/admin-event.html?mode=create"
+              class="btn-pill-red no-ul inline-flex items-c gap-6">+ Create Event</a>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Event Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Venue</th>
+                <th>Seat Inventory</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-events-table-body">
+              <!-- Populated by admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Admin Transaction History & Payment Status Audit Interface (FR-43) -->
+      <div class="card-checkout mb-32" id="tab-audit-section">
+        <div class="flex between items-c mb-16 wrap gap-12">
+          <div>
+            <h3 class="flex items-c gap-8 mb-4">
+              <i class="fa-solid fa-receipt c-blue"></i> Transaction History &amp; Payment
+              Status Audit
+            </h3>
+            <p class="fs-085 c-muted m-0">Audit real-time transactions, payment statuses,
+              customer credentials, and financial settlements.</p>
+          </div>
+          <span class="fs-085 fw-7 c-blue r-9999 badge-role-blue" id="tab-audit-count"></span>
+        </div>
+
+        <!-- Dynamic Filter Controls -->
+        <div class="mb-20 bg-surface p-16 admin-stat-summary-grid">
+          <div class="form-group mb-0">
+            <label class="form-label" for="tab-audit-filter-event">Filter by Event</label>
+            <select id="tab-audit-filter-event" class="form-control">
+              <option value="">All Events</option>
+            </select>
+          </div>
+          <div class="form-group mb-0">
+            <label class="form-label" for="tab-audit-filter-status">Booking / Payment Status</label>
+            <select id="tab-audit-filter-status" class="form-control">
+              <option value="">All Statuses</option>
+              <option value="PAID">PAID</option>
+              <option value="PENDING">PENDING</option>
+              <option value="CANCELLED">CANCELLED</option>
+              <option value="REFUNDED">REFUNDED</option>
+            </select>
+          </div>
+          <div class="form-group mb-0">
+            <label class="form-label" for="tab-audit-search-input">Search Query</label>
+            <input type="text" id="tab-audit-search-input" class="form-control"
+              placeholder="Search customer, email, ref, seat...">
+          </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="table-responsive">
+          <table class="data-table" id="tab-audit-table">
+            <thead>
+              <tr>
+                <th>Booking / Ref</th>
+                <th>Customer Details</th>
+                <th>Event &amp; Seats</th>
+                <th>Payment Method</th>
+                <th>Financial Breakdown</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="tab-audit-table-body">
+              <!-- Populated by admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB: Event Categories (Admin Only)
+         ========================================================================= -->
+    <div id="tab-content-categories" class="portal-tab-pane" data-tab-content="categories">
+      <section class="panel-card">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title"><i class="fa-solid fa-layer-group"></i> Event Categories</h2>
+            <p class="c-muted m-0">Create categories for admins to assign to events.</p>
+          </div>
+        </div>
+        <form id="create-category-form" class="flex items-c gap-12 wrap">
+          <div class="form-group flex-1 mb-0">
+            <label class="form-label" for="new-category-name">New category name</label>
+            <input id="new-category-name" class="form-control" type="text" maxlength="50"
+              placeholder="e.g. Workshop" required>
+          </div>
+          <button id="create-category-btn" class="btn-pill-red" type="submit">
+            <i class="fa-solid fa-plus"></i> Create Category
+          </button>
+        </form>
+        <div id="category-manager-message" class="mt-12" role="status" aria-live="polite"></div>
+        <div class="table-responsive mt-16">
+          <table class="data-table">
+            <thead>
+              <tr><th>Category</th><th>Created</th></tr>
+            </thead>
+            <tbody id="admin-categories-table-body">
+              <tr><td colspan="2" class="c-muted tc">Loading categories...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- =========================================================================
+         TAB 3: Gate Admission Scanner (Staff & Admin)
+         ========================================================================= -->
+    <div id="tab-content-scanner" class="portal-tab-pane" data-tab-content="scanner">
+      <div class="mb-20">
+        <h2 class="fw-8 c-ink fs-175">Gate Admission Scanner
+          Terminal</h2>
+        <p class="c-muted m-0">Validate attendee electronic tickets via camera stream, file upload, or
+          manual code entry.</p>
+      </div>
+
+      <!-- Scanner Layout Grid -->
+      <div class="scanner-grid mt-16">
+        <!-- Left Column: Camera Viewport & Manual Entry -->
+        <div>
+          <!-- Live Camera Viewport -->
+          <div class="card-checkout p-16">
+            <div class="camera-viewport">
+              <video id="camera-video" playsinline></video>
+              <div class="scanner-crosshair"></div>
+            </div>
+
+            <div id="camera-error-msg" class="admin-camera-error admin-initially-hidden"></div>
+
+            <div class="flex gap-12 mt-16 justify-c">
+              <button id="start-camera-btn" class="btn-pill-blue fs-095">
+                <i class="fa-solid fa-camera mr-6"></i> Start Camera Stream
+              </button>
+              <button id="stop-camera-btn" class="btn-pill-outline fs-095 admin-initially-hidden">
+                <i class="fa-solid fa-stop mr-6"></i> Stop Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Ticket Code Input -->
+          <div class="card-checkout mt-20">
+            <h3>Manual Code Input</h3>
+            <p class="fs-085 c-muted mb-12">Type or scan barcode ticket code
+              directly:</p>
+            <div class="flex gap-8">
+              <input type="text" id="manual-ticket-code" class="form-control" placeholder="e.g. TKT-BKG1-A1-1234">
+              <button id="validate-code-btn" class="btn-pill-blue nowrap">
+                Validate Ticket
+              </button>
+            </div>
+
+            <div class="mt-16 admin-section-divider">
+              <label class="form-label">Or Upload QR Ticket Image</label>
+              <input class="fs-085" type="file" id="qr-file-input" accept="image/*">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Scan Result Alert & Audit History -->
+        <div>
+          <!-- Dynamic Scan Result Area -->
+          <div id="scan-result-area">
+            <div class="bg-white r-16 tc c-faint mb-24 admin-empty-state-box">
+              <span class="block mb-8 c-blue fs-25"><i class="fa-solid fa-tower-broadcast"></i></span>
+              <strong class="c-ink-2">Scanner Idle</strong>
+              <p class="fs-085 mt-4">Point camera at attendee QR code or submit code on the
+                left.</p>
+            </div>
+          </div>
+
+          <!-- Session Scan Audit Log (FR-30, FR-31) -->
+          <div class="card-checkout">
+            <h3>Session Scan Audit Log</h3>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Ticket Code</th>
+                    <th>Attendee</th>
+                    <th>Seat</th>
+                    <th>Result</th>
+                  </tr>
+                </thead>
+                <tbody id="scan-audit-log-body">
+                  <tr>
+                    <td class="tc c-faint p-18" colspan="5">
+                      No tickets scanned in this session yet.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 4: User & Role Management (Admin Only)
+         ========================================================================= -->
+    <div id="tab-content-roles" class="portal-tab-pane" data-tab-content="roles">
+      <!-- Role Summary Counter Cards -->
+      <div class="role-kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Total Users</div>
+          <div id="user-count-total" class="kpi-value"><span id="role-total-count">0</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Administrators</div>
+          <div id="user-count-admin" class="kpi-value c-red"><span id="role-admin-count">0</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Staff Members</div>
+          <div id="user-count-staff" class="kpi-value c-blue"><span id="role-staff-count">0</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Customers</div>
+          <div id="user-count-customer" class="kpi-value c-green"><span id="role-customer-count">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Box & Role Filter Bar -->
+      <div class="card-checkout mb-24 p-20">
+        <div class="admin-filter-bar-grid">
+          <div class="form-group mb-0">
+            <label class="form-label" for="user-search-input">Search Registered Users</label>
+            <input type="text" id="user-search-input" class="form-control"
+              placeholder="Search by name, email, or phone...">
+          </div>
+          <div class="form-group mb-0">
+            <label class="form-label" for="user-role-filter">Filter by Role</label>
+            <select id="user-role-filter" class="form-control">
+              <option value="all">All Roles</option>
+              <option value="admin">Administrators</option>
+              <option value="staff">Staff Members</option>
+              <option value="customer">Customers</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Users Table -->
+      <div class="card-checkout mb-32">
+        <div class="flex between items-c mb-16">
+          <div>
+            <h3 class="mb-4">User Accounts &amp; Access Roles</h3>
+            <p class="fs-085 c-muted m-0">Assign staff operational privileges or promote
+              administrators.</p>
+          </div>
+          <div class="fs-085 fw-7 c-blue" id="user-results-count"></div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Points</th>
+                <th>Role Selector</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-table-body">
+              <!-- Populated by admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 5: Support & Backups (Admin Only)
+         ========================================================================= -->
+    <div id="tab-content-support" class="portal-tab-pane" data-tab-content="support">
+      <div class="profile-grid">
+        <!-- Customer Support Inquiries -->
+        <div>
+          <div class="card-checkout">
+            <h3 class="mb-16">Customer Support Inquiries</h3>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Customer</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Reply</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-support-table-body">
+                  <!-- Populated by admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- JSON Database Backup & Restore Manager (NFR-11, NFR-12) -->
+        <div>
+          <div class="card-checkout">
+            <div class="flex between items-c mb-16">
+              <h3>Database Snapshots</h3>
+              <button id="create-backup-btn" class="btn-pill-blue fs-085 p-6-16">
+                Create Backup
+              </button>
+            </div>
+            <p class="fs-085 c-muted mb-12">
+              Manage atomic point-in-time state archives of all users, bookings, and seat maps:
+            </p>
+            <ul class="m-0 list-unstyled" id="backup-list">
+              <!-- Populated by admin.js -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         Event Inspection Modal (FR-42 & FR-43)
+         ========================================================================= -->
+    <div id="event-inspect-modal" class="modal-overlay admin-initially-hidden">
+      <div class="modal-content bg-white flex admin-inspect-modal-card">
+
+        <!-- Modal Header -->
+        <div class="modal-header bg-surface flex between items-c admin-modal-header-bar">
+          <div>
+            <div class="flex items-c gap-10 wrap">
+              <h3 class="m-0 fs-135 fw-8 c-ink" id="inspect-event-title">Event
+                Inspection</h3>
+              <span id="inspect-event-status-badge" class="badge-pill-blue fs-075">Status</span>
+              <span class="fs-075 r-9999 c-ink-2 fw-7 badge-code-pill" id="inspect-event-category-badge">Category</span>
+            </div>
+            <p class="fs-085 c-muted mt-4" id="inspect-event-meta"></p>
+          </div>
+          <button type="button" id="inspect-modal-close-btn" class="modal-close-btn fs-135 c-muted btn-icon-close"
+            title="Close Modal" aria-label="Close Modal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Modal Sub-Tabs -->
+        <div class="flex gap-8 bg-white admin-modal-subnav-bar">
+          <button type="button" id="inspect-tab-btn-inventory" class="modal-subtab-btn">
+            <i class=" fa-solid fa-chair"></i> Seat Inventory &amp; Metrics
+          </button>
+          <button type="button" id="inspect-tab-btn-transactions" class="modal-subtab-btn">
+            <i class="fa-solid fa-receipt"></i> Transaction Audit
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body p-24 flex-1 overflow-y-auto">
+
+          <!-- Tab Pane 1: Inventory & Metrics -->
+          <div id="inspect-pane-inventory">
+            <!-- 5 Metric KPI Cards -->
+            <div class="role-kpi-grid mb-24 role-kpi-grid-compact">
+              <div class="kpi-card p-14">
+                <div class="kpi-title fs-075">Total Revenue</div>
+                <div id="inspect-kpi-revenue" class="kpi-value fs-135 c-blue">0 THB</div>
+              </div>
+              <div class="kpi-card p-14">
+                <div class="kpi-title fs-075">Total Refunded</div>
+                <div id="inspect-kpi-refunded" class="kpi-value fs-135 c-red">0 THB</div>
+              </div>
+              <div class="kpi-card p-14">
+                <div class="kpi-title fs-075">Total Bookings</div>
+                <div id="inspect-kpi-bookings" class="kpi-value fs-135 c-ink">0</div>
+                <small class="fs-075 c-muted block mt-4" id="inspect-kpi-bookings-breakdown"></small>
+              </div>
+              <div class="kpi-card p-14">
+                <div class="kpi-title fs-075">Seat Inventory</div>
+                <div id="inspect-kpi-seats" class="kpi-value fs-135 c-green">0</div>
+                <small class="fs-075 c-muted block mt-4" id="inspect-kpi-seats-breakdown"></small>
+              </div>
+              <div class="kpi-card p-14">
+                <div class="kpi-title fs-075">Gate Check-In</div>
+                <div id="inspect-kpi-check-in" class="kpi-value fs-135 c-indigo">0 / 0</div>
+                <small class="fs-075 c-muted block mt-4" id="inspect-kpi-check-in-rate"></small>
+              </div>
+            </div>
+
+            <!-- Real-Time Seat Inventory per Round & Zone -->
+            <div>
+              <div class="flex between items-c mb-12 wrap gap-8">
+                <h4 class="m-0 fw-7 c-ink fs-11">Real-Time Round &amp; Zone
+                  Inventory</h4>
+                <div class="flex gap-8 items-c" id="inspect-round-selector-wrap"></div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Zone</th>
+                      <th>Price</th>
+                      <th>Available</th>
+                      <th>Held</th>
+                      <th>Booked</th>
+                      <th>Total</th>
+                      <th>Occupancy</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inspect-zone-table-body">
+                    <!-- Populated dynamically by admin.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Pane 2: Modal Transaction Audit -->
+          <div id="inspect-pane-transactions" class="admin-initially-hidden">
+            <div class="flex gap-12 mb-16 wrap items-c">
+              <div class="flex-1 min-w-200">
+                <input type="text" id="inspect-tx-search" class="form-control"
+                  placeholder="Search customer, email, ref code, seat...">
+              </div>
+              <div class="w-180">
+                <select id="inspect-tx-status-filter" class="form-control">
+                  <option value="">All Statuses</option>
+                  <option value="PAID">PAID</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                  <option value="REFUNDED">REFUNDED</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Booking / Ref</th>
+                    <th>Customer Details</th>
+                    <th>Seats</th>
+                    <th>Method</th>
+                    <th>Financial Breakdown</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="inspect-tx-table-body">
+                  <!-- Populated dynamically by admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer bg-surface flex between items-c admin-modal-footer-bar">
+          <span class="fs-08 c-faint" id="inspect-modal-last-updated">Real-time inventory
+            synchronized</span>
+          <div class="flex gap-10">
+            <a id="inspect-edit-event-link" href="#"
+              class="btn-pill-blue fs-085 no-ul inline-flex items-c p-6-16 gap-6">
+              <i class="fa-solid fa-pen-to-square"></i> Edit Event &amp; Seating
+            </a>
+            <button type="button" id="inspect-modal-close-footer-btn" class="btn-pill-outline fs-085 p-6-16">
+              Close
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white tc c-muted fs-09 admin-footer-copyright-divider">
+    <div class="container">
+      <p class="mb-8 fw-7 c-blue">TicketHub Staff &amp; Administrator Portal &copy;
+        2026</p>
+      <p>Authorized access only. Single-use gate admission &amp; enterprise operations management.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/admin-categories.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+
+</html>

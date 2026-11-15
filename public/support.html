@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help & Customer Support - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link active">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <div class="mt-32 mb-24">
+      <h1 class="fs-225 fw-8 c-dark">Customer Support & Help Desk</h1>
+      <p class="c-muted">Need assistance with ticket bookings, payments, or venue information? Reach our team
+        below.</p>
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- Left Column: Submit Inquiry Form (FR-45) -->
+      <div>
+        <div class="card-checkout">
+          <h3>Submit an Inquiry</h3>
+          <form id="supportForm">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="supportCategory" class="form-control">
+                <option value="Booking & Seats">Booking & Seats</option>
+                <option value="Payment & Billing">Payment & Billing</option>
+                <option value="Cancellation & Refund">Cancellation & Refund</option>
+                <option value="QR Code & Venue Gate">QR Code & Venue Gate</option>
+                <option value="General Inquiry">General Inquiry</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input type="text" id="supportSubject" class="form-control"
+                placeholder="e.g. Issue with payment verification" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Message Details</label>
+              <textarea id="supportMessage" class="form-control" rows="5"
+                placeholder="Describe your question or issue in detail..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-pill-blue w-100 p-12">
+              Submit Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right Column: My Support Inquiries & Admin Replies -->
+      <div>
+        <div class="card-checkout">
+          <h3>My Inquiries & Resolution Status</h3>
+          <div id="myInquiriesContainer">
+            <!-- Populated by support.js -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
+      <p>Customer inquiries are monitored 24/7 by venue support staff.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/support.js"></script>
+</body>
+
+</html>

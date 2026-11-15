@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Events - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link active">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" id="navSearchTrigger" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    <div class="mt-32 mb-16 flex between items-c wrap gap-12">
+      <div>
+        <h1 class="fs-225 fw-8 c-dark mb-4">All Events</h1>
+        <p class="c-muted m-0">Browse concerts, seminars, and live shows. Search, filter, or bookmark events.</p>
+      </div>
+      <span id="eventsResultCount" class="badge-pill-blue fs-085">Loading...</span>
+    </div>
+
+    <!-- Search & Filter Bar (FR-06, FR-07, FR-08, FR-09) -->
+    <section class="filter-bar" id="eventsFilterBar">
+      <div class="filter-input-group">
+        <span class="filter-input-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" id="searchInput" placeholder="Search by event, artist, or venue...">
+      </div>
+      <div class="filter-selects">
+        <select id="categoryFilter" class="filter-select" aria-label="Filter by category">
+          <option value="">All Categories</option>
+        </select>
+        <select id="statusFilter" class="filter-select" aria-label="Filter by status">
+          <option value="">All Statuses</option>
+          <option value="On Sale">On Sale</option>
+          <option value="Coming Soon">Coming Soon</option>
+          <option value="Sold Out">Sold Out</option>
+          <option value="Closed">Closed</option>
+        </select>
+        <select id="provinceFilter" class="filter-select" aria-label="Filter by province">
+          <option value="">All Provinces</option>
+        </select>
+        <input type="date" id="dateFilter" class="filter-select" aria-label="Filter by show date">
+        <label class="filter-check-label" for="saleActiveFilter">
+          <input type="checkbox" id="saleActiveFilter">
+          <span>On Sale Now</span>
+        </label>
+        <select id="sortFilter" class="filter-select" aria-label="Sort events">
+          <option value="">Sort: Default</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+        <button type="button" id="resetFilters" class="filter-reset-btn">
+          <i class="fa-solid fa-rotate-left"></i> Clear
+        </button>
+      </div>
+    </section>
+
+    <!-- All Events Grid -->
+    <section aria-label="Events list">
+      <div id="allEventsGrid" class="events-catalog-grid">
+        <p class="empty-events-msg">Loading events...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026. All Rights Reserved.</p>
+      <p><i class="fa-solid fa-check c-blue mr-4"></i> Secure ticketing, atomic seat locks, and transparent pricing.</p>
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/event-card.js"></script>
+  <script src="/js/events.js"></script>
+</body>
+
+</html>

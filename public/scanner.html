@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Gate Scanner - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/admin" class="nav-link active">Operations Portal</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Access Denied Guard -->
+  <div id="scannerGuard" class="container d-none" hidden></div>
+
+  <!-- Main Scanner Content Area -->
+  <main id="scannerContent" class="container d-none py-32 mb-64" hidden>
+
+    <!-- Operations Portal Banner -->
+    <div class="bg-blue-light border-blue-brand r-16 p-18-24 mb-28 flex items-c between wrap gap-16 shadow-blue-glow">
+      <div class="flex items-c gap-14">
+        <span class="fs-2 c-blue"><i class="fa-solid fa-circle-info"></i></span>
+        <div>
+          <strong class="c-blue fs-105 block mb-2">Portal Integration Enabled</strong>
+          <span class="c-ink-3 fs-095">
+            This scanner is integrated with the central TicketHub Operations Portal. Switch to the portal dashboard for full metrics and user role administration.
+          </span>
+        </div>
+      </div>
+      <a href="/admin" class="btn-pill-blue fs-095 p-10-20 no-ul inline-flex items-c gap-6">
+        <i class="fa-solid fa-gauge-high"></i> Open Operations Portal
+      </a>
+    </div>
+
+    <div class="mb-24">
+      <h1 class="fs-225 fw-8 c-ink">Gate Admission Scanner</h1>
+      <p class="c-muted">Validate attendee electronic tickets via camera stream, file upload, or manual code input.</p>
+    </div>
+
+    <div class="scanner-grid">
+
+      <!-- Left Column: Camera Viewport & Manual Code Input -->
+      <div>
+        <div class="card-checkout">
+          <h3>Camera QR Stream</h3>
+
+          <!-- Camera Stream Box with Crosshair Alignment Box -->
+          <div class="card-checkout p-16">
+            <div class="camera-viewport">
+              <video id="cameraVideo" playsinline autoplay muted></video>
+              <div class="scanner-crosshair"></div>
+            </div>
+
+            <!-- Camera Feedback / Error Message -->
+            <div id="cameraErrorMsg" class="d-none c-red-dark fs-085 mt-10 tc" hidden></div>
+
+            <div class="flex gap-12 mt-16 justify-c">
+              <button id="startCameraBtn" class="btn-pill-blue fs-095">
+                <i class="fa-solid fa-camera mr-6"></i> Start Camera Stream
+              </button>
+              <button id="stopCameraBtn" class="btn-pill-outline d-none fs-095" hidden>
+                <i class="fa-solid fa-stop mr-6"></i> Stop Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Code Form -->
+          <div class="form-group mt-20">
+            <label class="form-label">Manual Ticket Code Entry</label>
+            <p class="fs-085 c-muted mb-12">Type or scan barcode ticket code directly:</p>
+            <div class="flex gap-8">
+              <input type="text" id="manualTicketCode" class="form-control" placeholder="e.g. TKT-E1-0001">
+              <button id="validateCodeBtn" class="btn-pill-blue nowrap">
+                Validate Ticket
+              </button>
+            </div>
+          </div>
+
+          <!-- Optional QR Image Upload Fallback -->
+          <div class="mt-16 border-dashed-subtle pt-14">
+            <label class="form-label">Upload QR Code Image</label>
+            <input type="file" id="qrFileInput" accept="image/*" class="fs-085">
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Scan Result & Real-Time Feedback -->
+      <div>
+        <div class="card-checkout">
+          <h3>Validation Result</h3>
+
+          <!-- Dynamic Scan Feedback Area -->
+          <div id="scanResultArea">
+            <div class="bg-white r-16 p-36-20 tc c-faint mb-24 admin-empty-state-box">
+              <span class="fs-25 block mb-8 c-blue"><i class="fa-solid fa-qrcode"></i></span>
+              <strong class="c-ink-2">Scanner Idle</strong>
+              <p class="fs-085 mt-4">Point camera at attendee QR code or submit code on the left.</p>
+            </div>
+          </div>
+
+          <!-- Session Audit Log Table -->
+          <h4 class="mb-12">Recent Gate Scans (Session)</h4>
+          <table class="tickets-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Code</th>
+                <th>Attendee</th>
+                <th>Seat</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scanAuditLogBody">
+              <tr>
+                <td colspan="5" class="tc c-faint p-18">
+                  No scans recorded in this session yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Staff Gate Terminal &copy; 2026</p>
+      <p>Single-use ticket validation with atomic anti-reuse fraud warning verification.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/scanner.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link active">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Title + Location Header (Figma prototype alignment) -->
+    <div class="event-detail-header">
+      <div class="event-detail-title-group">
+        <div id="eventMetaBadges" class="event-meta-badges"></div>
+        <h1 id="eventTitle">Loading Event...</h1>
+        <div id="eventArtist" class="event-artist-line"></div>
+      </div>
+      <div class="event-detail-location" id="eventVenue">
+        <i class="fa-solid fa-location-dot c-blue mr-4"></i> Impact Arena
+      </div>
+    </div>
+
+    <!-- Dual Side-by-Side Stage & Crowd Photos (border-radius: 16px) -->
+    <div class="event-dual-photos">
+      <div class="event-photo-box">
+        <img id="eventPhoto1" src="" alt="Stage Performance View">
+      </div>
+      <div class="event-photo-box">
+        <img id="eventPhoto2" src="" alt="Audience & Crowd Atmosphere">
+      </div>
+    </div>
+
+    <!-- Two-Column Layout -->
+    <div class="event-detail-layout">
+
+      <!-- Left Column: Description, Artist, Rounds, Bookmark -->
+      <div class="event-description-col">
+        <h2>About the Event</h2>
+        <div id="eventDesc" class="event-description-text">
+          Loading detailed event description...
+        </div>
+
+        <h3 class="fs-125 mb-12 mt-24">Available Show Rounds</h3>
+        <div id="roundsList">
+          <!-- Populated by event.js -->
+        </div>
+
+        <h3 class="fs-125 mb-12 mt-24">Zones &amp; Ticket Prices</h3>
+        <div id="zonesPricingList">
+          <!-- Populated by event.js -->
+        </div>
+
+        <h3 class="fs-125 mb-12 mt-24">Seating Plan Preview</h3>
+        <div id="seatPreviewContainer" class="event-seat-preview">
+          <p class="c-muted m-0">Loading seating plan...</p>
+        </div>
+
+        <div class="event-actions-bar">
+          <button id="bookmarkBtn" class="btn-pill-outline flex items-c gap-8">
+            <i class="fa-regular fa-heart"></i> Add to Bookmarks
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Cool Grey Information Card with full-width Buy Now -->
+      <div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <span><i class="fa-solid fa-circle-info c-blue mr-6"></i></span>
+            Information
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Date</div>
+            <div id="infoDates" class="info-value">2, 3, 4, 6 October 2026</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Schedule</div>
+            <div id="infoSchedule" class="info-value">
+              <div>Open gate: 16:00</div>
+              <div>Showtime: 19:00</div>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Price Range</div>
+            <div id="infoPriceRange" class="info-value">-</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Organizer</div>
+            <div id="infoOrganizer" class="info-value">kys show</div>
+          </div>
+
+          <div class="info-cta">
+            <button id="buyNowBtn" class="btn-pill-red fs-115 w-100">
+              Buy Now
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
+      <p>Official ticketing partner with instant electronic ticket delivery.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/event.js"></script>
+</body>
+
+</html>

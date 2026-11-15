@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicketHub - Discover & Book Live Events</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link active">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" id="navSearchTrigger" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner (UI-01, UI-03) - Full-Width Screen Background with Centered Interactive Card -->
+  <section class="hero-section" id="heroSection">
+    <img id="heroBgImg" class="hero-bg-img"
+      src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1920&q=80"
+      alt="" aria-hidden="true">
+    <div class="container">
+      <div id="heroBanner" class="hero-banner">
+        <div class="hero-top">
+          <span class="badge-pill-red">Feature Event</span>
+        </div>
+        <div class="hero-content">
+          <h1 class="hero-title">Forza Horizon Somethings Live Festival</h1>
+          <p class="hero-desc">The ultimate audio-visual festival experience featuring premier artists and world-class
+            stage production.</p>
+          <div class="hero-meta">
+            <span><i class="fa-solid fa-location-dot c-blue mr-4"></i> Impact
+              Arena, Exhibition Hall 1</span>
+            <span>•</span>
+            <span><i class="fa-solid fa-calendar-days mr-4"></i> 11 Nov 2026</span>
+          </div>
+        </div>
+        <div class="hero-bottom">
+          <a href="/event?id=evt-1" class="btn-pill-red">Buy Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Search & Filter Bar (FR-08, FR-09) - Below Menu -->
+    <section class="filter-bar" id="filterBar">
+      <div class="filter-input-group">
+        <span class="filter-input-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+        <input type="text" id="searchInput" placeholder="Search by event, artist, or venue...">
+      </div>
+      <div class="filter-selects">
+        <select id="categoryFilter" class="filter-select">
+          <option value="">All Categories</option>
+        </select>
+        <select id="statusFilter" class="filter-select">
+          <option value="">All Statuses</option>
+          <option value="On Sale">On Sale</option>
+          <option value="Coming Soon">Coming Soon</option>
+          <option value="Sold Out">Sold Out</option>
+          <option value="Closed">Closed</option>
+        </select>
+        <select id="provinceFilter" class="filter-select" aria-label="Filter by province">
+          <option value="">All Provinces</option>
+          <!-- Populated by index.js from event data -->
+        </select>
+        <select id="monthFilter" class="filter-select" aria-label="Filter by month">
+          <option value="">Any Month</option>
+          <!-- Populated by index.js from event round dates -->
+        </select>
+        <select id="sortFilter" class="filter-select" aria-label="Sort events">
+          <option value="">Sort: Default</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+        </select>
+        <button type="button" id="resetFilters" class="filter-reset-btn">
+          <i class="fa-solid fa-rotate-left"></i> Clear
+        </button>
+      </div>
+    </section>
+
+    <!-- Popular Section (Red Heading, 3px Red Border Cards) -->
+    <section class="section-popular">
+      <div class="section-header">
+        <h2 class="section-title-red">Popular</h2>
+        <div class="carousel-nav-arrows">
+          <button class="carousel-btn" data-target="popularContainer" data-direction="left" aria-label="Previous"><i
+              class="fa-solid fa-chevron-left"></i></button>
+          <button class="carousel-btn" data-target="popularContainer" data-direction="right" aria-label="Next"><i
+              class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div id="popularContainer" class="event-horizontal-grid">
+        <!-- Dynamically populated by index.js -->
+      </div>
+    </section>
+
+    <!-- Soon Section (Blue Heading, 3px Blue Border Cards) -->
+    <section class="section-soon">
+      <div class="section-header">
+        <h2 class="section-title-blue">Soon</h2>
+        <div class="carousel-nav-arrows">
+          <button class="carousel-btn" data-target="soonContainer" data-direction="left" aria-label="Previous"><i
+              class="fa-solid fa-chevron-left"></i></button>
+          <button class="carousel-btn" data-target="soonContainer" data-direction="right" aria-label="Next"><i
+              class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+      <div id="soonContainer" class="event-horizontal-grid">
+        <!-- Dynamically populated by index.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026. All Rights Reserved.
+      </p>
+      <p><i class="fa-solid fa-check c-blue mr-4"></i> Secure ticketing, atomic seat
+        locks, and transparent pricing in Oat Milk, Monday Blue, and Candy Apple Red.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/event-card.js"></script>
+  <script src="/js/index.js"></script>
+</body>
+
+</html>

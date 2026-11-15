@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <div class="mt-32 mb-24">
+      <h1 class="fs-225 fw-8 c-dark">Account & Profile</h1>
+    </div>
+
+    <!-- Profile Grid Layout -->
+    <div class="profile-grid">
+
+      <!-- Left Column: User Card, Avatar Upload, Points & Red "My Ticket" Pill -->
+      <div>
+        <div class="profile-card">
+          <div class="avatar-large">
+            <img id="profileAvatarImg" src="" alt="Profile Avatar" class="d-none" hidden>
+            <div id="avatarInitials"
+              class="w-100 h-100 flex items-c justify-c fs-25 fw-8 c-blue">
+              U
+            </div>
+          </div>
+
+          <h2 id="profileName" class="fs-15 mb-4">User</h2>
+          <div id="profileEmail" class="c-muted fs-095 mb-8">user@example.com</div>
+          <span id="profileRoleBadge" class="badge-pill-blue fs-075">CUSTOMER</span>
+
+          <!-- Loyalty Points Card (FR-46) -->
+          <div class="points-pill-card">
+            <div class="fs-085 fw-7 c-blue uppercase">TicketHub
+              Points</div>
+            <div id="loyaltyPointsCount" class="fs-2 fw-9 c-blue my-4">650
+            </div>
+            <small class="c-gray-600">Earn 1 pt / 100 THB • Redeem 100 pt = 10 THB</small>
+          </div>
+
+          <!-- Candy Apple Red Pill "My Ticket" Button -->
+          <div class="mt-16">
+            <a href="/my-tickets" class="btn-pill-red w-100 fs-105 p-12">
+              <i class="fa-solid fa-ticket mr-6"></i> My Ticket
+            </a>
+          </div>
+
+          <!-- Avatar Upload Form -->
+          <div class="mt-24 tl border-t-subtle pt-16">
+            <label class="form-label">Change Profile Picture</label>
+            <input type="file" id="avatarFileInput" accept="image/*"
+              class="fs-085 mb-8 w-100">
+
+            <div class="flex gap-6 mt-8">
+              <input type="url" id="avatarUrlInput" class="form-control fs-085" placeholder="Or paste image URL">
+              <button id="uploadAvatarUrlBtn" class="btn-pill-outline fs-08 p-4-10">Set</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Personal Information & Bookmarks -->
+      <div>
+
+        <!-- Edit Profile Form -->
+        <div class="card-checkout mb-32">
+          <h3>Personal Information</h3>
+          <form id="editProfileForm">
+            <div class="grid-2col gap-16">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="profileInputName" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" id="profileInputPhone" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Age</label>
+                <input type="number" id="profileInputAge" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" id="profileInputDob" class="form-control" max="">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select id="profileInputGender" class="form-control">
+                  <option value="Unspecified">Unspecified</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-Binary">Non-Binary</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">National ID / Passport</label>
+                <input type="text" id="profileInputNationalId" class="form-control">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shipping / Billing Address</label>
+              <textarea id="profileInputAddress" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn-pill-blue p-10-28">
+              Save Profile Changes
+            </button>
+          </form>
+        </div>
+
+        <!-- Saved Bookmarks (FR-11) -->
+        <div class="card-checkout mb-32">
+          <h3>Saved Bookmarks</h3>
+          <div id="bookmarksContainer"
+            class="bookmarks-grid">
+            <!-- Populated by profile.js -->
+          </div>
+        </div>
+
+        <!-- In-App Notifications History (FR-33, FR-34) -->
+        <div class="card-checkout">
+          <h3>Recent Notifications</h3>
+          <ul id="profileNotificationsList" class="list-none m-0 p-0">
+            <!-- Populated by profile.js -->
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
+      <p>Customer data is strictly encrypted and protected.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+
+</html>

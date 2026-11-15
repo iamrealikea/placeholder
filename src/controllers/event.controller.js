@@ -1,0 +1,729 @@
+const bcrypt = require('bcryptjs');
+const {
+  EventModel,
+  CategoryModel,
+  SeatModel,
+  UserModel,
+  BookingModel,
+  NotificationModel
+} = require('../models');
+const { store } = require('../store/jsonStore');
+const { getAllTemplates } = require('../store/seatTemplates');
+const { cancelAndRefundBooking } = require('./booking.controller');
+
+// In-memory tracker for failed delete password attempts (per-admin rate throttle: 5 failed attempts in 10 minutes)
+const failedDeleteAttempts = new Map(); // key: String(adminId) or `${adminId}:${eventId}` -> Array<number> timestamps
+
+function isDeleteRateThrottled(adminId, eventId) {
+  if (!adminId) return false;
+  const key = eventId ? `${adminId}:${eventId}` : String(adminId);
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000; // 10 minutes
+  const timestamps = (failedDeleteAttempts.get(key) || []).filter((ts) => now - ts < windowMs);
+  failedDeleteAttempts.set(key, timestamps);
+  return timestamps.length >= 5;
+}
+
+function recordDeleteFailedAttempt(adminId, eventId) {
+  if (!adminId) return;
+  const key = eventId ? `${adminId}:${eventId}` : String(adminId);
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000;
+  const timestamps = (failedDeleteAttempts.get(key) || []).filter((ts) => now - ts < windowMs);
+  timestamps.push(now);
+  failedDeleteAttempts.set(key, timestamps);
+}
+
+function clearDeleteFailedAttempts(adminId, eventId) {
+  if (adminId && eventId) {
+    failedDeleteAttempts.delete(`${adminId}:${eventId}`);
+  } else if (adminId) {
+    for (const k of failedDeleteAttempts.keys()) {
+      if (k === String(adminId) || k.startsWith(`${adminId}:`)) {
+        failedDeleteAttempts.delete(k);
+      }
+    }
+  } else {
+    failedDeleteAttempts.clear();
+  }
+}
+
+// Hook into store.resetWithSeed to clear throttle when test resets database
+const origResetWithSeed = store.resetWithSeed.bind(store);
+store.resetWithSeed = function (...args) {
+  failedDeleteAttempts.clear();
+  return origResetWithSeed(...args);
+};
+
+const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+function normalizeSalePeriodPayload(payload) {
+  const normalized = { ...payload };
+
+  for (const [field, legacyField] of [
+    ['saleStartAt', 'saleStartDate'],
+    ['saleEndAt', 'saleEndDate']
+  ]) {
+    const value = normalized[field] !== undefined ? normalized[field] : normalized[legacyField];
+    delete normalized[legacyField];
+
+    if (value === undefined || value === null || value === '') {
+      delete normalized[field];
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      const timestamp = new Date(value).getTime();
+      normalized[field] = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : value;
+    } else {
+      normalized[field] = value;
+    }
+  }
+
+  return normalized;
+}
+
+/**
+ * Validates event creation or update payload against strict invariants:
+ * - Category must exist in the admin-managed category list
+ * - Hex colors must match /^#[0-9a-fA-F]{6}$/
+ * - Prices must be finite numbers >= 0 (0 allowed)
+ * - Seat capacity cap: <= 2000 seats per zone
+ * - Seat coordinates x, y must be numeric
+ * - Unique seat labels per zone
+ */
+function validateEventPayload(payload, { isUpdate = false } = {}) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return { valid: false, error: 'Event payload must be a JSON object.' };
+  }
+
+  const saleStartAt = payload.saleStartAt;
+  const saleEndAt = payload.saleEndAt;
+  const hasSaleStart = saleStartAt !== undefined && saleStartAt !== null && saleStartAt !== '';
+  const hasSaleEnd = saleEndAt !== undefined && saleEndAt !== null && saleEndAt !== '';
+
+  if (hasSaleStart && (typeof saleStartAt !== 'string' || !Number.isFinite(new Date(saleStartAt).getTime()))) {
+    return { valid: false, error: 'Sale start must be a valid date and time.' };
+  }
+  if (hasSaleEnd && (typeof saleEndAt !== 'string' || !Number.isFinite(new Date(saleEndAt).getTime()))) {
+    return { valid: false, error: 'Sale end must be a valid date and time.' };
+  }
+  if (hasSaleStart !== hasSaleEnd) {
+    return { valid: false, error: 'Both sale start and sale end must be provided.' };
+  }
+  if (hasSaleStart && new Date(saleStartAt) > new Date(saleEndAt)) {
+    return { valid: false, error: 'Sale start must be before or equal to sale end.' };
+  }
+
+  // 1. Title validation
+  if (!isUpdate || payload.title !== undefined) {
+    if (!payload.title || typeof payload.title !== 'string' || !payload.title.trim()) {
+      return { valid: false, error: 'Event title is required.' };
+    }
+  }
+
+  // 2. Category validation
+  if (!isUpdate || payload.category !== undefined) {
+    if (typeof payload.category !== 'string' || !CategoryModel.findByName(payload.category)) {
+      return { valid: false, error: 'Category must be selected from the available categories.' };
+    }
+  }
+
+  // 3. Venue validation
+  if (!isUpdate || payload.venue !== undefined) {
+    if (!payload.venue || typeof payload.venue !== 'string' || !payload.venue.trim()) {
+      return { valid: false, error: 'Venue is required.' };
+    }
+  }
+
+  // 3.1 Province validation (optional free text, max 100 characters)
+  if (payload.province !== undefined && payload.province !== null) {
+    if (typeof payload.province !== 'string') {
+      return { valid: false, error: 'Province must be a string.' };
+    }
+    if (payload.province.trim().length > 100) {
+      return { valid: false, error: 'Province must be 100 characters or fewer.' };
+    }
+  }
+
+  // 4. Rounds validation
+  if (!isUpdate || payload.rounds !== undefined) {
+    if (!Array.isArray(payload.rounds) || payload.rounds.length === 0) {
+      return { valid: false, error: 'At least one round is required.' };
+    }
+    for (const r of payload.rounds) {
+      if (!r || typeof r !== 'object') {
+        return { valid: false, error: 'Invalid round format.' };
+      }
+    }
+  }
+
+  // 5. Zones validation
+  if (!isUpdate || payload.zones !== undefined) {
+    if (!Array.isArray(payload.zones) || payload.zones.length === 0) {
+      return { valid: false, error: 'At least one zone configuration is required.' };
+    }
+
+    for (let i = 0; i < payload.zones.length; i++) {
+      const z = payload.zones[i];
+      if (!z || typeof z !== 'object') {
+        return { valid: false, error: `Zone at index ${i} is invalid.` };
+      }
+
+      // Zone name
+      if (!isUpdate || z.name !== undefined) {
+        if (!z.name || typeof z.name !== 'string' || !z.name.trim()) {
+          return { valid: false, error: `Zone name is required for zone ${i + 1}.` };
+        }
+      }
+
+      // Zone color: must match /^#[0-9a-fA-F]{6}$/
+      if (z.color !== undefined && z.color !== null) {
+        if (typeof z.color !== 'string' || !HEX_COLOR_REGEX.test(z.color.trim())) {
+          return { valid: false, error: `Zone color "${z.color}" must be a valid 6-character hex code (e.g. #1D56CF).` };
+        }
+      }
+
+      // Zone price: non-negative finite number (0 allowed)
+      if (z.price !== undefined && z.price !== null) {
+        if (typeof z.price === 'string' && isNaN(Number(z.price))) {
+          return { valid: false, error: `Zone price "${z.price}" must be a valid non-negative number.` };
+        }
+        const p = Number(z.price);
+        if (!Number.isFinite(p) || p < 0) {
+          return { valid: false, error: 'Zone price must be a valid non-negative number.' };
+        }
+      }
+
+      // Capacity & Seat Layout
+      if (Array.isArray(z.seats) && z.seats.length > 0) {
+        if (z.seats.length > 2000) {
+          return { valid: false, error: `Zone "${z.name || i + 1}" exceeds maximum capacity of 2000 seats.` };
+        }
+
+        const labelSet = new Set();
+        for (const s of z.seats) {
+          if (!s || typeof s !== 'object') {
+            return { valid: false, error: 'Invalid seat object in zone.' };
+          }
+          const label = String(s.label || s.seatNumber || '').trim();
+          if (!label) {
+            return { valid: false, error: 'Seat label is required.' };
+          }
+          if (labelSet.has(label)) {
+            return { valid: false, error: `Duplicate seat label "${label}" in zone "${z.name}".` };
+          }
+          labelSet.add(label);
+
+          if (s.x !== undefined && s.x !== null) {
+            if ((typeof s.x === 'string' && isNaN(Number(s.x))) || !Number.isFinite(Number(s.x))) {
+              return { valid: false, error: 'Seat coordinates x and y must be numeric.' };
+            }
+          }
+          if (s.y !== undefined && s.y !== null) {
+            if ((typeof s.y === 'string' && isNaN(Number(s.y))) || !Number.isFinite(Number(s.y))) {
+              return { valid: false, error: 'Seat coordinates x and y must be numeric.' };
+            }
+          }
+          if (s.color) {
+            if (typeof s.color !== 'string' || !HEX_COLOR_REGEX.test(s.color.trim())) {
+              return { valid: false, error: 'Seat color override must be a valid 6-character hex code.' };
+            }
+          }
+        }
+      } else {
+        // Matrix mode
+        const rows = z.rows !== undefined ? Number(z.rows) : 4;
+        const cols = z.cols !== undefined ? Number(z.cols) : 8;
+        if (!Number.isFinite(rows) || rows < 1 || !Number.isFinite(cols) || cols < 1) {
+          return { valid: false, error: 'Rows and columns must be positive numbers.' };
+        }
+        if (rows * cols > 2000) {
+          return { valid: false, error: `Zone "${z.name || i + 1}" exceeds maximum capacity of 2000 seats.` };
+        }
+        if (z.originX !== undefined && z.originX !== null && !Number.isFinite(Number(z.originX))) {
+          return { valid: false, error: 'originX must be numeric.' };
+        }
+        if (z.originY !== undefined && z.originY !== null && !Number.isFinite(Number(z.originY))) {
+          return { valid: false, error: 'originY must be numeric.' };
+        }
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Detects whether incoming zones or rounds represent a structural layout modification.
+ * Changing price, color, or name is non-structural.
+ * Changing rows, cols, originX/Y, seat coordinates/labels, or zone/round structure is structural.
+ *
+ * Supports both signatures:
+ * - isLayoutModified(existingEvent, updates)
+ * - isLayoutModified(existingZones, incomingZones)
+ */
+function isLayoutModified(existing = [], incoming = []) {
+  let existingZones = existing;
+  let incomingZones = incoming;
+
+  // Handle event object signature: isLayoutModified(existingEvent, updates)
+  if (existing && !Array.isArray(existing) && typeof existing === 'object') {
+    const existingEvent = existing;
+    const updates = incoming || {};
+
+    // 1. Check round structural changes if incoming payload includes rounds
+    if (Array.isArray(updates.rounds)) {
+      const er = Array.isArray(existingEvent.rounds) ? existingEvent.rounds : [];
+      if (updates.rounds.length !== er.length) return true;
+      for (let i = 0; i < updates.rounds.length; i++) {
+        const ur = updates.rounds[i];
+        const existingRound = er[i];
+        if (!ur || !existingRound) return true;
+        if (!ur.id || ur.id !== existingRound.id) return true;
+      }
+    }
+
+    // If incoming payload does not specify zones, and rounds were unchanged, layout is not modified
+    if (!Array.isArray(updates.zones)) {
+      return false;
+    }
+
+    existingZones = existingEvent.zones || [];
+    incomingZones = updates.zones;
+  }
+
+  if (!Array.isArray(incomingZones)) return false;
+  if (!Array.isArray(existingZones)) return true;
+
+  // 2. Zone count modification (omission, reduction, addition) is structural
+  if (incomingZones.length !== existingZones.length) return true;
+
+  const existingIdMap = new Map();
+  const existingNameMap = new Map();
+  for (const ez of existingZones) {
+    if (ez && ez.id) existingIdMap.set(ez.id, ez);
+    if (ez && ez.name) existingNameMap.set(ez.name, ez);
+  }
+
+  const matchedExistingKeys = new Set();
+  for (let i = 0; i < incomingZones.length; i++) {
+    const iz = incomingZones[i];
+    if (!iz || typeof iz !== 'object') return true;
+
+    // Strict lookup: match strictly by ID or Name. Positional index fallback is unsafe and forbidden.
+    const ez = (iz.id && existingIdMap.get(iz.id)) || (iz.name && existingNameMap.get(iz.name));
+    if (!ez) return true;
+
+    const ezKey = ez.id || ez.name;
+    if (matchedExistingKeys.has(ezKey)) return true;
+    matchedExistingKeys.add(ezKey);
+
+    const izLayout = iz.layout || (Array.isArray(iz.seats) && iz.seats.length > 0 ? 'custom' : 'matrix');
+    const ezLayout = ez.layout || (Array.isArray(ez.seats) && ez.seats.length > 0 ? 'custom' : 'matrix');
+    if (izLayout !== ezLayout) return true;
+
+    const izRows = iz.rows !== undefined ? Number(iz.rows) : Number(ez.rows || 4);
+    const ezRows = ez.rows !== undefined ? Number(ez.rows) : 4;
+    if (izRows !== ezRows) return true;
+
+    const izCols = iz.cols !== undefined ? Number(iz.cols) : Number(ez.cols || 8);
+    const ezCols = ez.cols !== undefined ? Number(ez.cols) : 8;
+    if (izCols !== ezCols) return true;
+
+    const izOriginX = Number(iz.originX || 0);
+    const ezOriginX = Number(ez.originX || 0);
+    if (Math.abs(izOriginX - ezOriginX) > 0.001) return true;
+
+    const izOriginY = Number(iz.originY || 0);
+    const ezOriginY = Number(ez.originY || 0);
+    if (Math.abs(izOriginY - ezOriginY) > 0.001) return true;
+
+    const izSeats = Array.isArray(iz.seats) ? iz.seats : [];
+    const ezSeats = Array.isArray(ez.seats) ? ez.seats : [];
+
+    if (izSeats.length !== ezSeats.length) return true;
+
+    if (izSeats.length > 0) {
+      const ezSeatMap = new Map();
+      for (const s of ezSeats) {
+        if (s && typeof s === 'object') {
+          ezSeatMap.set(String(s.label || s.seatNumber).trim(), s);
+        }
+      }
+      for (const s of izSeats) {
+        if (!s || typeof s !== 'object') return true;
+        const label = String(s.label || s.seatNumber).trim();
+        const matched = ezSeatMap.get(label);
+        if (!matched) return true;
+        if (Math.abs(Number(s.x || 0) - Number(matched.x || 0)) > 0.001) return true;
+        if (Math.abs(Number(s.y || 0) - Number(matched.y || 0)) > 0.001) return true;
+      }
+    }
+  }
+
+  if (matchedExistingKeys.size !== existingZones.length) return true;
+
+  return false;
+}
+
+function notifyEventChanges(existing, updated, updates) {
+  const changedDetails = [
+    ['title', 'event title'],
+    ['artist', 'artist'],
+    ['category', 'category'],
+    ['description', 'description'],
+    ['venue', 'venue'],
+    ['province', 'location'],
+    ['organizer', 'organizer'],
+    ['gateOpenTime', 'gate opening time'],
+    ['showTime', 'show time'],
+    ['status', 'availability status'],
+    ['saleStartAt', 'sale start time'],
+    ['saleEndAt', 'sale end time'],
+    ['posterUrl', 'poster'],
+    ['galleryUrl', 'gallery']
+  ]
+    .filter(([field]) =>
+      updates[field] !== undefined &&
+      JSON.stringify(updates[field]) !== JSON.stringify(existing[field])
+    )
+    .map(([, label]) => label);
+
+  if (
+    updates.rounds !== undefined &&
+    JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds)
+  ) {
+    changedDetails.push('event schedule');
+  }
+
+  const saleOpened = existing.status !== 'On Sale' && updated.status === 'On Sale';
+
+  // FR-34: Dispatches notification to users when event details change
+  const paidUserIds = new Set();
+  if (changedDetails.length > 0) {
+    const bookings = BookingModel.findPaidByEventId(existing.id);
+    const userIds = Array.from(new Set(bookings.map((b) => b.userId)));
+    for (const uid of userIds) {
+      paidUserIds.add(uid);
+      NotificationModel.create({
+        userId: uid,
+        channel: 'BOTH',
+        type: 'EVENT_CHANGE',
+        subject: `Update on ${updated.title}`,
+        message: `Important update regarding ${updated.title}: ${changedDetails.join(', ')} changed. Please review your ticket details.`
+      });
+    }
+  }
+
+  // FR-37: Notify users who bookmarked the event when it opens or changes.
+  if (saleOpened || changedDetails.length > 0) {
+    const changeMessage = changedDetails.length > 0
+      ? `The event "${updated.title}" you've bookmarked has changed: ${changedDetails.join(', ')}. Please review the updated event details.`
+      : '';
+    const saleMessage = saleOpened
+      ? `Great news! "${updated.title}" has opened ticket sales. Book your seats now!`
+      : '';
+    const message = [saleMessage, changeMessage].filter(Boolean).join(' ');
+
+    for (const user of UserModel.findAll()) {
+      if ((user.bookmarks || []).includes(updated.id) && !paidUserIds.has(user.id)) {
+        NotificationModel.create({
+          userId: user.id,
+          channel: 'BOTH',
+          type: 'BOOKMARK_ALERT',
+          subject: saleOpened
+            ? `Tickets Now On Sale: ${updated.title}`
+            : `Event Update: ${updated.title}`,
+          message
+        });
+      }
+    }
+  }
+}
+
+/**
+ * FR-06, FR-07, FR-08, FR-09, FR-10: List, search, filter, popular events
+ * GET /api/events
+ * Query: search, category, status, artist, date, featured, saleActive,
+ *        province, location, month (YYYY-MM | 1-12), sort (price_asc | price_desc)
+ */
+function listEvents(req, res) {
+  const { sort, month } = req.query;
+  if (sort !== undefined && sort !== '' && !EventModel.SORT_OPTIONS.includes(String(sort))) {
+    return res.status(400).json({
+      error: `Invalid sort option. Allowed values: ${EventModel.SORT_OPTIONS.join(', ')}.`
+    });
+  }
+  if (month !== undefined && month !== '' && !EventModel.isValidMonth(month)) {
+    return res.status(400).json({
+      error: 'Invalid month. Use YYYY-MM (e.g. 2026-11) or a month number 1-12.'
+    });
+  }
+
+  SeatModel.expireHeldSeats();
+  const list = EventModel.findAll(req.query);
+  const userBookmarks = req.user && req.user.bookmarks ? req.user.bookmarks : [];
+
+  const results = list.map((e) => {
+    const roundAvailability = (e.rounds || []).map((r) => ({
+      roundId: r.id,
+      date: r.date,
+      time: r.time,
+      label: r.label,
+      zones: SeatModel.getZoneSeatAvailability(e.id, r.id)
+    }));
+
+    let totalSeats = 0;
+    let totalAvailableSeats = 0;
+    let totalBookedSeats = 0;
+    let totalHeldSeats = 0;
+
+    for (const r of roundAvailability) {
+      for (const z of (r.zones || [])) {
+        totalSeats += (z.totalSeats || 0);
+        totalAvailableSeats += (z.availableSeats || 0);
+        totalBookedSeats += (z.bookedSeats || 0);
+        totalHeldSeats += (z.heldSeats || 0);
+      }
+    }
+
+    return {
+      ...e,
+      isBookmarked: userBookmarks.includes(e.id),
+      totalSeats,
+      totalAvailableSeats,
+      totalBookedSeats,
+      totalHeldSeats,
+      roundsSummary: roundAvailability
+    };
+  });
+
+  return res.json({
+    total: results.length,
+    events: results
+  });
+}
+
+/**
+ * FR-12, FR-20: Event Details with Zone Availability
+ * GET /api/events/:id
+ */
+function getEventById(req, res) {
+  SeatModel.expireHeldSeats();
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found.' });
+  }
+
+  const userBookmarks = req.user && req.user.bookmarks ? req.user.bookmarks : [];
+  const roundsWithZones = (event.rounds || []).map((r) => ({
+    ...r,
+    zones: SeatModel.getZoneSeatAvailability(event.id, r.id)
+  }));
+
+  const isSaleOpen = EventModel.isSaleOpen(event);
+
+  return res.json({
+    event: {
+      ...event,
+      isBookmarked: userBookmarks.includes(event.id),
+      isSaleOpen,
+      rounds: roundsWithZones
+    }
+  });
+}
+
+/**
+ * FR-11: Bookmark / Unbookmark Event
+ * POST /api/events/:id/bookmark
+ */
+function toggleBookmark(req, res) {
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found.' });
+  }
+
+  const result = UserModel.toggleBookmark(req.user.id, event.id);
+
+  return res.json({
+    message: result.isBookmarked ? 'Event bookmarked' : 'Event removed from bookmarks',
+    isBookmarked: result.isBookmarked,
+    bookmarks: result.bookmarks
+  });
+}
+
+/**
+ * F-04: Seat Templates Catalog Presets API
+ * GET /api/events/templates
+ */
+function getTemplates(_req, res) {
+  const templates = getAllTemplates();
+  return res.json({ templates });
+}
+
+/**
+ * FR-13, FR-48: Create Event (Admin)
+ * POST /api/events
+ */
+function createEvent(req, res) {
+  const payload = normalizeSalePeriodPayload(req.body);
+  const validation = validateEventPayload(payload, { isUpdate: false });
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+
+  if (payload.category) {
+    payload.category = CategoryModel.findByName(payload.category).name;
+  }
+
+  const newEvent = EventModel.create(payload);
+  const seats = SeatModel.generateForEvent(newEvent);
+
+  return res.status(201).json({
+    message: 'Event and seating layout created successfully',
+    event: newEvent,
+    totalSeatsGenerated: seats.length
+  });
+}
+
+/**
+ * FR-14, FR-34, FR-37, FR-48: Edit Event (Admin)
+ * PUT /api/events/:id
+ */
+function updateEvent(req, res) {
+  const existing = EventModel.findById(req.params.id);
+  if (!existing) {
+    return res.status(404).json({ error: 'Event not found.' });
+  }
+
+  const updates = normalizeSalePeriodPayload(req.body);
+  const validationPayload = { ...updates };
+  if (validationPayload.saleStartAt === undefined) {
+    validationPayload.saleStartAt = existing.saleStartAt;
+  }
+  if (validationPayload.saleEndAt === undefined) {
+    validationPayload.saleEndAt = existing.saleEndAt;
+  }
+
+  const validation = validateEventPayload(validationPayload, { isUpdate: true });
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+
+  delete updates.id;
+
+  if (updates.category) {
+    updates.category = CategoryModel.findByName(updates.category).name;
+  }
+
+  const hasZones = Array.isArray(updates.zones);
+  const layoutModified = isLayoutModified(existing, updates);
+
+  if (layoutModified) {
+    if (SeatModel.hasNonAvailableSeats(existing.id)) {
+      return res.status(409).json({
+        error: 'Cannot modify seating layout while active bookings or seat holds exist.',
+        code: 'LAYOUT_LOCKED'
+      });
+    }
+
+    const updated = EventModel.update(existing.id, updates);
+    SeatModel.regenerateForEvent(updated, updates.zones);
+
+    notifyEventChanges(existing, updated, updates);
+
+    return res.json({
+      message: 'Event updated successfully',
+      event: updated
+    });
+  }
+
+  const updated = EventModel.update(existing.id, updates);
+
+  if (hasZones) {
+    SeatModel.propagateZoneUpdates(existing.id, updates.zones);
+  }
+
+  notifyEventChanges(existing, updated, updates);
+
+  return res.json({
+    message: 'Event updated successfully',
+    event: updated
+  });
+}
+
+/**
+ * FR-15, F-08, F-09, F-10: Password-Verified Delete Event with Rate Throttle and Auto-Refund (Admin)
+ * DELETE /api/events/:id
+ */
+async function deleteEvent(req, res) {
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found.' });
+  }
+
+  const { password } = req.body || {};
+  if (!password || typeof password !== 'string' || password.trim().length === 0) {
+    return res.status(400).json({
+      error: 'Administrator password is required.'
+    });
+  }
+
+  const adminId = req.user.id;
+  if (isDeleteRateThrottled(adminId, event.id)) {
+    return res.status(429).json({
+      error: 'Too many failed verification attempts. Please try again later.'
+    });
+  }
+
+  const adminUser = UserModel.findById(adminId);
+  if (!adminUser || !adminUser.passwordHash) {
+    return res.status(401).json({ error: 'Administrator credentials not found.' });
+  }
+
+  const isMatch = await bcrypt.compare(password, adminUser.passwordHash);
+  if (!isMatch) {
+    recordDeleteFailedAttempt(adminId, event.id);
+    return res.status(403).json({
+      error: 'Invalid administrator password.',
+      code: 'INVALID_PASSWORD'
+    });
+  }
+
+  clearDeleteFailedAttempts(adminId, event.id);
+
+  // Auto-cancel and refund all bookings for this event (F-10)
+  const bookings = BookingModel.findByEventId(event.id);
+  let refundedBookingsCount = 0;
+
+  for (const b of bookings) {
+    if (b.status === 'PAID') {
+      cancelAndRefundBooking(b, { reason: 'EVENT_CANCELLED' });
+      refundedBookingsCount++;
+    } else if (b.status === 'PENDING') {
+      cancelAndRefundBooking(b, { reason: 'EVENT_CANCELLED' });
+    }
+  }
+
+  SeatModel.removeByEvent(event.id);
+  EventModel.remove(event.id);
+
+  return res.json({
+    message: 'Event and seat records deleted successfully.',
+    refundedBookingsCount
+  });
+}
+
+module.exports = {
+  listEvents,
+  getEventById,
+  toggleBookmark,
+  getTemplates,
+  validateEventPayload,
+  isLayoutModified,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  clearDeleteFailedAttempts
+};

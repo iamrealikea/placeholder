@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notice - TicketHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://kit.fontawesome.com/8bc2e4e4a5.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <div class="flex items-c gap-32">
+        <a href="/home" class="nav-brand">
+          <span class="brand-pill">TicketHub</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/home" class="nav-link">Home</a></li>
+            <li><a href="/event" class="nav-link">Event</a></li>
+            <li><a href="/my-tickets" class="nav-link">My Tickets</a></li>
+            <li><a href="/support" class="nav-link">Support</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn-icon" onclick="window.location.href='/home'" title="Search Events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+        <button class="notification-bell-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-badge d-none" hidden>0</span>
+        </button>
+        <div class="avatar-pill" title="User Profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container min-h-60vh flex items-c justify-c p-48-16">
+    <div class="card-checkout error-card">
+      
+      <div id="errorIconContainer" class="mb-20">
+        <div class="error-icon-circle">
+          <i id="errorIcon" class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+
+      <div class="mb-12">
+        <span id="errorCodeBadge" class="badge-pill-red badge-pill-uppercase fs-085">
+          404 Not Found
+        </span>
+      </div>
+
+      <h1 id="errorTitle" class="fs-185 fw-8 c-dark my-12">
+        Page Not Found
+      </h1>
+
+      <p id="errorMessage" class="c-ink-3 fs-105 lh-15 mx-auto mb-32 max-w-460">
+        The page, event, or booking you are looking for doesn't exist or has been removed.
+      </p>
+
+      <div class="flex gap-14 justify-c wrap">
+        <a href="/home" class="btn-pill-blue p-12-28">
+          <i class="fa-solid fa-house"></i> Back to Home
+        </a>
+        <a href="/event" class="btn-pill-secondary p-12-28">
+          <i class="fa-solid fa-compass"></i> Browse Events
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="site-footer-brand">TicketHub Platform &copy; 2026</p>
+      <p>Customer inquiries are monitored 24/7 by venue support staff.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/notifications.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof Auth !== 'undefined' && Auth.init) {
+        Auth.init();
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const path = window.location.pathname.toLowerCase();
+      const code = params.get('code') || (path.includes('403') ? '403' : '404');
+      const customMessage = params.get('message');
+
+      const badgeEl = document.getElementById('errorCodeBadge');
+      const titleEl = document.getElementById('errorTitle');
+      const msgEl = document.getElementById('errorMessage');
+      const iconEl = document.getElementById('errorIcon');
+
+      if (code === '403') {
+        document.title = '403 Forbidden - TicketHub';
+        badgeEl.textContent = '403 Forbidden';
+        badgeEl.classList.remove('badge-pill-red');
+        badgeEl.classList.add('badge-pill-blue');
+        titleEl.textContent = 'Booking In Progress / Access Denied';
+        msgEl.textContent = customMessage || 'Another customer is currently holding or completing this booking, or you do not have permission to access this page.';
+        if (iconEl) iconEl.className = 'fa-solid fa-user-lock';
+      } else {
+        document.title = '404 Not Found - TicketHub';
+        badgeEl.textContent = '404 Not Found';
+        badgeEl.classList.remove('badge-pill-blue');
+        badgeEl.classList.add('badge-pill-red');
+        titleEl.textContent = 'Page Not Found';
+        msgEl.textContent = customMessage || "The page, event, or booking you are looking for doesn't exist or has been removed.";
+        if (iconEl) iconEl.className = 'fa-solid fa-triangle-exclamation';
+      }
+    });
+  </script>
+</body>
+
+</html>

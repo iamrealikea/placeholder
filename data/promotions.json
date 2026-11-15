@@ -1,0 +1,20 @@
+[
+  {
+    "id": "promo-1",
+    "code": "TICKETHUB10",
+    "description": "10% off ticket subtotal on any event",
+    "discountType": "PERCENT",
+    "discountValue": 10,
+    "minSpend": 1000,
+    "active": true
+  },
+  {
+    "id": "promo-2",
+    "code": "WELCOME200",
+    "description": "200 THB instant discount (min spend 1,500 THB)",
+    "discountType": "FIXED",
+    "discountValue": 200,
+    "minSpend": 1500,
+    "active": true
+  }
+]
