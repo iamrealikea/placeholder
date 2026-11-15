@@ -381,8 +381,14 @@ function generateSeedData() {
     {
       id: 'bkg-demo-1',
       userId: 'usr-customer-1',
+      userEmail: 'user@ticket.com',
+      userName: 'Chanita Chansamrong',
+      userPhone: '0812345678',
       eventId: 'evt-1',
+      eventTitle: 'Forza Horizon Somethings Live Festival',
+      venue: 'Impact Arena, Muang Thong Thani',
       roundId: 'rnd-1a',
+      roundLabel: '11 Nov 2026 • 19:00',
       seatIds: ['seat-evt-1-rnd-1a-zone-vip-A1', 'seat-evt-1-rnd-1a-zone-vip-A2'],
       seatNumbers: ['A1', 'A2'],
       zoneName: 'VIP Stage Front',
@@ -395,13 +401,19 @@ function generateSeedData() {
       paymentMethod: 'PROMPTPAY',
       status: 'PAID',
       holdExpiresAt: null,
-      createdAt: '2026-10-15T14:20:00.000Z'
+      createdAt: '2026-01-15T14:20:00.000Z'
     },
     {
       id: 'bkg-hist-1',
       userId: 'usr-customer-1',
+      userEmail: 'user@ticket.com',
+      userName: 'Chanita Chansamrong',
+      userPhone: '0812345678',
       eventId: 'evt-2',
+      eventTitle: 'Neon Cyberpop World Tour: Bangkok',
+      venue: 'Thunder Dome, Nonthaburi',
       roundId: 'rnd-2a',
+      roundLabel: '11 Nov 2026 • 19:30',
       seatIds: [],
       seatNumbers: ['B1', 'B2'],
       zoneName: 'VIP Ring',
@@ -414,13 +426,19 @@ function generateSeedData() {
       paymentMethod: 'CREDIT_CARD',
       status: 'PAID',
       holdExpiresAt: null,
-      createdAt: '2026-07-12T11:00:00.000Z'
+      createdAt: '2026-01-05T11:00:00.000Z'
     },
     {
       id: 'bkg-hist-2',
       userId: 'usr-customer-1',
+      userEmail: 'user@ticket.com',
+      userName: 'Chanita Chansamrong',
+      userPhone: '0812345678',
       eventId: 'evt-3',
+      eventTitle: 'Global AI & Cloud Architecture Seminar 2026',
+      venue: 'Queen Sirikit National Convention Center (QSNCC)',
       roundId: 'rnd-3a',
+      roundLabel: '20 Nov 2026 • 09:30',
       seatIds: [],
       seatNumbers: ['A3'],
       zoneName: 'Executive Front Row',
@@ -433,13 +451,19 @@ function generateSeedData() {
       paymentMethod: 'KBANK',
       status: 'PAID',
       holdExpiresAt: null,
-      createdAt: '2026-08-19T16:30:00.000Z'
+      createdAt: '2026-01-08T16:30:00.000Z'
     },
     {
       id: 'bkg-hist-3',
       userId: 'usr-customer-1',
+      userEmail: 'user@ticket.com',
+      userName: 'Chanita Chansamrong',
+      userPhone: '0812345678',
       eventId: 'evt-1',
+      eventTitle: 'Forza Horizon Somethings Live Festival',
+      venue: 'Impact Arena, Muang Thong Thani',
       roundId: 'rnd-1b',
+      roundLabel: '12 Nov 2026 • 18:00',
       seatIds: [],
       seatNumbers: ['C1', 'C2'],
       zoneName: 'Zone A (Monday Blue)',
@@ -452,7 +476,7 @@ function generateSeedData() {
       paymentMethod: 'TRUEMONEY',
       status: 'PAID',
       holdExpiresAt: null,
-      createdAt: '2026-09-22T18:15:00.000Z'
+      createdAt: '2026-01-12T18:15:00.000Z'
     }
   ];
 
@@ -466,7 +490,7 @@ function generateSeedData() {
       referenceCode: 'TH-PP-20261015-001',
       status: 'SUCCESS',
       refundAmount: 0,
-      paidAt: '2026-10-15T14:21:00.000Z',
+      paidAt: '2026-01-15T14:21:00.000Z',
       refundedAt: null
     },
     {
@@ -478,7 +502,7 @@ function generateSeedData() {
       referenceCode: 'TH-CC-20260712-002',
       status: 'SUCCESS',
       refundAmount: 0,
-      paidAt: '2026-07-12T11:01:00.000Z',
+      paidAt: '2026-01-05T11:01:00.000Z',
       refundedAt: null
     },
     {
@@ -490,7 +514,7 @@ function generateSeedData() {
       referenceCode: 'TH-KB-20260819-003',
       status: 'SUCCESS',
       refundAmount: 0,
-      paidAt: '2026-08-19T16:31:00.000Z',
+      paidAt: '2026-01-08T16:31:00.000Z',
       refundedAt: null
     },
     {
@@ -502,7 +526,7 @@ function generateSeedData() {
       referenceCode: 'TH-TM-20260922-004',
       status: 'SUCCESS',
       refundAmount: 0,
-      paidAt: '2026-09-22T18:16:00.000Z',
+      paidAt: '2026-01-12T18:16:00.000Z',
       refundedAt: null
     }
   ];
@@ -515,6 +539,7 @@ function generateSeedData() {
       userId: 'usr-customer-1',
       eventId: 'evt-1',
       eventTitle: 'Forza Horizon Somethings Live Festival',
+      holderName: 'Chanita Chansamrong',
       venue: 'Impact Arena, Muang Thong Thani',
       roundId: 'rnd-1a',
       roundLabel: '11 Nov 2026 • 19:00',
@@ -525,13 +550,14 @@ function generateSeedData() {
       qrPayload: JSON.stringify({
         ticketCode: 'TKT-FH26-VIP-A1',
         eventId: 'evt-1',
-        seatNumber: 'A1'
+        seatNumber: 'A1',
+        holder: 'Chanita Chansamrong'
       }),
       qrDataUrl: '',
       status: 'VALID',
       checkedInAt: null,
       checkedInBy: null,
-      createdAt: '2026-10-15T14:21:00.000Z'
+      createdAt: '2026-01-15T14:21:00.000Z'
     },
     {
       id: 'tkt-demo-2',
@@ -540,6 +566,7 @@ function generateSeedData() {
       userId: 'usr-customer-1',
       eventId: 'evt-1',
       eventTitle: 'Forza Horizon Somethings Live Festival',
+      holderName: 'Chanita Chansamrong',
       venue: 'Impact Arena, Muang Thong Thani',
       roundId: 'rnd-1a',
       roundLabel: '11 Nov 2026 • 19:00',
@@ -550,13 +577,14 @@ function generateSeedData() {
       qrPayload: JSON.stringify({
         ticketCode: 'TKT-FH26-VIP-A2',
         eventId: 'evt-1',
-        seatNumber: 'A2'
+        seatNumber: 'A2',
+        holder: 'Chanita Chansamrong'
       }),
       qrDataUrl: '',
       status: 'VALID',
       checkedInAt: null,
       checkedInBy: null,
-      createdAt: '2026-10-15T14:21:00.000Z'
+      createdAt: '2026-01-15T14:21:00.000Z'
     }
   ];
 
