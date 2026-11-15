@@ -56,6 +56,33 @@ store.resetWithSeed = function (...args) {
 };
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+function normalizeSalePeriodPayload(payload) {
+  const normalized = { ...payload };
+
+  for (const [field, legacyField] of [
+    ['saleStartAt', 'saleStartDate'],
+    ['saleEndAt', 'saleEndDate']
+  ]) {
+    const value = normalized[field] !== undefined ? normalized[field] : normalized[legacyField];
+    delete normalized[legacyField];
+
+    if (value === undefined || value === null || value === '') {
+      delete normalized[field];
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      const timestamp = new Date(value).getTime();
+      normalized[field] = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : value;
+    } else {
+      normalized[field] = value;
+    }
+  }
+
+  return normalized;
+}
+
 /**
  * Validates event creation or update payload against strict invariants:
  * - Category must exist in the admin-managed category list
@@ -68,6 +95,24 @@ const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 function validateEventPayload(payload, { isUpdate = false } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return { valid: false, error: 'Event payload must be a JSON object.' };
+  }
+
+  const saleStartAt = payload.saleStartAt;
+  const saleEndAt = payload.saleEndAt;
+  const hasSaleStart = saleStartAt !== undefined && saleStartAt !== null && saleStartAt !== '';
+  const hasSaleEnd = saleEndAt !== undefined && saleEndAt !== null && saleEndAt !== '';
+
+  if (hasSaleStart && (typeof saleStartAt !== 'string' || !Number.isFinite(new Date(saleStartAt).getTime()))) {
+    return { valid: false, error: 'Sale start must be a valid date and time.' };
+  }
+  if (hasSaleEnd && (typeof saleEndAt !== 'string' || !Number.isFinite(new Date(saleEndAt).getTime()))) {
+    return { valid: false, error: 'Sale end must be a valid date and time.' };
+  }
+  if (hasSaleStart !== hasSaleEnd) {
+    return { valid: false, error: 'Both sale start and sale end must be provided.' };
+  }
+  if (hasSaleStart && new Date(saleStartAt) > new Date(saleEndAt)) {
+    return { valid: false, error: 'Sale start must be before or equal to sale end.' };
   }
 
   // 1. Title validation
@@ -485,12 +530,12 @@ function getTemplates(_req, res) {
  * POST /api/events
  */
 function createEvent(req, res) {
-  const validation = validateEventPayload(req.body, { isUpdate: false });
+  const payload = normalizeSalePeriodPayload(req.body);
+  const validation = validateEventPayload(payload, { isUpdate: false });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
-  const payload = { ...req.body };
   if (payload.category) {
     payload.category = CategoryModel.findByName(payload.category).name;
   }
@@ -515,12 +560,20 @@ function updateEvent(req, res) {
     return res.status(404).json({ error: 'Event not found.' });
   }
 
-  const validation = validateEventPayload(req.body, { isUpdate: true });
+  const updates = normalizeSalePeriodPayload(req.body);
+  const validationPayload = { ...updates };
+  if (validationPayload.saleStartAt === undefined) {
+    validationPayload.saleStartAt = existing.saleStartAt;
+  }
+  if (validationPayload.saleEndAt === undefined) {
+    validationPayload.saleEndAt = existing.saleEndAt;
+  }
+
+  const validation = validateEventPayload(validationPayload, { isUpdate: true });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
-  const updates = { ...req.body };
   delete updates.id;
 
   if (updates.category) {

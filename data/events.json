@@ -10,6 +10,7 @@
     "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
     "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vel volutpat lectus. Phasellus eleifend feugiat orci, eget accumsan quam scelerisque eu. Sed sapien sem, rhoncus non consectetur nec, fringilla id metus. Experience the ultimate Tokyo-inspired festival stage with full surround laser production and live electronic sets.",
     "venue": "Impact Arena, Muang Thong Thani",
+    "province": "Nonthaburi",
     "organizer": "kys show",
     "gateOpenTime": "16:00",
     "showTime": "19:00",
@@ -37,25 +38,37 @@
         "id": "zone-vip",
         "name": "VIP Stage Front",
         "color": "#FF0800",
-        "price": 4500,
+        "price": 4800,
+        "layout": "matrix",
         "rows": 4,
-        "cols": 8
+        "cols": 8,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
       },
       {
         "id": "zone-a",
-        "name": "Zone A (Monday Blue)",
+        "name": "Zone A Monday Blue",
         "color": "#1D56CF",
-        "price": 2800,
+        "price": 3000,
+        "layout": "matrix",
         "rows": 4,
-        "cols": 8
+        "cols": 8,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
       },
       {
         "id": "zone-b",
         "name": "Zone B (Standard)",
         "color": "#0D9488",
         "price": 1500,
+        "layout": "matrix",
         "rows": 4,
-        "cols": 8
+        "cols": 8,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
       }
     ],
     "createdAt": "2026-09-01T00:00:00.000Z"
@@ -71,6 +84,7 @@
     "galleryUrl": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=900&q=80",
     "description": "An intimate yet high-energy live concert experience featuring the viral fih tour production. Select your preferred zone and seat directly on our interactive seating chart.",
     "venue": "Thunder Dome, Nonthaburi",
+    "province": "Nonthaburi",
     "organizer": "TicketHub Live",
     "gateOpenTime": "17:00",
     "showTime": "19:30",
@@ -124,6 +138,7 @@
     "galleryUrl": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=900&q=80",
     "description": "Full-day technology seminar covering scalable ticketing systems, high-concurrency seat locking, cloud architecture, and AI engineering workshops.",
     "venue": "Queen Sirikit National Convention Center (QSNCC)",
+    "province": "Bangkok",
     "organizer": "Thai Tech Guild",
     "gateOpenTime": "08:30",
     "showTime": "09:30",
@@ -171,6 +186,7 @@
     "galleryUrl": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=80",
     "description": "Upcoming winter showcase and fan-meet concert featuring special stage performances, limited plush collectibles, and interactive fan zones.",
     "venue": "Siam Paragon Royal Paragon Hall",
+    "province": "Bangkok",
     "organizer": "Mascot Live Asia",
     "gateOpenTime": "15:00",
     "showTime": "17:00",
@@ -218,6 +234,7 @@
     "galleryUrl": "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=900&q=80",
     "description": "Deep dive into Figma design tokens, accessible ticketing interfaces, and agile product management for modern engineering teams.",
     "venue": "True Digital Park Grand Hall",
+    "province": "Bangkok",
     "organizer": "Designers TH",
     "gateOpenTime": "12:30",
     "showTime": "13:30",
@@ -257,6 +274,7 @@
     "galleryUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=900&q=80",
     "description": "All seats for the Midnight Symphony Stadium Finale have been sold out. Stay tuned for additional encore dates!",
     "venue": "Rajamangala National Stadium",
+    "province": "Bangkok",
     "organizer": "Symphony Live",
     "gateOpenTime": "16:00",
     "showTime": "20:00",
@@ -284,5 +302,181 @@
       }
     ],
     "createdAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": "evt-b83bbb84",
+    "title": "FLT1794720213233 A",
+    "artist": "Filter Test Artist",
+    "category": "Concert",
+    "status": "On Sale",
+    "isFeatured": false,
+    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
+    "description": "",
+    "venue": "Nimman Hall",
+    "province": "Chiang Mai",
+    "organizer": "TicketHub Organizer",
+    "gateOpenTime": "16:00",
+    "showTime": "19:00",
+    "saleStartAt": "2026-11-15T05:23:34.442Z",
+    "saleEndAt": "2027-11-15T05:23:34.442Z",
+    "maxTicketsPerUser": 6,
+    "allowCancellation": true,
+    "refundPolicyPct": 100,
+    "rounds": [
+      {
+        "id": "rnd-1",
+        "date": "2027-03-10",
+        "time": "19:00",
+        "label": "2027-03-10 • 19:00"
+      }
+    ],
+    "zones": [
+      {
+        "id": "zone-1",
+        "name": "Std",
+        "color": "#1D56CF",
+        "price": 500,
+        "layout": "matrix",
+        "rows": 2,
+        "cols": 4,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
+      }
+    ],
+    "createdAt": "2026-11-15T05:23:34.442Z"
+  },
+  {
+    "id": "evt-3b911e47",
+    "title": "FLT1794720213233 B",
+    "artist": "Filter Test Artist",
+    "category": "Concert",
+    "status": "On Sale",
+    "isFeatured": false,
+    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
+    "description": "",
+    "venue": "Old City Arena",
+    "province": "Chiang Rai",
+    "organizer": "TicketHub Organizer",
+    "gateOpenTime": "16:00",
+    "showTime": "19:00",
+    "saleStartAt": "2026-11-15T05:23:34.448Z",
+    "saleEndAt": "2027-11-15T05:23:34.448Z",
+    "maxTicketsPerUser": 6,
+    "allowCancellation": true,
+    "refundPolicyPct": 100,
+    "rounds": [
+      {
+        "id": "rnd-1",
+        "date": "2027-04-05",
+        "time": "19:00",
+        "label": "2027-04-05 • 19:00"
+      }
+    ],
+    "zones": [
+      {
+        "id": "zone-1",
+        "name": "Std",
+        "color": "#1D56CF",
+        "price": 900,
+        "layout": "matrix",
+        "rows": 2,
+        "cols": 4,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
+      }
+    ],
+    "createdAt": "2026-11-15T05:23:34.448Z"
+  },
+  {
+    "id": "evt-3baa34cb",
+    "title": "FLT1794720213233 C",
+    "artist": "Filter Test Artist",
+    "category": "Concert",
+    "status": "On Sale",
+    "isFeatured": false,
+    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
+    "description": "",
+    "venue": "Patong Beach Stage",
+    "province": "Phuket",
+    "organizer": "TicketHub Organizer",
+    "gateOpenTime": "16:00",
+    "showTime": "19:00",
+    "saleStartAt": "2026-11-15T05:23:34.452Z",
+    "saleEndAt": "2027-11-15T05:23:34.452Z",
+    "maxTicketsPerUser": 6,
+    "allowCancellation": true,
+    "refundPolicyPct": 100,
+    "rounds": [
+      {
+        "id": "rnd-1",
+        "date": "2027-03-20",
+        "time": "19:00",
+        "label": "2027-03-20 • 19:00"
+      }
+    ],
+    "zones": [
+      {
+        "id": "zone-1",
+        "name": "Std",
+        "color": "#1D56CF",
+        "price": 200,
+        "layout": "matrix",
+        "rows": 2,
+        "cols": 4,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
+      }
+    ],
+    "createdAt": "2026-11-15T05:23:34.452Z"
+  },
+  {
+    "id": "evt-70b85d41",
+    "title": "Category test 1794720214532",
+    "artist": "",
+    "category": "Workshop 1794720213234",
+    "status": "On Sale",
+    "isFeatured": false,
+    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
+    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
+    "description": "",
+    "venue": "Test Hall",
+    "province": "Bangkok",
+    "organizer": "TicketHub Organizer",
+    "gateOpenTime": "16:00",
+    "showTime": "19:00",
+    "saleStartAt": "2026-11-15T05:23:34.534Z",
+    "saleEndAt": "2027-11-15T05:23:34.534Z",
+    "maxTicketsPerUser": 6,
+    "allowCancellation": true,
+    "refundPolicyPct": 100,
+    "rounds": [
+      {
+        "id": "rnd-1",
+        "date": "2027-05-01",
+        "time": "19:00",
+        "label": "2027-05-01 • 19:00"
+      }
+    ],
+    "zones": [
+      {
+        "id": "zone-1",
+        "name": "Standard",
+        "color": "#1D56CF",
+        "price": 500,
+        "layout": "matrix",
+        "rows": 1,
+        "cols": 2,
+        "originX": 0,
+        "originY": 0,
+        "seats": []
+      }
+    ],
+    "createdAt": "2026-11-15T05:23:34.534Z"
   }
 ]

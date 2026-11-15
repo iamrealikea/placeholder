@@ -381,6 +381,45 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.strictEqual(res.status, 403);
       assert.match(res.data.error, /outside the scheduled sale period|closed/i);
     });
+
+    it('FR-48: Admin can update a valid sale period and invalid date ranges are rejected', async () => {
+      const headers = { Authorization: `Bearer ${adminToken}` };
+      const originalRes = await request('/api/events/evt-1');
+      assert.strictEqual(originalRes.status, 200);
+      const original = originalRes.data.event;
+
+      const saleStartAt = new Date(Date.now() - 60 * 1000).toISOString();
+      const saleEndAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+      try {
+        const updateRes = await request('/api/events/evt-1', {
+          method: 'PUT',
+          headers,
+          body: { saleStartAt, saleEndAt }
+        });
+        assert.strictEqual(updateRes.status, 200);
+        assert.strictEqual(updateRes.data.event.saleStartAt, saleStartAt);
+        assert.strictEqual(updateRes.data.event.saleEndAt, saleEndAt);
+
+        const invalidRes = await request('/api/events/evt-1', {
+          method: 'PUT',
+          headers,
+          body: { saleStartAt: saleEndAt, saleEndAt: saleStartAt }
+        });
+        assert.strictEqual(invalidRes.status, 400);
+        assert.match(invalidRes.data.error, /before or equal to sale end/i);
+      } finally {
+        const restoreRes = await request('/api/events/evt-1', {
+          method: 'PUT',
+          headers,
+          body: {
+            saleStartAt: original.saleStartAt,
+            saleEndAt: original.saleEndAt
+          }
+        });
+        assert.strictEqual(restoreRes.status, 200);
+      }
+    });
   });
 
   // =========================================================================
