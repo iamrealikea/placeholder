@@ -22,10 +22,46 @@
     return e.province ? `${e.venue || ''}, ${e.province}` : (e.venue || '');
   }
 
+  const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function formatShortDate(dateStr) {
+    if (!dateStr) return 'TBD';
+    const match = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return dateStr;
+    const [, year, month, day] = match;
+    const monthName = SHORT_MONTHS[Number(month) - 1];
+    return monthName ? `${Number(day)} ${monthName} ${year}` : dateStr;
+  }
+
   function getMinPrice(e) {
     if (!Array.isArray(e.zones) || e.zones.length === 0) return 0;
     const prices = e.zones.map((z) => Number(z.price)).filter((p) => Number.isFinite(p));
     return prices.length ? Math.min(...prices) : 0;
+  }
+
+  function renderHomeCard(e, { cardClass, btnClass, ctaText, img, round, eventUrl }) {
+    const venueText = formatVenue(e) || 'TBA';
+    const dateText = formatShortDate(round.date);
+
+    return `
+      <article class="${cardClass} card-home">
+        <img class="card-home-img" src="${img}" alt="${esc(e.title)}" loading="lazy">
+        <button type="button" class="btn-icon card-bookmark-btn" data-bookmark-id="${esc(e.id)}"
+          title="Bookmark event" aria-label="Bookmark ${esc(e.title)}">
+          ${heartMarkup(Boolean(e.isBookmarked))}
+        </button>
+        <div class="card-home-overlay">
+          <div class="card-home-info">
+            <h3 class="card-home-title"><a href="${eventUrl}" class="card-link">${esc(e.title)}</a></h3>
+            <div class="card-home-meta">
+              <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+              <span>${esc(venueText)} &bull; ${esc(dateText)}</span>
+            </div>
+          </div>
+          <a href="${eventUrl}" class="${btnClass} card-home-cta">${esc(ctaText)}</a>
+        </div>
+      </article>
+    `;
   }
 
   function renderCard(e, opts = {}) {
@@ -40,6 +76,10 @@
     const img = safeImg(opts.preferPoster ? (e.posterUrl || e.galleryUrl) : (e.galleryUrl || e.posterUrl));
     const minPrice = getMinPrice(e);
     const eventUrl = `/event?id=${encodeURIComponent(e.id || '')}`;
+
+    if (opts.layout === 'home') {
+      return renderHomeCard(e, { cardClass, btnClass, ctaText, img, round, eventUrl });
+    }
 
     return `
       <div class="${cardClass}">

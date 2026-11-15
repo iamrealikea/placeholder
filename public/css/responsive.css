@@ -26,6 +26,12 @@
   .payment-methods-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .checkout-stepper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .checkout-info-grid {
+    grid-template-columns: 1fr;
+  }
   .eticket-carousel-wrap {
     flex-direction: column;
   }
@@ -61,5 +67,9 @@
   .event-horizontal-grid > .card-popular,
   .event-horizontal-grid > .card-soon {
     flex: 0 0 85%;
+  }
+  .event-horizontal-grid > .card-home {
+    flex: 0 0 88%;
+    height: 190px;
   }
 }

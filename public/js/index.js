@@ -117,16 +117,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const soon = events.filter((e) => e.status !== 'On Sale');
 
       renderCarouselSection(popularContainer, popular, 'No popular events match your search criteria.', (e) => ({
+        layout: 'home',
         variant: 'popular',
-        badgeText: e.category || 'Concert',
-        priceLabel: 'Starts from',
         ctaText: e.status === 'On Sale' ? 'Buy Now' : (e.status || 'View')
       }));
 
       renderCarouselSection(soonContainer, soon, 'No upcoming events in this category.', (e) => ({
+        layout: 'home',
         variant: 'soon',
-        badgeText: e.status || 'Coming Soon',
-        priceLabel: 'Expected from',
         ctaText: e.status === 'Coming Soon' ? 'Soon' : (e.status || 'View'),
         preferPoster: true
       }));
@@ -183,8 +181,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => {
       const container = document.getElementById(btn.dataset.target);
       if (container) {
+        const firstCard = container.querySelector('.card-home, .card-popular, .card-soon');
+        const step = firstCard ? firstCard.offsetWidth + 24 : 444;
         container.scrollBy({
-          left: btn.dataset.direction === 'left' ? -384 : 384,
+          left: btn.dataset.direction === 'left' ? -step : step,
           behavior: 'smooth'
         });
       }
