@@ -99,13 +99,13 @@ jobs:
       - name: Create new application version
         run: |
           aws elasticbeanstalk create-application-version \
-            --application-name "${{ secrets.EB_APP_NAME }}" \
+            --application-name "${EB_APP_NAME}" \
             --version-label "${{ github.sha }}" \
-            --source-bundle S3Bucket="${{ secrets.S3_BUCKET }}",S3Key="app-${{ github.sha }}.zip"
+            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="app-${{ github.sha }}.zip"
 
       - name: Deploy to Elastic Beanstalk environment
         run: |
           aws elasticbeanstalk update-environment \
-            --environment-name "${{ secrets.EB_ENV_NAME }}" \
+            --environment-name "${EB_S3_BUCKET}" \
             --version-label "${{ github.sha }}"
       
