@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "description": "TicketHub - Event Booking and Ticketing System (TOR FR-01 to FR-49)",
   "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "seed": "node src/store/seed-cli.js",
-    "test": "node --test --test-concurrency=1 tests/api.test.js tests/e2e-admin-events.test.js tests/popup-unit.test.js",
+    "test": "node --test --test-concurrency=1 tests/unit/models.unit.test.js tests/unit/other-classes.unit.test.js tests/integration/api-e2e.test.js",
+    "test:coverage": "node --test --test-concurrency=1 --experimental-test-coverage tests/unit/models.unit.test.js",
+    "test:profile": "node tests/profiling/run-profiling.js",
     "dev": "nodemon server.js"
   },
   "dependencies": {
