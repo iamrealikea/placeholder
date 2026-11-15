@@ -109,6 +109,21 @@
 | FR-48 | Ticket Sale | Sale Period | Admin สามารถกำหนดวันเริ่มและสิ้นสุดการขายบัตร |
 | FR-49 | Ticket Sale | Sale Restriction | ระบบไม่อนุญาตให้จองบัตรนอกช่วงเวลาที่กำหนด |
 
+## Email Notification Configuration (FR-35)
+
+Notifications with the `EMAIL` or `BOTH` channel are sent asynchronously over SMTP. Configure these environment variables to enable delivery:
+
+```env
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-smtp-username
+SMTP_PASS=your-smtp-password
+EMAIL_FROM=TicketHub <tickets@example.com>
+```
+
+`SMTP_USER` and `SMTP_PASS` may be omitted for an unauthenticated relay. Keep real credentials in the deployment environment and never commit them. Notification records expose `emailStatus` (`PENDING`, `SENT`, `FAILED`, or `NOT_CONFIGURED`) so delivery failures are visible.
+
 ## Non-Functional Requirements
 
 | ID | Category | Requirement | Description |

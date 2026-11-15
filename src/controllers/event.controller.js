@@ -56,6 +56,33 @@ store.resetWithSeed = function (...args) {
 };
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+function normalizeSalePeriodPayload(payload) {
+  const normalized = { ...payload };
+
+  for (const [field, legacyField] of [
+    ['saleStartAt', 'saleStartDate'],
+    ['saleEndAt', 'saleEndDate']
+  ]) {
+    const value = normalized[field] !== undefined ? normalized[field] : normalized[legacyField];
+    delete normalized[legacyField];
+
+    if (value === undefined || value === null || value === '') {
+      delete normalized[field];
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      const timestamp = new Date(value).getTime();
+      normalized[field] = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : value;
+    } else {
+      normalized[field] = value;
+    }
+  }
+
+  return normalized;
+}
+
 /**
  * Validates event creation or update payload against strict invariants:
  * - Category must exist in the admin-managed category list
@@ -68,6 +95,24 @@ const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 function validateEventPayload(payload, { isUpdate = false } = {}) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return { valid: false, error: 'Event payload must be a JSON object.' };
+  }
+
+  const saleStartAt = payload.saleStartAt;
+  const saleEndAt = payload.saleEndAt;
+  const hasSaleStart = saleStartAt !== undefined && saleStartAt !== null && saleStartAt !== '';
+  const hasSaleEnd = saleEndAt !== undefined && saleEndAt !== null && saleEndAt !== '';
+
+  if (hasSaleStart && (typeof saleStartAt !== 'string' || !Number.isFinite(new Date(saleStartAt).getTime()))) {
+    return { valid: false, error: 'Sale start must be a valid date and time.' };
+  }
+  if (hasSaleEnd && (typeof saleEndAt !== 'string' || !Number.isFinite(new Date(saleEndAt).getTime()))) {
+    return { valid: false, error: 'Sale end must be a valid date and time.' };
+  }
+  if (hasSaleStart !== hasSaleEnd) {
+    return { valid: false, error: 'Both sale start and sale end must be provided.' };
+  }
+  if (hasSaleStart && new Date(saleStartAt) > new Date(saleEndAt)) {
+    return { valid: false, error: 'Sale start must be before or equal to sale end.' };
   }
 
   // 1. Title validation
@@ -323,37 +368,74 @@ function isLayoutModified(existing = [], incoming = []) {
 }
 
 function notifyEventChanges(existing, updated, updates) {
-  const dateOrVenueChanged =
-    (updates.venue && updates.venue !== existing.venue) ||
-    (updates.showTime && updates.showTime !== existing.showTime) ||
-    (updates.rounds && JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds));
+  const changedDetails = [
+    ['title', 'event title'],
+    ['artist', 'artist'],
+    ['category', 'category'],
+    ['description', 'description'],
+    ['venue', 'venue'],
+    ['province', 'location'],
+    ['organizer', 'organizer'],
+    ['gateOpenTime', 'gate opening time'],
+    ['showTime', 'show time'],
+    ['status', 'availability status'],
+    ['saleStartAt', 'sale start time'],
+    ['saleEndAt', 'sale end time'],
+    ['posterUrl', 'poster'],
+    ['galleryUrl', 'gallery']
+  ]
+    .filter(([field]) =>
+      updates[field] !== undefined &&
+      JSON.stringify(updates[field]) !== JSON.stringify(existing[field])
+    )
+    .map(([, label]) => label);
+
+  if (
+    updates.rounds !== undefined &&
+    JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds)
+  ) {
+    changedDetails.push('event schedule');
+  }
+
+  const saleOpened = existing.status !== 'On Sale' && updated.status === 'On Sale';
 
   // FR-34: Dispatches notification to users when event details change
-  if (dateOrVenueChanged) {
+  const paidUserIds = new Set();
+  if (changedDetails.length > 0) {
     const bookings = BookingModel.findPaidByEventId(existing.id);
     const userIds = Array.from(new Set(bookings.map((b) => b.userId)));
     for (const uid of userIds) {
+      paidUserIds.add(uid);
       NotificationModel.create({
         userId: uid,
         channel: 'BOTH',
         type: 'EVENT_CHANGE',
         subject: `Update on ${updated.title}`,
-        message: `Important update regarding ${updated.title}: Venue is now "${updated.venue}", showtime "${updated.showTime}". Please review your ticket details.`
+        message: `Important update regarding ${updated.title}: ${changedDetails.join(', ')} changed. Please review your ticket details.`
       });
     }
   }
 
-  // FR-37: Bookmark notification if status moved to 'On Sale'
-  if (existing.status !== 'On Sale' && updated.status === 'On Sale') {
-    const allUsers = UserModel.findAll();
-    for (const u of allUsers) {
-      if ((u.bookmarks || []).includes(updated.id)) {
+  // FR-37: Notify users who bookmarked the event when it opens or changes.
+  if (saleOpened || changedDetails.length > 0) {
+    const changeMessage = changedDetails.length > 0
+      ? `The event "${updated.title}" you've bookmarked has changed: ${changedDetails.join(', ')}. Please review the updated event details.`
+      : '';
+    const saleMessage = saleOpened
+      ? `Great news! "${updated.title}" has opened ticket sales. Book your seats now!`
+      : '';
+    const message = [saleMessage, changeMessage].filter(Boolean).join(' ');
+
+    for (const user of UserModel.findAll()) {
+      if ((user.bookmarks || []).includes(updated.id) && !paidUserIds.has(user.id)) {
         NotificationModel.create({
-          userId: u.id,
+          userId: user.id,
           channel: 'BOTH',
           type: 'BOOKMARK_ALERT',
-          subject: `Tickets Now On Sale: ${updated.title}`,
-          message: `Great news! "${updated.title}" has opened ticket sales. Book your seats now!`
+          subject: saleOpened
+            ? `Tickets Now On Sale: ${updated.title}`
+            : `Event Update: ${updated.title}`,
+          message
         });
       }
     }
@@ -485,12 +567,12 @@ function getTemplates(_req, res) {
  * POST /api/events
  */
 function createEvent(req, res) {
-  const validation = validateEventPayload(req.body, { isUpdate: false });
+  const payload = normalizeSalePeriodPayload(req.body);
+  const validation = validateEventPayload(payload, { isUpdate: false });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
-  const payload = { ...req.body };
   if (payload.category) {
     payload.category = CategoryModel.findByName(payload.category).name;
   }
@@ -515,12 +597,20 @@ function updateEvent(req, res) {
     return res.status(404).json({ error: 'Event not found.' });
   }
 
-  const validation = validateEventPayload(req.body, { isUpdate: true });
+  const updates = normalizeSalePeriodPayload(req.body);
+  const validationPayload = { ...updates };
+  if (validationPayload.saleStartAt === undefined) {
+    validationPayload.saleStartAt = existing.saleStartAt;
+  }
+  if (validationPayload.saleEndAt === undefined) {
+    validationPayload.saleEndAt = existing.saleEndAt;
+  }
+
+  const validation = validateEventPayload(validationPayload, { isUpdate: true });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
-  const updates = { ...req.body };
   delete updates.id;
 
   if (updates.category) {
