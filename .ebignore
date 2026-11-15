@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.github/
+.agents/
+tests/
+uploads/
+data/backups/
+screenshot/
+.env
+*.log
