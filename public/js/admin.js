@@ -1074,8 +1074,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (qrFileInput) {
       qrFileInput.addEventListener('change', async () => {
         if (!qrFileInput.files || !qrFileInput.files[0]) return;
-        const simulatedCode = await Popup.prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-', { title: 'Ticket Code Verification' });
+        const file = qrFileInput.files[0];
         qrFileInput.value = '';
+
+        if (typeof window.BarcodeDetector === 'function' && typeof window.createImageBitmap === 'function') {
+          try {
+            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            const bitmap = await window.createImageBitmap(file);
+            const barcodes = await detector.detect(bitmap);
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              await validateTicket(barcodes[0].rawValue);
+              return;
+            }
+          } catch (_) {
+            // Fall through to manual prompt
+          }
+        }
+
+        const simulatedCode = await Popup.prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-', { title: 'Ticket Code Verification' });
         if (simulatedCode) validateTicket(simulatedCode);
       });
     }
@@ -1115,9 +1131,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (stopCameraBtn) stopCameraBtn.classList.add('d-none');
   }
 
-  function scanVideoFrame() {
+  async function scanVideoFrame() {
     if (!isScanningActive) return;
-    requestAnimationFrame(scanVideoFrame);
+    if (typeof window.BarcodeDetector === 'function' && cameraVideo && cameraVideo.readyState >= 2) {
+      try {
+        const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+        const codes = await detector.detect(cameraVideo);
+        if (codes && codes.length > 0 && codes[0].rawValue) {
+          stopCamera();
+          await validateTicket(codes[0].rawValue);
+          return;
+        }
+      } catch (_) {
+        // Continue frame loop
+      }
+    }
+    if (isScanningActive) {
+      requestAnimationFrame(scanVideoFrame);
+    }
   }
 
   async function validateTicket(inputCode) {

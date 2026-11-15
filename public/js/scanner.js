@@ -101,8 +101,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (qrFileInput) {
       qrFileInput.addEventListener('change', async () => {
         if (!qrFileInput.files || !qrFileInput.files[0]) return;
-        const simulatedCode = await Popup.prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-', { title: 'Ticket Code Verification' });
+        const file = qrFileInput.files[0];
         qrFileInput.value = '';
+
+        // 1. Try native BarcodeDetector QR decoding if supported
+        if (typeof window.BarcodeDetector === 'function' && typeof window.createImageBitmap === 'function') {
+          try {
+            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            const bitmap = await window.createImageBitmap(file);
+            const barcodes = await detector.detect(bitmap);
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              await validateTicket(barcodes[0].rawValue);
+              return;
+            }
+          } catch (_) {
+            // Fall through to DataURL or manual prompt fallback
+          }
+        }
+
+        // 2. Fallback prompt for ticket code verification
+        const simulatedCode = await Popup.prompt('File uploaded. Enter or verify ticket code from image:', 'TKT-', { title: 'Ticket Code Verification' });
         if (simulatedCode) validateTicket(simulatedCode);
       });
     }
@@ -118,13 +136,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       isScanningActive = true;
       startCameraBtn.classList.add('d-none');
       stopCameraBtn.classList.remove('d-none');
+      stopCameraBtn.hidden = false;
       cameraErrorMsg.classList.add('d-none');
+      cameraErrorMsg.hidden = true;
 
-      // Start scanning loop using hidden canvas
+      // Start scanning loop using BarcodeDetector when available
       requestAnimationFrame(scanVideoFrame);
     } catch (err) {
       console.warn('Camera access not supported or denied:', err);
       cameraErrorMsg.classList.remove('d-none');
+      cameraErrorMsg.hidden = false;
       cameraErrorMsg.textContent = 'Camera not available or access denied. Please use manual code entry or file upload below.';
     }
   }
@@ -137,12 +158,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     isScanningActive = false;
     startCameraBtn.classList.remove('d-none');
     stopCameraBtn.classList.add('d-none');
+    stopCameraBtn.hidden = true;
   }
 
-  function scanVideoFrame() {
+  async function scanVideoFrame() {
     if (!isScanningActive) return;
-    // Real camera QR scanning frame interval
-    requestAnimationFrame(scanVideoFrame);
+    if (typeof window.BarcodeDetector === 'function' && cameraVideo && cameraVideo.readyState >= 2) {
+      try {
+        const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+        const codes = await detector.detect(cameraVideo);
+        if (codes && codes.length > 0 && codes[0].rawValue) {
+          stopCamera();
+          await validateTicket(codes[0].rawValue);
+          return;
+        }
+      } catch (_) {
+        // Continue frame loop
+      }
+    }
+    if (isScanningActive) {
+      requestAnimationFrame(scanVideoFrame);
+    }
   }
 
   async function validateTicket(inputCode) {

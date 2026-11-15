@@ -22,9 +22,14 @@ class BookingModel {
   }
 
   static findByUserId(userId) {
-    const bookings = store.find('bookings', (b) => b.userId === userId);
-    bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    return bookings;
+    const bookings = store
+      .find('bookings', (b) => b.userId === userId)
+      .map((b, index) => ({ b, index }));
+    bookings.sort((a, b) => {
+      const timeDiff = new Date(b.b.createdAt || 0).getTime() - new Date(a.b.createdAt || 0).getTime();
+      return timeDiff !== 0 ? timeDiff : b.index - a.index;
+    });
+    return bookings.map((item) => item.b);
   }
 
   static findByEventId(eventId) {

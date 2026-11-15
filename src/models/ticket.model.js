@@ -8,9 +8,14 @@ class TicketModel {
   }
 
   static findByUserId(userId) {
-    const tickets = store.find('tickets', (t) => t.userId === userId);
-    tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    return tickets;
+    const tickets = store
+      .find('tickets', (t) => t.userId === userId)
+      .map((t, index) => ({ t, index }));
+    tickets.sort((a, b) => {
+      const timeDiff = new Date(b.t.createdAt || 0).getTime() - new Date(a.t.createdAt || 0).getTime();
+      return timeDiff !== 0 ? timeDiff : b.index - a.index;
+    });
+    return tickets.map((item) => item.t);
   }
 
   static findByBookingId(bookingId) {
@@ -19,13 +24,15 @@ class TicketModel {
 
   static findByLookupCode(lookupCode) {
     if (!lookupCode) return null;
-    const upper = String(lookupCode).toUpperCase();
+    const raw = String(lookupCode).trim();
+    const upper = raw.toUpperCase();
     return store.findOne(
       'tickets',
       (t) =>
         t.ticketCode.toUpperCase() === upper ||
-        t.id === lookupCode ||
-        t.qrPayload === lookupCode
+        t.id === raw ||
+        t.qrPayload === raw ||
+        (raw.startsWith('data:image/') && t.qrDataUrl === raw)
     );
   }
 
