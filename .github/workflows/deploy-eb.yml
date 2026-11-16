@@ -6,14 +6,10 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'ap-southeast-1' }}
-  EB_APPLICATION_NAME: ${{ vars.EB_APPLICATION_NAME || 'tickethub-platform' }}
-  EB_ENVIRONMENT_NAME: ${{ vars.EB_ENVIRONMENT_NAME || 'tickethub-prod-env' }}
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  EB_APPLICATION_NAME: ${{ vars.EB_APPLICATION_NAME || 'TicketHub Placeholder' }}
+  EB_ENVIRONMENT_NAME: ${{ vars.EB_ENVIRONMENT_NAME || 'TicketHub-env' }}
   EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
 
 jobs:
@@ -44,6 +40,7 @@ jobs:
 
   deploy:
     name: Package & Deploy to Elastic Beanstalk
+    environment: aws-secret
     needs: test-and-verify
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
@@ -80,13 +77,15 @@ jobs:
             .platform \
             -x "data/backups/*" "node_modules/*" "tests/*" ".git/*"
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
+      - name: Configure AWS credentials manually
+        run: |
+          mkdir -p ~/.aws
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+          echo "aws_session_token = ${{ secrets.AWS_SESSION_TOKEN }}" >> ~/.aws/credentials
+          echo "[default]" > ~/.aws/config
+          echo "region = ${AWS_REGION}" >> ~/.aws/config
       - name: Upload bundle to S3 & Deploy to Elastic Beanstalk
         run: |
           BUNDLE_FILE="tickethub-${VERSION_LABEL}.zip"
@@ -94,21 +93,17 @@ jobs:
 
           echo "Uploading ${BUNDLE_FILE} to s3://${EB_S3_BUCKET}/${S3_KEY}..."
           aws s3 cp "${BUNDLE_FILE}" "s3://${EB_S3_BUCKET}/${S3_KEY}"
-
-          echo "Creating Elastic Beanstalk Application Version ${VERSION_LABEL}..."
+      
+      - name: Create new application version
+        run: |
           aws elasticbeanstalk create-application-version \
             --application-name "${EB_APPLICATION_NAME}" \
-            --version-label "${VERSION_LABEL}" \
-            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="${S3_KEY}" \
-            --description "GitHub Actions deploy from commit ${GITHUB_SHA::7}"
+            --version-label "${{ github.sha }}" \
+            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="${EB_APPLICATION_NAME}/tickethub-${VERSION_LABEL}.zip"
 
-          echo "Updating Elastic Beanstalk Environment ${EB_ENVIRONMENT_NAME}..."
+      - name: Deploy to Elastic Beanstalk environment
+        run: |
           aws elasticbeanstalk update-environment \
-            --application-name "${EB_APPLICATION_NAME}" \
             --environment-name "${EB_ENVIRONMENT_NAME}" \
-            --version-label "${VERSION_LABEL}"
-
-          echo "Waiting for environment ${EB_ENVIRONMENT_NAME} to become Ready..."
-          aws elasticbeanstalk wait environment-updated \
-            --application-name "${EB_APPLICATION_NAME}" \
-            --environment-names "${EB_ENVIRONMENT_NAME}"
+            --version-label "${{ github.sha }}"
+      
