@@ -38,37 +38,25 @@
         "id": "zone-vip",
         "name": "VIP Stage Front",
         "color": "#FF0800",
-        "price": 4800,
-        "layout": "matrix",
+        "price": 4500,
         "rows": 4,
-        "cols": 8,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
+        "cols": 8
       },
       {
         "id": "zone-a",
-        "name": "Zone A Monday Blue",
+        "name": "Zone A (Monday Blue)",
         "color": "#1D56CF",
-        "price": 3000,
-        "layout": "matrix",
+        "price": 2800,
         "rows": 4,
-        "cols": 8,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
+        "cols": 8
       },
       {
         "id": "zone-b",
         "name": "Zone B (Standard)",
         "color": "#0D9488",
         "price": 1500,
-        "layout": "matrix",
         "rows": 4,
-        "cols": 8,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
+        "cols": 8
       }
     ],
     "createdAt": "2026-09-01T00:00:00.000Z"
@@ -302,181 +290,5 @@
       }
     ],
     "createdAt": "2026-08-01T00:00:00.000Z"
-  },
-  {
-    "id": "evt-b83bbb84",
-    "title": "FLT1794720213233 A",
-    "artist": "Filter Test Artist",
-    "category": "Concert",
-    "status": "On Sale",
-    "isFeatured": false,
-    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
-    "description": "",
-    "venue": "Nimman Hall",
-    "province": "Chiang Mai",
-    "organizer": "TicketHub Organizer",
-    "gateOpenTime": "16:00",
-    "showTime": "19:00",
-    "saleStartAt": "2026-11-15T05:23:34.442Z",
-    "saleEndAt": "2027-11-15T05:23:34.442Z",
-    "maxTicketsPerUser": 6,
-    "allowCancellation": true,
-    "refundPolicyPct": 100,
-    "rounds": [
-      {
-        "id": "rnd-1",
-        "date": "2027-03-10",
-        "time": "19:00",
-        "label": "2027-03-10 • 19:00"
-      }
-    ],
-    "zones": [
-      {
-        "id": "zone-1",
-        "name": "Std",
-        "color": "#1D56CF",
-        "price": 500,
-        "layout": "matrix",
-        "rows": 2,
-        "cols": 4,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
-      }
-    ],
-    "createdAt": "2026-11-15T05:23:34.442Z"
-  },
-  {
-    "id": "evt-3b911e47",
-    "title": "FLT1794720213233 B",
-    "artist": "Filter Test Artist",
-    "category": "Concert",
-    "status": "On Sale",
-    "isFeatured": false,
-    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
-    "description": "",
-    "venue": "Old City Arena",
-    "province": "Chiang Rai",
-    "organizer": "TicketHub Organizer",
-    "gateOpenTime": "16:00",
-    "showTime": "19:00",
-    "saleStartAt": "2026-11-15T05:23:34.448Z",
-    "saleEndAt": "2027-11-15T05:23:34.448Z",
-    "maxTicketsPerUser": 6,
-    "allowCancellation": true,
-    "refundPolicyPct": 100,
-    "rounds": [
-      {
-        "id": "rnd-1",
-        "date": "2027-04-05",
-        "time": "19:00",
-        "label": "2027-04-05 • 19:00"
-      }
-    ],
-    "zones": [
-      {
-        "id": "zone-1",
-        "name": "Std",
-        "color": "#1D56CF",
-        "price": 900,
-        "layout": "matrix",
-        "rows": 2,
-        "cols": 4,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
-      }
-    ],
-    "createdAt": "2026-11-15T05:23:34.448Z"
-  },
-  {
-    "id": "evt-3baa34cb",
-    "title": "FLT1794720213233 C",
-    "artist": "Filter Test Artist",
-    "category": "Concert",
-    "status": "On Sale",
-    "isFeatured": false,
-    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
-    "description": "",
-    "venue": "Patong Beach Stage",
-    "province": "Phuket",
-    "organizer": "TicketHub Organizer",
-    "gateOpenTime": "16:00",
-    "showTime": "19:00",
-    "saleStartAt": "2026-11-15T05:23:34.452Z",
-    "saleEndAt": "2027-11-15T05:23:34.452Z",
-    "maxTicketsPerUser": 6,
-    "allowCancellation": true,
-    "refundPolicyPct": 100,
-    "rounds": [
-      {
-        "id": "rnd-1",
-        "date": "2027-03-20",
-        "time": "19:00",
-        "label": "2027-03-20 • 19:00"
-      }
-    ],
-    "zones": [
-      {
-        "id": "zone-1",
-        "name": "Std",
-        "color": "#1D56CF",
-        "price": 200,
-        "layout": "matrix",
-        "rows": 2,
-        "cols": 4,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
-      }
-    ],
-    "createdAt": "2026-11-15T05:23:34.452Z"
-  },
-  {
-    "id": "evt-70b85d41",
-    "title": "Category test 1794720214532",
-    "artist": "",
-    "category": "Workshop 1794720213234",
-    "status": "On Sale",
-    "isFeatured": false,
-    "posterUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80",
-    "galleryUrl": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80",
-    "description": "",
-    "venue": "Test Hall",
-    "province": "Bangkok",
-    "organizer": "TicketHub Organizer",
-    "gateOpenTime": "16:00",
-    "showTime": "19:00",
-    "saleStartAt": "2026-11-15T05:23:34.534Z",
-    "saleEndAt": "2027-11-15T05:23:34.534Z",
-    "maxTicketsPerUser": 6,
-    "allowCancellation": true,
-    "refundPolicyPct": 100,
-    "rounds": [
-      {
-        "id": "rnd-1",
-        "date": "2027-05-01",
-        "time": "19:00",
-        "label": "2027-05-01 • 19:00"
-      }
-    ],
-    "zones": [
-      {
-        "id": "zone-1",
-        "name": "Standard",
-        "color": "#1D56CF",
-        "price": 500,
-        "layout": "matrix",
-        "rows": 1,
-        "cols": 2,
-        "originX": 0,
-        "originY": 0,
-        "seats": []
-      }
-    ],
-    "createdAt": "2026-11-15T05:23:34.534Z"
   }
 ]
