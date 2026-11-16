@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/controllers/admin.controller.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/controllers/admin.controller.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">63.93</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">523</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">66.55</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">7.64</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const {
+  store,
+  EventModel,
+  SeatModel,
+  BookingModel,
+  PaymentModel,
+  TicketModel,
+  UserModel,
+  NotificationModel
+} = require(&#039;../models&#039;);
+const { sanitizeUser } = require(&#039;../middleware/auth&#039;);
+const { validateEventPayload, isLayoutModified } = require(&#039;./event.controller&#039;);
+
+/**
+ * FR-42, FR-43, FR-44: Admin Dashboard &amp; Monthly Sales Dataset
+ * GET /api/admin/dashboard
+ */
+function getDashboard(_req, res) {
+  SeatModel.expireHeldSeats();
+
+  const events = EventModel.findAll();
+  const bookings = BookingModel.findAll();
+  const tickets = TicketModel.findAll();
+  const seats = SeatModel.findAll();
+  const users = UserModel.findAll();
+
+  const paidBookings = bookings.filter((b) =&gt; b.status === &#039;PAID&#039;);
+  const totalRevenue = paidBookings.reduce((sum, b) =&gt; sum + (b.totalAmount || 0), 0);
+  const totalTicketsSold = tickets.filter((t) =&gt; t.status !== &#039;CANCELLED&#039;).length;
+  const totalCheckedIn = tickets.filter((t) =&gt; t.status === &#039;CHECKED_IN&#039;).length;
+
+  const totalSeats = seats.length;
+  const availableSeats = seats.filter((s) =&gt; s.status === &#039;AVAILABLE&#039;).length;
+  const bookedSeats = seats.filter((s) =&gt; s.status === &#039;BOOKED&#039;).length;
+  const heldSeats = seats.filter((s) =&gt; s.status === &#039;HELD&#039;).length;
+
+  // Monthly sales dataset for the past 12 months (FR-44)
+  const monthLabels = [
+    &#039;Nov 25&#039;, &#039;Dec 25&#039;, &#039;Jan 26&#039;, &#039;Feb 26&#039;, &#039;Mar 26&#039;, &#039;Apr 26&#039;,
+    &#039;May 26&#039;, &#039;Jun 26&#039;, &#039;Jul 26&#039;, &#039;Aug 26&#039;, &#039;Sep 26&#039;, &#039;Oct 26&#039;
+  ];
+  const monthlyRevenue = [
+    45000, 78000, 92000, 110000, 135000, 160000,
+    180000, 210000, 245000, 280000, 310000, 0
+  ];
+  const monthlyTickets = [12, 20, 24, 28, 35, 42, 48, 55, 64, 72, 80, 0];
+
+  // Add current live month&#039;s revenue to Oct 26
+  monthlyRevenue[11] = totalRevenue;
+  monthlyTickets[11] = totalTicketsSold;
+
+  // Event-level breakdown
+  const eventBreakdown = events.map((e) =&gt; {
+    const evtSeats = seats.filter((s) =&gt; s.eventId === e.id);
+    const evtPaid = bookings.filter((b) =&gt; b.eventId === e.id &amp;&amp; b.status === &#039;PAID&#039;);
+    const revenue = evtPaid.reduce((sum, b) =&gt; sum + b.totalAmount, 0);
+
+    return {
+      id: e.id,
+      title: e.title,
+      status: e.status,
+      category: e.category,
+      totalSeats: evtSeats.length,
+      availableSeats: evtSeats.filter((s) =&gt; s.status === &#039;AVAILABLE&#039;).length,
+      bookedSeats: evtSeats.filter((s) =&gt; s.status === &#039;BOOKED&#039;).length,
+      revenue
+    };
+  });
+
+  return res.json({
+    kpis: {
+      totalRevenue,
+      totalTicketsSold,
+      totalCheckedIn,
+      totalUsers: users.length,
+      totalEvents: events.length,
+      totalSeats,
+      availableSeats,
+      bookedSeats,
+      heldSeats
+    },
+    monthlySalesChart: {
+      labels: monthLabels,
+      revenue: monthlyRevenue,
+      ticketCounts: monthlyTickets
+    },
+    eventBreakdown,
+    recentBookings: bookings.slice(-10).reverse()
+  });
+}
+
+/**
+ * FR-40, FR-41: Seating Management &amp; Zone Configuration
+ * PUT /api/admin/events/:id/seating
+ */
+function updateEventSeating(req, res) {
+  const { zones } = req.body;
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  if (!Array.isArray(zones) || zones.length === 0) {
+    return res.status(400).json({ error: &#039;At least one zone configuration is required.&#039; });
+  }
+
+  const validation = validateEventPayload({ zones }, { isUpdate: true });
+  if (!validation.valid) {
+    return res.status(400).json({ error: validation.error });
+  }
+
+  const updatedZones = zones.map((z, idx) =&gt; {
+    const existingZone = Array.isArray(event.zones)
+      ? event.zones.find(
+          (ez) =&gt; ez &amp;&amp; typeof ez === &#039;object&#039; &amp;&amp; ((z.id &amp;&amp; ez.id === z.id) || (z.name &amp;&amp; ez.name === z.name))
+        )
+      : null;
+    return EventModel.normalizeZone(z, idx, existingZone);
+  });
+
+  const finalZones = (event.zones || []).map((ez) =&gt; {
+    const match = updatedZones.find((uz) =&gt; (uz.id &amp;&amp; uz.id === ez.id) || (uz.name &amp;&amp; uz.name === ez.name));
+    return match ? { ...ez, ...match } : ez;
+  });
+  for (const uz of updatedZones) {
+    if (!finalZones.some((fz) =&gt; (fz.id &amp;&amp; fz.id === uz.id) || (fz.name &amp;&amp; fz.name === uz.name))) {
+      finalZones.push(uz);
+    }
+  }
+
+  const layoutModified = isLayoutModified(event.zones, finalZones);
+
+  if (layoutModified) {
+    if (SeatModel.hasNonAvailableSeats(event.id)) {
+      return res.status(409).json({
+        error: &#039;Cannot modify seating layout while active bookings or seat holds exist.&#039;,
+        code: &#039;LAYOUT_LOCKED&#039;
+      });
+    }
+    EventModel.update(event.id, { zones: finalZones });
+    SeatModel.regenerateForEvent(event, finalZones);
+    return res.json({
+      message: &#039;Seating plan and zones updated successfully.&#039;,
+      zones: finalZones
+    });
+  } else {
+    EventModel.update(event.id, { zones: finalZones });
+    SeatModel.propagateZoneUpdates(event.id, finalZones);
+    return res.json({
+      message: &#039;Seating plan and zones updated successfully.&#039;,
+      zones: finalZones
+    });
+  }
+}
+
+/**
+ * NFR-11, NFR-12: Backup and Restore Data Store
+ */
+function listBackups(_req, res) {
+  return res.json({ backups: store.listBackups() });
+}
+
+function createBackup(req, res) {
+  const label = req.body.label ? String(req.body.label).replace(/[^a-zA-Z0-9_-]/g, &#039;&#039;) : &#039;manual&#039;;
+  const backup = store.createBackup(label);
+  return res.status(201).json({
+    message: &#039;Data backup created successfully&#039;,
+    backup
+  });
+}
+
+function restoreBackup(req, res) {
+  const { backupId } = req.body;
+  try {
+    const result = store.restoreBackup(backupId);
+    return res.json({
+      message: &#039;Data restored successfully from backup&#039;,
+      result
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+}
+
+/**
+ * R1: User &amp; Role Management — GET /api/admin/users
+ */
+function listUsers(req, res) {
+  const counts = UserModel.getRoleCounts();
+  const filtered = UserModel.filterUsers(req.query);
+  const sanitizedUsers = filtered.map((u) =&gt; sanitizeUser(u));
+
+  return res.json({
+    counts,
+    users: sanitizedUsers
+  });
+}
+
+/**
+ * R1: User &amp; Role Management — PUT /api/admin/users/:id/role
+ */
+function updateUserRole(req, res) {
+  const { role } = req.body || {};
+
+  const ALLOWED_ROLES = [&#039;customer&#039;, &#039;staff&#039;, &#039;admin&#039;];
+  if (!role || typeof role !== &#039;string&#039; || !ALLOWED_ROLES.includes(role.trim().toLowerCase())) {
+    return res.status(400).json({
+      error: &#039;Invalid role. Role must be one of: customer, staff, admin.&#039;
+    });
+  }
+
+  const requestedRole = role.trim().toLowerCase();
+
+  const targetUser = UserModel.findById(req.params.id);
+  if (!targetUser) {
+    return res.status(404).json({ error: &#039;User not found.&#039; });
+  }
+
+  // Self-demotion guard
+  if (targetUser.id === req.user.id &amp;&amp; requestedRole !== &#039;admin&#039;) {
+    return res.status(400).json({
+      error: &#039;Cannot demote your own currently active administrator account.&#039;
+    });
+  }
+
+  const updatedUser = UserModel.update(targetUser.id, { role: requestedRole });
+
+  NotificationModel.create({
+    userId: targetUser.id,
+    channel: &#039;BOTH&#039;,
+    type: &#039;ROLE_UPDATED&#039;,
+    subject: &#039;Account Role Updated&#039;,
+    message: `Your account role has been updated to &quot;${requestedRole}&quot;.`,
+    emailTo: targetUser.email || &#039;&#039;
+  });
+
+  return res.json({
+    message: &#039;User role updated successfully.&#039;,
+    user: sanitizeUser(updatedUser)
+  });
+}
+
+/**
+ * Helper to construct a normalized, sanitized audit transaction record (FR-43)
+ * Guarantees that user object is sanitized and passwordHash is never leaked.
+ */
+function buildTransactionRecord(booking, payment, user, event) {
+  const safeUser = sanitizeUser(user);
+
+  const customerName = (safeUser &amp;&amp; safeUser.name) || booking.userName || &#039;Unknown&#039;;
+  const customerEmail = (safeUser &amp;&amp; safeUser.email) || booking.userEmail || &#039;&#039;;
+  const customerPhone = (safeUser &amp;&amp; safeUser.phone) || booking.userPhone || &#039;&#039;;
+
+  const eventTitle = booking.eventTitle || (event ? event.title : &#039;&#039;);
+  const venue = booking.venue || (event ? event.venue : &#039;&#039;);
+
+  let roundLabel = booking.roundLabel || &#039;&#039;;
+  if (!roundLabel &amp;&amp; event &amp;&amp; Array.isArray(event.rounds)) {
+    const matchedRound = event.rounds.find((r) =&gt; r.id === booking.roundId);
+    if (matchedRound) {
+      roundLabel = matchedRound.label || `${matchedRound.date || &#039;&#039;} • ${matchedRound.time || &#039;&#039;}`.trim();
+    }
+  }
+
+  const seatNumbers = Array.isArray(booking.seatNumbers) ? booking.seatNumbers : [];
+  const seatIds = Array.isArray(booking.seatIds) ? booking.seatIds : [];
+
+  let paymentStatus = &#039;PENDING&#039;;
+  if (payment &amp;&amp; payment.status) {
+    paymentStatus = payment.status;
+  } else if (booking.status === &#039;PAID&#039;) {
+    paymentStatus = &#039;SUCCESS&#039;;
+  } else if (booking.status === &#039;CANCELLED&#039;) {
+    paymentStatus = &#039;CANCELLED&#039;;
+  } else if (booking.status === &#039;EXPIRED&#039;) {
+    paymentStatus = &#039;EXPIRED&#039;;
+  } else if (booking.status) {
+    paymentStatus = booking.status;
+  }
+
+  const subtotal = Number(booking.subtotal) || 0;
+  const discountAmount = Number(booking.discountAmount) || 0;
+  const serviceFee = Number(booking.serviceFee) || 0;
+  const totalAmount = Number(booking.totalAmount) || 0;
+  const refundAmount = payment ? (Number(payment.refundAmount) || 0) : 0;
+
+  return {
+    id: booking.id || (payment ? payment.id : `txn-${Date.now()}`),
+    bookingId: booking.id,
+    paymentId: payment ? payment.id : null,
+    referenceCode: (payment &amp;&amp; payment.referenceCode) || booking.referenceCode || booking.id,
+    eventId: booking.eventId,
+    eventTitle,
+    venue,
+    roundId: booking.roundId,
+    roundLabel,
+    userId: booking.userId,
+    user: safeUser,
+    customer: safeUser
+      ? { id: safeUser.id, name: safeUser.name, email: safeUser.email, phone: safeUser.phone }
+      : { id: booking.userId || null, name: customerName, email: customerEmail, phone: customerPhone },
+    customerName,
+    customerEmail,
+    customerPhone,
+    seatNumbers,
+    seatIds,
+    seatsCount: seatNumbers.length,
+    zoneName: booking.zoneName || &#039;&#039;,
+    paymentMethod: (payment &amp;&amp; payment.method) || booking.paymentMethod || null,
+    bookingStatus: booking.status,
+    paymentStatus,
+    subtotal,
+    discountAmount,
+    discount: discountAmount,
+    serviceFee,
+    fee: serviceFee,
+    totalAmount,
+    total: totalAmount,
+    refundAmount,
+    refund: refundAmount,
+    createdAt: booking.createdAt,
+    paidAt: payment ? payment.paidAt : (booking.status === &#039;PAID&#039; ? booking.createdAt : null),
+    refundedAt: payment ? payment.refundedAt : null
+  };
+}
+
+/**
+ * Materializes and filters audit transactions across bookings, payments, users, and events (FR-43)
+ * Supports query parameters: eventId, status, and search.
+ * Safely handles regex characters via literal substring matching.
+ */
+function getAuditTransactions(filters = {}) {
+  const { eventId, status, search } = filters || {};
+  const bookings = BookingModel.findAll();
+  const payments = PaymentModel.findAll();
+  const users = UserModel.findAll();
+  const events = EventModel.findAll();
+
+  const paymentMap = new Map();
+  for (const p of payments) {
+    if (p &amp;&amp; p.bookingId) paymentMap.set(p.bookingId, p);
+  }
+
+  const userMap = new Map();
+  for (const u of users) {
+    if (u &amp;&amp; u.id) userMap.set(u.id, u);
+  }
+
+  const eventMap = new Map();
+  for (const e of events) {
+    if (e &amp;&amp; e.id) eventMap.set(e.id, e);
+  }
+
+  let list = bookings;
+
+  // Filter by eventId
+  let targetEventId = &#039;&#039;;
+  if (typeof eventId === &#039;string&#039;) {
+    targetEventId = eventId.trim();
+  } else if (Array.isArray(eventId)) {
+    targetEventId = String(eventId[0] || &#039;&#039;).trim();
+  }
+  if (targetEventId &amp;&amp; targetEventId.toLowerCase() !== &#039;all&#039;) {
+    list = list.filter((b) =&gt; b &amp;&amp; b.eventId === targetEventId);
+  }
+
+  // Materialize transaction records
+  let transactions = list.map((b) =&gt; {
+    const payment = paymentMap.get(b.id) || null;
+    const user = userMap.get(b.userId) || null;
+    const event = eventMap.get(b.eventId) || null;
+    return buildTransactionRecord(b, payment, user, event);
+  });
+
+  // Filter by status (matches bookingStatus or paymentStatus)
+  let targetStatus = &#039;&#039;;
+  if (typeof status === &#039;string&#039;) {
+    targetStatus = status.trim().toLowerCase();
+  } else if (Array.isArray(status)) {
+    targetStatus = String(status[0] || &#039;&#039;).trim().toLowerCase();
+  }
+  if (targetStatus &amp;&amp; targetStatus !== &#039;all&#039;) {
+    transactions = transactions.filter((t) =&gt; {
+      const bMatch = t.bookingStatus &amp;&amp; t.bookingStatus.toLowerCase() === targetStatus;
+      const pMatch = t.paymentStatus &amp;&amp; t.paymentStatus.toLowerCase() === targetStatus;
+      return Boolean(bMatch || pMatch);
+    });
+  }
+
+  // Filter by search string across multiple fields
+  let searchStr = &#039;&#039;;
+  if (typeof search === &#039;string&#039;) {
+    searchStr = search.trim().toLowerCase();
+  } else if (Array.isArray(search)) {
+    searchStr = String(search[0] || &#039;&#039;).trim().toLowerCase();
+  } else if (search !== undefined &amp;&amp; search !== null) {
+    searchStr = String(search).trim().toLowerCase();
+  }
+  if (searchStr) {
+    transactions = transactions.filter((t) =&gt; {
+      const bkgIdMatch = t.bookingId &amp;&amp; t.bookingId.toLowerCase().includes(searchStr);
+      const payIdMatch = t.paymentId &amp;&amp; t.paymentId.toLowerCase().includes(searchStr);
+      const refMatch = t.referenceCode &amp;&amp; t.referenceCode.toLowerCase().includes(searchStr);
+      const titleMatch = t.eventTitle &amp;&amp; t.eventTitle.toLowerCase().includes(searchStr);
+      const nameMatch = t.customerName &amp;&amp; t.customerName.toLowerCase().includes(searchStr);
+      const emailMatch = t.customerEmail &amp;&amp; t.customerEmail.toLowerCase().includes(searchStr);
+      const phoneMatch = t.customerPhone &amp;&amp; t.customerPhone.toLowerCase().includes(searchStr);
+      const seatsMatch = (t.seatNumbers || []).some((sn) =&gt; String(sn).toLowerCase().includes(searchStr));
+      const zoneMatch = t.zoneName &amp;&amp; t.zoneName.toLowerCase().includes(searchStr);
+      return Boolean(
+        bkgIdMatch || payIdMatch || refMatch || titleMatch || nameMatch || emailMatch || phoneMatch || seatsMatch || zoneMatch
+      );
+    });
+  }
+
+  // Sort newest-first by createdAt
+  transactions.sort((a, b) =&gt; new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  return transactions;
+}
+
+/**
+ * FR-42: Event Inspection &amp; Real-Time Seat Inventory
+ * GET /api/admin/events/:id/inspect
+ */
+function inspectEvent(req, res) {
+  SeatModel.expireHeldSeats();
+
+  const event = EventModel.findById(req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  const seats = SeatModel.findByEvent(event.id);
+  const totalSeats = seats.length;
+  const availableSeats = seats.filter((s) =&gt; s.status === &#039;AVAILABLE&#039;).length;
+  const heldSeats = seats.filter((s) =&gt; s.status === &#039;HELD&#039;).length;
+  const bookedSeats = seats.filter((s) =&gt; s.status === &#039;BOOKED&#039;).length;
+
+  const rounds = (event.rounds || []).map((r) =&gt; ({
+    roundId: r.id,
+    date: r.date,
+    time: r.time,
+    label: r.label || `${r.date} • ${r.time}`,
+    zones: SeatModel.getZoneSeatAvailability(event.id, r.id)
+  }));
+
+  const eventBookings = BookingModel.findByEventId(event.id);
+  const totalBookings = eventBookings.length;
+  const paidBookings = eventBookings.filter((b) =&gt; b.status === &#039;PAID&#039;);
+  const paidBookingsCount = paidBookings.length;
+  const pendingBookingsCount = eventBookings.filter((b) =&gt; b.status === &#039;PENDING&#039;).length;
+  const cancelledBookingsCount = eventBookings.filter((b) =&gt; b.status === &#039;CANCELLED&#039;).length;
+  const totalRevenue = paidBookings.reduce((sum, b) =&gt; sum + (Number(b.totalAmount) || 0), 0);
+
+  const payments = PaymentModel.findAll();
+  const paymentMap = new Map();
+  for (const p of payments) {
+    if (p &amp;&amp; p.bookingId) paymentMap.set(p.bookingId, p);
+  }
+
+  const totalRefunded = eventBookings.reduce((sum, b) =&gt; {
+    const payment = paymentMap.get(b.id);
+    return sum + (payment &amp;&amp; payment.refundAmount ? Number(payment.refundAmount) : 0);
+  }, 0);
+
+  const eventTickets = TicketModel.findAll().filter((t) =&gt; t &amp;&amp; t.eventId === event.id);
+  const ticketsIssued = eventTickets.filter((t) =&gt; t.status !== &#039;CANCELLED&#039;).length;
+  const ticketsCheckedIn = eventTickets.filter((t) =&gt; t.status === &#039;CHECKED_IN&#039;).length;
+
+  const transactions = getAuditTransactions({ eventId: event.id });
+
+  const summary = {
+    totalSeats,
+    availableSeats,
+    heldSeats,
+    bookedSeats,
+    totalBookings,
+    paidBookingsCount,
+    pendingBookingsCount,
+    cancelledBookingsCount,
+    totalRevenue,
+    totalRefunded,
+    ticketsIssued,
+    ticketsCheckedIn
+  };
+
+  return res.json({
+    event,
+    summary,
+    ...summary,
+    rounds,
+    roundsSummary: rounds,
+    transactions
+  });
+}
+
+/**
+ * FR-43: Global Transaction &amp; Payment History Audit
+ * GET /api/admin/transactions
+ */
+function listTransactions(req, res) {
+  SeatModel.expireHeldSeats();
+  const transactions = getAuditTransactions(req.query);
+  return res.json({
+    total: transactions.length,
+    transactions
+  });
+}
+
+module.exports = {
+  getDashboard,
+  updateEventSeating,
+  listBackups,
+  createBackup,
+  restoreBackup,
+  listUsers,
+  updateUserRole,
+  buildTransactionRecord,
+  getAuditTransactions,
+  inspectEvent,
+  listTransactions
+};
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

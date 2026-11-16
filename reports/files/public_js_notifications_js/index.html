@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/notifications.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/notifications.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">77.00</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">175</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">27.31</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">1.42</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - In-App Notifications Controller (Vanilla JS)
+ * Polls user notifications, manages the bell badge count, and renders the dropdown drawer.
+ */
+
+const Notifications = {
+  items: [],
+  pollInterval: null,
+
+  async init() {
+    this.bindEvents();
+    if (window.Auth &amp;&amp; Auth.ready) {
+      await Auth.ready;
+    }
+    if (Auth.isLoggedIn()) {
+      await this.fetch();
+      this.startPolling();
+    }
+    Auth.onAuthChange((user) =&gt; {
+      if (user) {
+        this.fetch();
+        this.startPolling();
+      } else {
+        this.stopPolling();
+        this.items = [];
+        this.updateBadge(0);
+      }
+    });
+  },
+
+  startPolling() {
+    this.stopPolling();
+    this.pollInterval = setInterval(() =&gt; {
+      if (Auth.isLoggedIn()) {
+        this.fetch();
+      }
+    }, 15000); // Poll every 15s
+  },
+
+  stopPolling() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+  },
+
+  async fetch() {
+    try {
+      const res = await API.admin.getNotifications();
+      this.items = (res &amp;&amp; res.notifications) || [];
+      const unreadCount = this.items.filter((n) =&gt; !n.isRead).length;
+      this.updateBadge(unreadCount);
+      return this.items;
+    } catch (_) {
+      // User might be unauthenticated
+      return [];
+    }
+  },
+
+  updateBadge(count) {
+    const badge = document.querySelector(&#039;.notification-badge&#039;);
+    if (!badge) return;
+    if (count &gt; 0) {
+      badge.textContent = count &gt; 99 ? &#039;99+&#039; : count;
+      badge.classList.remove(&#039;d-none&#039;);
+      badge.hidden = false;
+    } else {
+      badge.classList.add(&#039;d-none&#039;);
+      badge.hidden = true;
+    }
+  },
+
+  bindEvents() {
+    const bellBtn = document.querySelector(&#039;.notification-bell-btn&#039;);
+    if (!bellBtn) return;
+
+    bellBtn.addEventListener(&#039;click&#039;, (e) =&gt; {
+      e.stopPropagation();
+      if (!Auth.isLoggedIn()) {
+        Auth.openAuthModal();
+        return;
+      }
+      this.toggleDropdown(bellBtn);
+    });
+  },
+
+  toggleDropdown(anchor) {
+    let dropdown = document.getElementById(&#039;notificationDropdownDrawer&#039;);
+    if (dropdown) {
+      dropdown.remove();
+      return;
+    }
+
+    dropdown = document.createElement(&#039;div&#039;);
+    dropdown.id = &#039;notificationDropdownDrawer&#039;;
+    dropdown.className = &#039;notification-dropdown&#039;;
+
+    const unreadCount = this.items.filter((n) =&gt; !n.isRead).length;
+
+    let itemsHtml = &#039;&#039;;
+    if (this.items.length === 0) {
+      itemsHtml = `
+        &lt;li class=&quot;tc p-24 c-muted fs-09&quot;&gt;
+          No notifications yet.
+        &lt;/li&gt;
+      `;
+    } else {
+      itemsHtml = this.items
+        .map((n) =&gt; {
+          const dateStr = new Date(n.createdAt).toLocaleString();
+          return `
+            &lt;li class=&quot;notification-item ${n.isRead ? &#039;&#039; : &#039;unread&#039;}&quot; data-id=&quot;${escapeHtml(n.id)}&quot;&gt;
+              &lt;div class=&quot;flex between items-start mb-4&quot;&gt;
+                &lt;strong class=&quot;fs-09 c-ink&quot;&gt;${escapeHtml(n.subject || &#039;Notification&#039;)}&lt;/strong&gt;
+                &lt;span class=&quot;fs-075 c-faint&quot;&gt;${escapeHtml(dateStr)}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;p class=&quot;fs-085 c-ink-2 mb-6 lh-14&quot;&gt;${escapeHtml(n.message || &#039;&#039;)}&lt;/p&gt;
+              ${
+                !n.isRead
+                  ? `&lt;button class=&quot;btn-mark-read border-none bg-white c-blue fs-075 fw-7 cursor-pointer p-0&quot; data-id=&quot;${escapeHtml(n.id)}&quot;&gt;Mark as read&lt;/button&gt;`
+                  : &#039;&#039;
+              }
+            &lt;/li&gt;
+          `;
+        })
+        .join(&#039;&#039;);
+    }
+
+    dropdown.innerHTML = `
+      &lt;div class=&quot;notification-dropdown-header&quot;&gt;
+        &lt;span&gt;Notifications (${unreadCount} unread)&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;ul class=&quot;notification-dropdown-list&quot;&gt;
+        ${itemsHtml}
+      &lt;/ul&gt;
+    `;
+
+    document.body.appendChild(dropdown);
+
+    // Close on click outside
+    const closeHandler = (e) =&gt; {
+      if (!dropdown.contains(e.target) &amp;&amp; e.target !== anchor &amp;&amp; !anchor.contains(e.target)) {
+        dropdown.remove();
+        document.removeEventListener(&#039;click&#039;, closeHandler);
+      }
+    };
+    setTimeout(() =&gt; document.addEventListener(&#039;click&#039;, closeHandler), 10);
+
+    // Bind mark-read buttons
+    dropdown.querySelectorAll(&#039;.btn-mark-read&#039;).forEach((btn) =&gt; {
+      btn.addEventListener(&#039;click&#039;, async (e) =&gt; {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        try {
+          await API.admin.markNotificationRead(id);
+          const item = this.items.find((x) =&gt; x.id === id);
+          if (item) item.isRead = true;
+          const li = btn.closest(&#039;.notification-item&#039;);
+          if (li) li.classList.remove(&#039;unread&#039;);
+          btn.remove();
+          const newUnread = this.items.filter((x) =&gt; !x.isRead).length;
+          this.updateBadge(newUnread);
+          const countSpan = dropdown.querySelector(&#039;.notification-dropdown-header span&#039;);
+          if (countSpan) countSpan.textContent = `Notifications (${newUnread} unread)`;
+        } catch (err) {
+          console.error(&#039;Failed to mark read&#039;, err);
+        }
+      });
+    });
+  }
+};
+
+window.Notifications = Notifications;
+document.addEventListener(&#039;DOMContentLoaded&#039;, () =&gt; Notifications.init());
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

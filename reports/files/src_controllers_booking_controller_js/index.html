@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/controllers/booking.controller.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/controllers/booking.controller.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">51.65</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">488</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">72.15</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">5.50</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const { v4: uuidv4 } = require(&#039;uuid&#039;);
+const {
+  EventModel,
+  SeatModel,
+  BookingModel,
+  UserModel,
+  PromotionModel,
+  PaymentModel,
+  TicketModel,
+  NotificationModel
+} = require(&#039;../models&#039;);
+const paymentGateway = require(&#039;../services/paymentGateway&#039;);
+
+/**
+ * FR-16, FR-17, FR-18, FR-21, FR-22: Fetch Seat Map for an Event &amp; Round
+ * GET /api/bookings/events/:eventId/rounds/:roundId/seats
+ */
+function getRoundSeats(req, res) {
+  SeatModel.expireHeldSeats();
+  const { eventId, roundId } = req.params;
+
+  const event = EventModel.findById(eventId);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  const seats = SeatModel.findByEventAndRound(eventId, roundId);
+
+  return res.json({
+    eventId,
+    roundId,
+    eventTitle: event.title,
+    zones: event.zones,
+    seats
+  });
+}
+
+/**
+ * FR-23, FR-49: Hold Seats &amp; Create PENDING Booking (Prevent Double Booking)
+ * POST /api/bookings/hold
+ */
+function holdSeats(req, res) {
+  SeatModel.expireHeldSeats();
+  const { eventId, roundId, seatIds } = req.body;
+
+  if (!eventId || !roundId || !Array.isArray(seatIds) || seatIds.length === 0 || seatIds.some((s) =&gt; typeof s !== &#039;string&#039; || !s.trim())) {
+    return res.status(400).json({ error: &#039;Please select at least one seat.&#039; });
+  }
+
+  if (new Set(seatIds).size !== seatIds.length) {
+    return res.status(400).json({ error: &#039;Duplicate seats selected in request.&#039; });
+  }
+
+  const event = EventModel.findById(eventId);
+  if (!event) {
+    return res.status(404).json({ error: &#039;Event not found.&#039; });
+  }
+
+  // FR-49: Sale period restriction check
+  if (!EventModel.isSaleOpen(event)) {
+    return res.status(403).json({
+      error: &#039;Ticket sales for this event are currently closed or outside the scheduled sale period.&#039;
+    });
+  }
+
+  if (seatIds.length &gt; (event.maxTicketsPerUser || 6)) {
+    return res.status(400).json({
+      error: `You may select a maximum of ${event.maxTicketsPerUser || 6} tickets per transaction.`
+    });
+  }
+
+  const allSeats = SeatModel.findAll();
+  const targetSeats = [];
+
+  // Atomic seat validation to prevent double booking (FR-23, NFR-08)
+  for (const sid of seatIds) {
+    const seat = allSeats.find(
+      (s) =&gt; s.id === sid &amp;&amp; s.eventId === eventId &amp;&amp; s.roundId === roundId
+    );
+    if (!seat) {
+      return res.status(404).json({ error: `Seat &quot;${sid}&quot; not found in this round.` });
+    }
+    if (seat.status === &#039;BOOKED&#039;) {
+      return res.status(409).json({
+        error: `Seat ${seat.seatNumber} has already been booked by another user.`
+      });
+    }
+    if (seat.status === &#039;HELD&#039;) {
+      if (seat.heldByUserId === req.user.id) {
+        return res.status(409).json({
+          error: `Seat ${seat.seatNumber} is already held in your active reservation.`
+        });
+      }
+      return res.status(409).json({
+        error: `Seat ${seat.seatNumber} is currently reserved by another customer. Please choose another seat.`
+      });
+    }
+    if (seat.status !== &#039;AVAILABLE&#039;) {
+      return res.status(409).json({
+        error: `Seat ${seat.seatNumber} is not available.`
+      });
+    }
+    targetSeats.push(seat);
+  }
+
+  const holdExpiresAt = new Date(Date.now() + BookingModel.HOLD_DURATION_MS).toISOString();
+  const bookingId = `bkg-${uuidv4().slice(0, 8)}`;
+
+  SeatModel.holdSeats(targetSeats, req.user.id, bookingId, holdExpiresAt);
+
+  const booking = BookingModel.createPending({
+    bookingId,
+    user: req.user,
+    event,
+    roundId,
+    targetSeats,
+    holdExpiresAt
+  });
+
+  return res.status(201).json({
+    message: &#039;Seats held successfully for 10 minutes.&#039;,
+    booking,
+    heldSeats: targetSeats.map((s) =&gt; ({
+      id: s.id,
+      seatNumber: s.seatNumber,
+      zoneName: s.zoneName,
+      price: s.price
+    }))
+  });
+}
+
+/**
+ * FR-24: Get Booking Summary by ID
+ * GET /api/bookings/:id/summary
+ */
+function getSummary(req, res) {
+  SeatModel.expireHeldSeats();
+  const booking = BookingModel.findById(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: &#039;Booking not found.&#039; });
+  }
+  if (booking.userId !== req.user.id &amp;&amp; req.user.role !== &#039;admin&#039;) {
+    return res.status(403).json({ error: &#039;Access denied. Another user is currently holding this booking.&#039; });
+  }
+
+  const user = UserModel.findById(req.user.id);
+  const remainingSeconds = Math.max(
+    0,
+    Math.floor((new Date(booking.holdExpiresAt).getTime() - Date.now()) / 1000)
+  );
+
+  return res.json({
+    booking,
+    userPoints: user ? user.points || 0 : 0,
+    remainingSeconds,
+    isExpired: booking.status === &#039;EXPIRED&#039; || remainingSeconds &lt;= 0
+  });
+}
+
+/**
+ * FR-47, FR-46: Apply Promo Code or Redeem Points
+ * POST /api/bookings/:id/apply-discount
+ */
+function applyDiscount(req, res) {
+  SeatModel.expireHeldSeats();
+  const booking = BookingModel.findById(req.params.id);
+  if (!booking || booking.status !== &#039;PENDING&#039;) {
+    return res.status(400).json({ error: &#039;Active pending booking required to apply discount.&#039; });
+  }
+  if (booking.userId !== req.user.id) {
+    return res.status(403).json({ error: &#039;Access denied. You do not own this booking.&#039; });
+  }
+
+  const { promoCode, redeemPoints } = req.body;
+  const user = UserModel.findById(req.user.id);
+  let discountAmount = 0;
+  let codeApplied = null;
+  let pointsUsed = 0;
+
+  if (promoCode) {
+    const promo = PromotionModel.findActiveByCode(promoCode);
+    if (!promo) {
+      return res.status(400).json({ error: &#039;Invalid or expired promotional code.&#039; });
+    }
+    if (booking.subtotal &lt; (promo.minSpend || 0)) {
+      return res.status(400).json({
+        error: `Minimum spend of ${promo.minSpend} THB required for code &quot;${promo.code}&quot;.`
+      });
+    }
+    codeApplied = promo.code;
+    if (promo.discountType === &#039;PERCENT&#039;) {
+      discountAmount += Math.round((booking.subtotal * promo.discountValue) / 100);
+    } else {
+      discountAmount += promo.discountValue;
+    }
+  }
+
+  if (redeemPoints &amp;&amp; Number(redeemPoints) &gt; 0) {
+    const pts = Math.min(Number(redeemPoints), user.points || 0);
+    // 100 points = 10 THB
+    const pointDiscount = Math.floor(pts / 10);
+    if (pointDiscount &gt; 0) {
+      pointsUsed = pts;
+      discountAmount += pointDiscount;
+    }
+  }
+
+  discountAmount = Math.min(discountAmount, booking.subtotal);
+  const totalAmount = Math.max(0, booking.subtotal - discountAmount + booking.serviceFee);
+
+  const updated = BookingModel.update(booking.id, {
+    promoCode: codeApplied,
+    pointsUsed,
+    discountAmount,
+    totalAmount
+  });
+
+  return res.json({
+    message: &#039;Discount applied successfully&#039;,
+    booking: updated
+  });
+}
+
+/**
+ * FR-25, FR-26, FR-27, FR-33, FR-35, FR-36: Confirm Payment &amp; Issue Tickets
+ * POST /api/bookings/:id/pay
+ */
+async function payBooking(req, res) {
+  SeatModel.expireHeldSeats();
+  const booking = BookingModel.findById(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: &#039;Booking not found.&#039; });
+  }
+  if (booking.userId !== req.user.id) {
+    return res.status(403).json({ error: &#039;Unauthorized booking payment.&#039; });
+  }
+  if (booking.status !== &#039;PENDING&#039;) {
+    if (booking.status === &#039;PAID&#039;) {
+      return res.status(400).json({ error: &#039;This booking has already been paid.&#039; });
+    }
+    if (booking.status === &#039;EXPIRED&#039;) {
+      return res.status(400).json({
+        error: &#039;Your 10-minute seat reservation has expired. Please reselect your seats.&#039;
+      });
+    }
+    return res.status(400).json({
+      error: `Cannot pay for booking with status &quot;${booking.status}&quot;.`
+    });
+  }
+
+  // Verify seat holds are active and owned by this booking
+  const currentSeats = SeatModel.findByIds(booking.seatIds);
+  if (
+    currentSeats.length !== booking.seatIds.length ||
+    currentSeats.some((s) =&gt; s.status !== &#039;HELD&#039; || s.bookingId !== booking.id || s.heldByUserId !== req.user.id)
+  ) {
+    return res.status(409).json({
+      error: &#039;Seat reservation has expired or is no longer held for this booking. Please reselect your seats.&#039;
+    });
+  }
+
+  const { paymentMethod, ticketHolderNames, paymentDetails } = req.body;
+
+  if (ticketHolderNames !== undefined &amp;&amp; (
+    !Array.isArray(ticketHolderNames) ||
+    ticketHolderNames.length !== booking.seatIds.length ||
+    ticketHolderNames.some((name) =&gt; typeof name !== &#039;string&#039; || !name.trim() || name.trim().length &gt; 120)
+  )) {
+    return res.status(400).json({ error: &#039;Provide a full name for each ticket holder (maximum 120 characters).&#039; });
+  }
+
+  // Atomically validate loyalty points balance before proceeding to payment
+  const currentUser = UserModel.findById(req.user.id);
+  const pointsToDeduct = booking.pointsUsed || 0;
+  if (pointsToDeduct &gt; 0 &amp;&amp; (!currentUser || (currentUser.points || 0) &lt; pointsToDeduct)) {
+    return res.status(400).json({
+      error: `Insufficient loyalty points balance (${currentUser ? currentUser.points : 0} points available, ${pointsToDeduct} required). Please re-apply discount or remove points redemption.`
+    });
+  }
+
+  // Validate and process payment via separated payment gateway before finalizing seats/booking
+  let paymentRecord;
+  try {
+    paymentRecord = paymentGateway.processPayment({
+      bookingId: booking.id,
+      userId: req.user.id,
+      method: paymentMethod,
+      amount: booking.totalAmount,
+      paymentDetails
+    });
+  } catch (err) {
+    return res.status(err.status || 400).json({ error: err.message });
+  }
+
+  // Atomic payment confirmation &amp; seat transition (NFR-09)
+  const seats = SeatModel.markBooked(booking.seatIds);
+
+  // Update Booking
+  BookingModel.update(booking.id, {
+    status: &#039;PAID&#039;,
+    paymentMethod,
+    holdExpiresAt: null
+  });
+
+  // Deduct points if used, add points earned (FR-46)
+  UserModel.adjustPoints(req.user.id, booking.pointsUsed || 0, booking.pointsEarned || 0);
+
+  // Issue electronic tickets with real QR code (FR-27, FR-28, FR-29)
+  const issuedTickets = await TicketModel.issueForBooking(
+    booking,
+    seats,
+    ticketHolderNames || seats.map(() =&gt; req.user.name)
+  );
+
+  // FR-33, FR-35, FR-36: Web &amp; Email notifications on payment success
+  NotificationModel.create({
+    userId: req.user.id,
+    channel: &#039;BOTH&#039;,
+    type: &#039;PAYMENT_SUCCESS&#039;,
+    subject: `Payment Confirmed: ${booking.eventTitle}`,
+    message: `Your payment of ${booking.totalAmount.toLocaleString()} THB via ${paymentMethod} was successful. ${issuedTickets.length} ticket(s) are ready in My Tickets.`,
+    emailTo: req.user.email
+  });
+
+  return res.json({
+    message: &#039;Payment confirmed and electronic tickets issued successfully!&#039;,
+    payment: paymentRecord,
+    tickets: issuedTickets
+  });
+}
+
+/**
+ * Reusable helper: Cancels a booking, releases seats, cancels tickets,
+ * processes refund (for paid bookings), and dispatches notifications.
+ *
+ * @param {Object} booking - Booking object from BookingModel
+ * @param {Object} [options={}]
+ * @param {string} [options.reason=&#039;EVENT_CANCELLED&#039;] - &#039;EVENT_CANCELLED&#039; | &#039;USER_CANCELLED&#039;
+ * @param {boolean} [options.notify=true] - Whether to send notification
+ * @param {string} [options.customMessage] - Optional custom message
+ * @returns {Object} Result summary
+ */
+function cancelAndRefundBooking(booking, options = {}) {
+  if (!booking) return null;
+  const reason = options.reason || &#039;EVENT_CANCELLED&#039;;
+  const shouldNotify = options.notify !== false;
+
+  const serviceFee = typeof booking.serviceFee === &#039;number&#039;
+    ? booking.serviceFee
+    : ((booking.seatIds || []).length * (BookingModel.SERVICE_FEE_PER_TICKET || 40));
+
+  // 1. Release seats back to AVAILABLE if any seats associated
+  if (Array.isArray(booking.seatIds) &amp;&amp; booking.seatIds.length &gt; 0) {
+    SeatModel.releaseSeats(booking.seatIds);
+  }
+
+  // 2. Handle PAID bookings
+  if (booking.status === &#039;PAID&#039;) {
+    // Refund: Ticket Subtotal - Discount (Service fee 40 THB/seat is NON-REFUNDABLE per FR-39)
+    const refundableAmount = Math.max(0, (booking.subtotal || 0) - (booking.discountAmount || 0));
+
+    // Cancel all electronic tickets issued for this booking
+    TicketModel.cancelByBookingId(booking.id);
+
+    // Update payment record to REFUNDED with refund amount and reason
+    PaymentModel.markRefunded(booking.id, refundableAmount, reason);
+
+    // Reverse loyalty points: deduct earned points, restore redeemed points
+    UserModel.adjustPoints(
+      booking.userId,
+      booking.pointsEarned || 0,
+      booking.pointsUsed || 0
+    );
+
+    // Update booking status
+    BookingModel.update(booking.id, {
+      status: &#039;CANCELLED&#039;,
+      cancellationReason: reason,
+      cancelledAt: new Date().toISOString()
+    });
+
+    // Dispatch notification
+    if (shouldNotify) {
+      const isEventCancelled = reason === &#039;EVENT_CANCELLED&#039;;
+      const subject = isEventCancelled
+        ? `Event Cancelled &amp; Refund Issued: ${booking.eventTitle}`
+        : `Booking Cancelled &amp; Refunded: ${booking.eventTitle}`;
+      const message = options.customMessage || (isEventCancelled
+        ? `The event &quot;${booking.eventTitle}&quot; has been cancelled. A refund of ${refundableAmount.toLocaleString()} THB for booking ${booking.id} has been processed to your payment method (Service fee of ${serviceFee} THB retained per policy).`
+        : `Your booking ${booking.id} has been cancelled. A refund of ${refundableAmount.toLocaleString()} THB has been issued to your payment method (Service fee of ${serviceFee} THB was non-refundable).`);
+
+      NotificationModel.create({
+        userId: booking.userId,
+        channel: &#039;BOTH&#039;,
+        type: isEventCancelled ? &#039;EVENT_CANCELLED&#039; : &#039;REFUND&#039;,
+        subject,
+        message,
+        ...(booking.userEmail ? { emailTo: booking.userEmail } : {})
+      });
+    }
+
+    return {
+      bookingId: booking.id,
+      status: &#039;CANCELLED&#039;,
+      wasPaid: true,
+      refundableAmount,
+      nonRefundableFee: serviceFee,
+      originalTotal: booking.totalAmount
+    };
+  }
+
+  // 3. Handle non-paid bookings (PENDING, HELD, etc.)
+  BookingModel.update(booking.id, {
+    status: &#039;CANCELLED&#039;,
+    holdExpiresAt: null,
+    cancellationReason: reason,
+    cancelledAt: new Date().toISOString()
+  });
+
+  if (shouldNotify &amp;&amp; reason === &#039;EVENT_CANCELLED&#039;) {
+    NotificationModel.create({
+      userId: booking.userId,
+      channel: &#039;BOTH&#039;,
+      type: &#039;EVENT_CANCELLED&#039;,
+      subject: `Event Cancelled: ${booking.eventTitle}`,
+      message: `The event &quot;${booking.eventTitle}&quot; has been cancelled. Your pending seat reservation has been released.`,
+      ...(booking.userEmail ? { emailTo: booking.userEmail } : {})
+    });
+  }
+
+  return {
+    bookingId: booking.id,
+    status: &#039;CANCELLED&#039;,
+    wasPaid: false,
+    refundableAmount: 0,
+    nonRefundableFee: 0,
+    originalTotal: booking.totalAmount || 0
+  };
+}
+
+/**
+ * FR-38, FR-39: Cancel Ticket / Booking &amp; Process Refund
+ * POST /api/bookings/:id/cancel
+ */
+function cancelBooking(req, res) {
+  const booking = BookingModel.findById(req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: &#039;Booking not found.&#039; });
+  }
+  if (booking.userId !== req.user.id &amp;&amp; req.user.role !== &#039;admin&#039;) {
+    return res.status(403).json({ error: &#039;Unauthorized.&#039; });
+  }
+  if (booking.status !== &#039;PAID&#039;) {
+    return res.status(400).json({ error: &#039;Only paid bookings can be cancelled.&#039; });
+  }
+
+  const tickets = TicketModel.findByBookingId(booking.id);
+  if (tickets.some((t) =&gt; t.status === &#039;CHECKED_IN&#039;)) {
+    return res.status(400).json({
+      error: &#039;Cannot cancel booking after tickets have already been checked in.&#039;
+    });
+  }
+
+  const event = EventModel.findById(booking.eventId);
+  if (!event || event.allowCancellation === false) {
+    return res.status(400).json({ error: &#039;This event does not allow ticket cancellations.&#039; });
+  }
+
+  const result = cancelAndRefundBooking(booking, { reason: &#039;USER_CANCELLED&#039; });
+
+  return res.json({
+    message: &#039;Booking cancelled successfully. Refund processed according to policy.&#039;,
+    refundableAmount: result.refundableAmount,
+    nonRefundableFee: result.nonRefundableFee,
+    originalTotal: result.originalTotal
+  });
+}
+
+module.exports = {
+  getRoundSeats,
+  holdSeats,
+  getSummary,
+  applyDiscount,
+  payBooking,
+  cancelBooking,
+  cancelAndRefundBooking
+};
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

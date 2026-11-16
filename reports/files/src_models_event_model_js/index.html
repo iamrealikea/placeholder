@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/models/event.model.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/models/event.model.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">67.29</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">308</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">98.57</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">4.57</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const { v4: uuidv4 } = require(&#039;uuid&#039;);
+const { store } = require(&#039;../store/jsonStore&#039;);
+
+class EventModel {
+  static findAll(filters = {}) {
+    const { search, category, status, date, artist, featured, saleActive, province, location, month, sort } = filters;
+    let list = store.getAll(&#039;events&#039;);
+
+    if (search) {
+      const q = String(search).toLowerCase();
+      list = list.filter(
+        (e) =&gt;
+          (e.title &amp;&amp; e.title.toLowerCase().includes(q)) ||
+          (e.artist &amp;&amp; e.artist.toLowerCase().includes(q)) ||
+          (e.venue &amp;&amp; e.venue.toLowerCase().includes(q)) ||
+          (e.province &amp;&amp; e.province.toLowerCase().includes(q))
+      );
+    }
+
+    if (category) {
+      list = list.filter((e) =&gt; e.category.toLowerCase() === String(category).toLowerCase());
+    }
+
+    if (status) {
+      list = list.filter((e) =&gt; e.status.toLowerCase() === String(status).toLowerCase());
+    }
+
+    if (artist) {
+      const a = String(artist).toLowerCase();
+      list = list.filter((e) =&gt; e.artist &amp;&amp; e.artist.toLowerCase().includes(a));
+    }
+
+    if (date) {
+      list = list.filter((e) =&gt; (e.rounds || []).some((r) =&gt; r.date === date));
+    }
+
+    // Province filter: case-insensitive exact match on the province field
+    if (province) {
+      const p = String(province).trim().toLowerCase();
+      list = list.filter((e) =&gt; e.province &amp;&amp; e.province.trim().toLowerCase() === p);
+    }
+
+    // Location filter: case-insensitive partial match on province OR venue
+    if (location) {
+      const l = String(location).trim().toLowerCase();
+      list = list.filter(
+        (e) =&gt;
+          (e.province &amp;&amp; e.province.toLowerCase().includes(l)) ||
+          (e.venue &amp;&amp; e.venue.toLowerCase().includes(l))
+      );
+    }
+
+    // Month filter: &quot;YYYY-MM&quot; (specific year) or &quot;MM&quot; / &quot;M&quot; (any year); matches any round date
+    if (month) {
+      const m = String(month).trim();
+      const full = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(m);
+      const num = /^(0?[1-9]|1[0-2])$/.exec(m);
+      list = list.filter((e) =&gt;
+        (e.rounds || []).some((r) =&gt; {
+          if (!r || !r.date) return false;
+          const [y, mo] = String(r.date).split(&#039;-&#039;);
+          if (full) return y === full[1] &amp;&amp; mo === full[2];
+          if (num) return Number(mo) === Number(num[1]);
+          return false;
+        })
+      );
+    }
+
+    if (featured === &#039;true&#039;) {
+      list = list.filter((e) =&gt; e.isFeatured);
+    }
+
+    if (saleActive === &#039;true&#039;) {
+      const now = new Date();
+      list = list.filter((e) =&gt; this.isSaleOpen(e, now));
+    }
+
+    // Sort by lowest zone price. Events without any priced zone always go last.
+    if (sort === &#039;price_asc&#039; || sort === &#039;price_desc&#039;) {
+      const dir = sort === &#039;price_asc&#039; ? 1 : -1;
+      list = list.slice().sort((a, b) =&gt; {
+        const pa = this.getMinPrice(a);
+        const pb = this.getMinPrice(b);
+        if (pa === null &amp;&amp; pb === null) return 0;
+        if (pa === null) return 1;
+        if (pb === null) return -1;
+        return (pa - pb) * dir;
+      });
+    }
+
+    return list;
+  }
+
+  static get SORT_OPTIONS() {
+    return [&#039;price_asc&#039;, &#039;price_desc&#039;];
+  }
+
+  /** Accepts &quot;YYYY-MM&quot; or &quot;MM&quot;/&quot;M&quot; (1-12). */
+  static isValidMonth(value) {
+    const m = String(value).trim();
+    return /^\d{4}-(0[1-9]|1[0-2])$/.test(m) || /^(0?[1-9]|1[0-2])$/.test(m);
+  }
+
+  /** Lowest zone price of an event, or null when no zone has a valid price. */
+  static getMinPrice(event) {
+    const prices = ((event &amp;&amp; event.zones) || [])
+      .map((z) =&gt; Number(z &amp;&amp; z.price))
+      .filter((n) =&gt; Number.isFinite(n));
+    return prices.length ? Math.min(...prices) : null;
+  }
+
+  static findById(id) {
+    return store.findById(&#039;events&#039;, id);
+  }
+
+  static isSaleOpen(event, now = new Date()) {
+    if (!event) return false;
+    const saleStart = new Date(event.saleStartAt);
+    const saleEnd = new Date(event.saleEndAt);
+    return now &gt;= saleStart &amp;&amp; now &lt;= saleEnd &amp;&amp; event.status === &#039;On Sale&#039;;
+  }
+
+  /**
+   * Helper to normalize a zone object and preserve layout, originX, originY, and seats
+   * while merging with existing zone data if present.
+   */
+  static normalizeZone(z, idx = 0, existingZone = null) {
+    const zoneObj = (z &amp;&amp; typeof z === &#039;object&#039;) ? z : {};
+
+    let seats = [];
+    if (Array.isArray(zoneObj.seats)) {
+      seats = zoneObj.seats
+        .filter((s) =&gt; s &amp;&amp; typeof s === &#039;object&#039;)
+        .map((s) =&gt; {
+          const item = {
+            label: String(s.label || s.seatNumber || &#039;&#039;).trim(),
+            x: Number(s.x !== undefined &amp;&amp; s.x !== null &amp;&amp; Number.isFinite(Number(s.x)) ? s.x : 0),
+            y: Number(s.y !== undefined &amp;&amp; s.y !== null &amp;&amp; Number.isFinite(Number(s.y)) ? s.y : 0)
+          };
+          const color = s.color || s.seatColor;
+          if (color) {
+            item.color = String(color);
+          }
+          if (s.price !== undefined &amp;&amp; s.price !== null &amp;&amp; Number.isFinite(Number(s.price))) {
+            item.price = Math.max(0, Number(s.price));
+          }
+          return item;
+        });
+    } else if (existingZone &amp;&amp; Array.isArray(existingZone.seats)) {
+      seats = existingZone.seats
+        .filter((s) =&gt; s &amp;&amp; typeof s === &#039;object&#039;)
+        .map((s) =&gt; ({ ...s }));
+    }
+
+    const layout =
+      zoneObj.layout ||
+      (existingZone &amp;&amp; existingZone.layout) ||
+      (seats.length &gt; 0 ? &#039;custom&#039; : &#039;matrix&#039;);
+
+    const rows =
+      zoneObj.rows !== undefined &amp;&amp; Number.isFinite(Number(zoneObj.rows))
+        ? Math.max(1, Math.floor(Number(zoneObj.rows)))
+        : existingZone &amp;&amp; existingZone.rows !== undefined &amp;&amp; Number.isFinite(Number(existingZone.rows))
+        ? Math.max(1, Math.floor(Number(existingZone.rows)))
+        : 4;
+
+    const cols =
+      zoneObj.cols !== undefined &amp;&amp; Number.isFinite(Number(zoneObj.cols))
+        ? Math.max(1, Math.floor(Number(zoneObj.cols)))
+        : existingZone &amp;&amp; existingZone.cols !== undefined &amp;&amp; Number.isFinite(Number(existingZone.cols))
+        ? Math.max(1, Math.floor(Number(existingZone.cols)))
+        : 8;
+
+    const originX =
+      zoneObj.originX !== undefined &amp;&amp; zoneObj.originX !== null &amp;&amp; Number.isFinite(Number(zoneObj.originX))
+        ? Number(zoneObj.originX)
+        : existingZone &amp;&amp; existingZone.originX !== undefined &amp;&amp; existingZone.originX !== null &amp;&amp; Number.isFinite(Number(existingZone.originX))
+        ? Number(existingZone.originX)
+        : 0;
+
+    const originY =
+      zoneObj.originY !== undefined &amp;&amp; zoneObj.originY !== null &amp;&amp; Number.isFinite(Number(zoneObj.originY))
+        ? Number(zoneObj.originY)
+        : existingZone &amp;&amp; existingZone.originY !== undefined &amp;&amp; existingZone.originY !== null &amp;&amp; Number.isFinite(Number(existingZone.originY))
+        ? Number(existingZone.originY)
+        : 0;
+
+    const existingPrice =
+      existingZone &amp;&amp; existingZone.price !== undefined &amp;&amp; existingZone.price !== null &amp;&amp; Number.isFinite(Number(existingZone.price))
+        ? Math.max(0, Number(existingZone.price))
+        : 0;
+
+    const price =
+      zoneObj.price !== undefined &amp;&amp; zoneObj.price !== null &amp;&amp; String(zoneObj.price).trim() !== &#039;&#039; &amp;&amp; Number.isFinite(Number(zoneObj.price))
+        ? Math.max(0, Number(zoneObj.price))
+        : existingPrice;
+
+    return {
+      id: zoneObj.id || (existingZone &amp;&amp; existingZone.id) || `zone-${idx + 1}`,
+      name: String(zoneObj.name || (existingZone &amp;&amp; existingZone.name) || `Zone ${idx + 1}`).trim(),
+      color: zoneObj.color || (existingZone &amp;&amp; existingZone.color) || &#039;#1D56CF&#039;,
+      price,
+      layout,
+      rows,
+      cols,
+      originX,
+      originY,
+      seats
+    };
+  }
+
+  static create(payload) {
+    const {
+      title,
+      artist,
+      category,
+      status,
+      posterUrl,
+      galleryUrl,
+      description,
+      venue,
+      province,
+      organizer,
+      gateOpenTime,
+      showTime,
+      saleStartAt,
+      saleEndAt,
+      rounds = [],
+      zones = [],
+      isFeatured
+    } = payload;
+
+    const newEvent = {
+      id: `evt-${uuidv4().slice(0, 8)}`,
+      title: String(title).trim(),
+      artist: String(artist || &#039;&#039;).trim(),
+      category: category || &#039;Concert&#039;,
+      status: status || &#039;On Sale&#039;,
+      isFeatured: Boolean(isFeatured),
+      posterUrl:
+        posterUrl ||
+        &#039;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=1200&amp;q=80&#039;,
+      galleryUrl:
+        galleryUrl ||
+        &#039;https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      description: description || &#039;&#039;,
+      venue: venue || &#039;Main Arena&#039;,
+      province: String(province || &#039;&#039;).trim(),
+      organizer: organizer || &#039;TicketHub Organizer&#039;,
+      gateOpenTime: gateOpenTime || &#039;16:00&#039;,
+      showTime: showTime || &#039;19:00&#039;,
+      saleStartAt: saleStartAt || new Date().toISOString(),
+      saleEndAt: saleEndAt || new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+      maxTicketsPerUser: 6,
+      allowCancellation: true,
+      refundPolicyPct: 100,
+      rounds: (rounds || []).map((r, idx) =&gt; ({
+        id: r.id || `rnd-${idx + 1}`,
+        date: r.date,
+        time: r.time,
+        label: r.label || `${r.date} • ${r.time}`
+      })),
+      zones: (zones || []).map((z, idx) =&gt; EventModel.normalizeZone(z, idx)),
+      createdAt: new Date().toISOString()
+    };
+
+    return store.insert(&#039;events&#039;, newEvent);
+  }
+
+  static update(id, updates) {
+    const existing = store.findById(&#039;events&#039;, id);
+    const cleanUpdates = { ...updates };
+    delete cleanUpdates.id;
+
+    if (cleanUpdates.zones &amp;&amp; Array.isArray(cleanUpdates.zones)) {
+      cleanUpdates.zones = cleanUpdates.zones
+        .filter((z) =&gt; z &amp;&amp; typeof z === &#039;object&#039;)
+        .map((z, idx) =&gt; {
+          const existingZone =
+            existing &amp;&amp; Array.isArray(existing.zones)
+              ? existing.zones.find(
+                  (ez) =&gt; ez &amp;&amp; typeof ez === &#039;object&#039; &amp;&amp; ((z.id &amp;&amp; ez.id === z.id) || (z.name &amp;&amp; ez.name === z.name))
+                )
+              : null;
+          return EventModel.normalizeZone(z, idx, existingZone);
+        });
+    }
+
+    if (cleanUpdates.rounds &amp;&amp; Array.isArray(cleanUpdates.rounds)) {
+      cleanUpdates.rounds = cleanUpdates.rounds
+        .filter((r) =&gt; r &amp;&amp; typeof r === &#039;object&#039;)
+        .map((r, idx) =&gt; ({
+          id: r.id || `rnd-${idx + 1}`,
+          date: r.date,
+          time: r.time,
+          label: r.label || `${r.date} • ${r.time}`
+        }));
+    }
+
+    return store.update(&#039;events&#039;, id, cleanUpdates);
+  }
+
+  static remove(id) {
+    return store.remove(&#039;events&#039;, id);
+  }
+}
+
+module.exports = EventModel;</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

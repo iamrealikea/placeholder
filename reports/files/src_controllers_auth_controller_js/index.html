@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/controllers/auth.controller.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/controllers/auth.controller.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">49.69</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">503</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">75.58</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">5.48</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const bcrypt = require(&#039;bcryptjs&#039;);
+const { v4: uuidv4 } = require(&#039;uuid&#039;);
+const { UserModel } = require(&#039;../models&#039;);
+const { signToken, sanitizeUser } = require(&#039;../middleware/auth&#039;);
+const socialAuth = require(&#039;../services/socialAuth&#039;);
+
+// In-memory concurrency locks to eliminate registration race conditions (TC-1.1, TC-1.2)
+const inFlightEmails = new Set();
+const inFlightNids = new Set();
+
+const COOKIE_MAX_AGE_MS = 7 * 24 * 3600 * 1000; // 7 days
+
+function isValidDateOfBirth(value) {
+  if (!value) return true;
+  if (typeof value !== &#039;string&#039; || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) &amp;&amp; parsed.toISOString().slice(0, 10) === value &amp;&amp;
+    value &lt;= new Date().toISOString().slice(0, 10);
+}
+
+function isValidAvatarUrl(url) {
+  if (typeof url !== &#039;string&#039;) return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+
+  const lower = trimmed.toLowerCase();
+  const cleaned = lower.replace(/[\s\x00-\x1f\x7f-\x9f]/g, &#039;&#039;);
+
+  // Strictly reject dangerous schemes
+  if (
+    cleaned.startsWith(&#039;javascript:&#039;) ||
+    cleaned.startsWith(&#039;vbscript:&#039;) ||
+    cleaned.startsWith(&#039;data:text/&#039;) ||
+    cleaned.includes(&#039;javascript:&#039;) ||
+    cleaned.includes(&#039;vbscript:&#039;)
+  ) {
+    return false;
+  }
+
+  // Reject directory traversal
+  if (trimmed.includes(&#039;..&#039;)) {
+    return false;
+  }
+
+  // Accept only http://, https://, and /uploads/ (or relative path)
+  if (lower.startsWith(&#039;http://&#039;) || lower.startsWith(&#039;https://&#039;)) {
+    return true;
+  }
+
+  if (trimmed.startsWith(&#039;/uploads/&#039;)) {
+    return true;
+  }
+
+  // Accept valid base64 image data URIs
+  if (/^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) {
+    return true;
+  }
+
+  // Relative path without protocol scheme (no colon) and no protocol-relative &#039;//&#039;
+  if (!trimmed.includes(&#039;:&#039;) &amp;&amp; !trimmed.startsWith(&#039;//&#039;)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * FR-02: User Registration
+ * POST /api/auth/register
+ */
+async function register(req, res) {
+  const { name, email, password, age, phone, dob, gender, nationalId, address } = req.body || {};
+
+  // Strict string type &amp; non-empty validation (TC-2.1 to TC-2.5d)
+  if (
+    !name || typeof name !== &#039;string&#039; || !name.trim() ||
+    !email || typeof email !== &#039;string&#039; || !email.trim() ||
+    !password || typeof password !== &#039;string&#039; || !password.trim()
+  ) {
+    return res.status(400).json({ error: &#039;Name, email, and password are required non-empty strings.&#039; });
+  }
+
+  if (!isValidDateOfBirth(dob)) {
+    return res.status(400).json({ error: &#039;Date of birth must be a valid date that is not in the future.&#039; });
+  }
+
+  const emailNormalized = email.trim().toLowerCase();
+  const nid = nationalId &amp;&amp; String(nationalId).trim() ? String(nationalId).trim() : null;
+
+  // Synchronous atomic check across in-flight set and database (TC-1.1, TC-1.3)
+  if (inFlightEmails.has(emailNormalized) || UserModel.findByEmail(emailNormalized)) {
+    return res.status(400).json({ error: &#039;An account with this email address already exists.&#039; });
+  }
+
+  // Synchronous atomic check for National ID (TC-1.2, TC-1.4)
+  if (nid) {
+    if (inFlightNids.has(nid) || UserModel.findByNationalId(nid)) {
+      return res.status(409).json({ error: &#039;An account with this national ID already exists.&#039; });
+    }
+  }
+
+  // Acquire in-flight locks before yielding to async bcrypt.hash
+  inFlightEmails.add(emailNormalized);
+  if (nid) inFlightNids.add(nid);
+
+  try {
+    // Min 8 salt rounds as required by NFR-04 and specification
+    const passwordHash = await bcrypt.hash(password, 8);
+
+    // Double-check store before insertion
+    if (UserModel.findByEmail(emailNormalized)) {
+      return res.status(400).json({ error: &#039;An account with this email address already exists.&#039; });
+    }
+    if (nid &amp;&amp; UserModel.findByNationalId(nid)) {
+      return res.status(409).json({ error: &#039;An account with this national ID already exists.&#039; });
+    }
+
+    const newUser = UserModel.create({
+      name: String(name).trim(),
+      email: emailNormalized,
+      phone: phone ? String(phone).trim() : &#039;&#039;,
+      age: Number(age) || 0,
+      dob: dob ? String(dob).trim() : &#039;&#039;,
+      gender: gender ? String(gender).trim() : &#039;Unspecified&#039;,
+      nationalId: nid || &#039;&#039;,
+      address: address ? String(address).trim() : &#039;&#039;,
+      avatarUrl: &#039;&#039;,
+      passwordHash,
+      authProvider: &#039;local&#039;,
+      role: &#039;customer&#039;,
+      points: 100,
+      bookmarks: []
+    });
+
+    const token = signToken(newUser);
+    res.cookie(&#039;tickethub_token&#039;, token, {
+      httpOnly: true,
+      maxAge: COOKIE_MAX_AGE_MS
+    });
+
+    return res.status(201).json({
+      message: &#039;Registration successful&#039;,
+      token,
+      user: sanitizeUser(newUser)
+    });
+  } catch (err) {
+    return res.status(500).json({ error: &#039;Registration failed due to server error: &#039; + err.message });
+  } finally {
+    inFlightEmails.delete(emailNormalized);
+    if (nid) inFlightNids.delete(nid);
+  }
+}
+
+/**
+ * FR-01: User Login (Email &amp; Password)
+ * POST /api/auth/login
+ */
+async function login(req, res) {
+  try {
+    const { email, password } = req.body || {};
+
+    if (
+      !email || typeof email !== &#039;string&#039; || !email.trim() ||
+      !password || typeof password !== &#039;string&#039; || !password.trim()
+    ) {
+      return res.status(400).json({ error: &#039;Email and password are required.&#039; });
+    }
+
+    const user = UserModel.findByEmail(email);
+
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({ error: &#039;Invalid email or password.&#039; });
+    }
+
+    const match = await bcrypt.compare(password, user.passwordHash);
+    if (!match) {
+      return res.status(401).json({ error: &#039;Invalid email or password.&#039; });
+    }
+
+    const token = signToken(user);
+    res.cookie(&#039;tickethub_token&#039;, token, {
+      httpOnly: true,
+      maxAge: COOKIE_MAX_AGE_MS
+    });
+
+    return res.json({
+      message: &#039;Login successful&#039;,
+      token,
+      user: sanitizeUser(user)
+    });
+  } catch (err) {
+    return res.status(500).json({ error: &#039;Login failed due to server error: &#039; + err.message });
+  }
+}
+
+const SOCIAL_FORBIDDEN_MSG = &#039;Cannot sign in via social login for this account. Please use password login.&#039;;
+
+function issueSession(res, user) {
+  const token = signToken(user);
+  res.cookie(&#039;tickethub_token&#039;, token, {
+    httpOnly: true,
+    maxAge: COOKIE_MAX_AGE_MS
+  });
+  return token;
+}
+
+/**
+ * Public (non-secret) provider settings used by the browser to start Google / Facebook login.
+ * GET /api/auth/social-config
+ */
+function getSocialConfig(_req, res) {
+  return res.json(socialAuth.getPublicConfig());
+}
+
+/**
+ * Demo-only simulated phone OTP login (no real OTP is sent or checked).
+ * Disabled in production unless ALLOW_SIMULATED_PHONE_LOGIN=true.
+ */
+function phoneDemoLogin(req, res) {
+  if (!socialAuth.isPhoneDemoEnabled()) {
+    return res.status(403).json({ error: &#039;Phone OTP login is not available.&#039; });
+  }
+
+  const { identifier, phone, name } = req.body || {};
+  const effectivePhone = phone
+    ? String(phone).trim()
+    : (identifier ? String(identifier).trim() : &#039;&#039;);
+
+  if (!effectivePhone) {
+    return res.status(400).json({ error: &#039;A phone number is required.&#039; });
+  }
+
+  let user = UserModel.findByPhone(effectivePhone);
+
+  if (user) {
+    if (
+      user.authProvider === &#039;local&#039; ||
+      user.role === &#039;admin&#039; ||
+      user.role === &#039;staff&#039; ||
+      (user.authProvider &amp;&amp; user.authProvider !== &#039;phone&#039;)
+    ) {
+      return res.status(403).json({ error: SOCIAL_FORBIDDEN_MSG });
+    }
+  } else {
+    user = UserModel.create({
+      name: name ? String(name).trim() : &#039;User phone&#039;,
+      email: `${effectivePhone}@phone.sim`,
+      phone: effectivePhone,
+      age: 20,
+      dob: &#039;2004-01-01&#039;,
+      gender: &#039;Unspecified&#039;,
+      nationalId: &#039;&#039;,
+      address: &#039;&#039;,
+      avatarUrl: &#039;&#039;,
+      passwordHash: &#039;&#039;,
+      authProvider: &#039;phone&#039;,
+      role: &#039;customer&#039;,
+      points: 100,
+      bookmarks: []
+    });
+  }
+
+  const token = issueSession(res, user);
+  return res.json({ message: &#039;Logged in via phone&#039;, token, user: sanitizeUser(user) });
+}
+
+/**
+ * FR-01: Google / Facebook login (+ demo phone OTP)
+ * POST /api/auth/social-login
+ *   Google:   { provider: &#039;gmail&#039; | &#039;google&#039;, idToken }
+ *   Facebook: { provider: &#039;facebook&#039;, accessToken }
+ * The token is verified with the provider; any email/name sent by the client is ignored.
+ */
+async function socialLogin(req, res) {
+  try {
+    const body = req.body || {};
+
+    let p = String(body.provider || &#039;&#039;).trim().toLowerCase();
+    if (p === &#039;google&#039;) p = &#039;gmail&#039;;
+    if (p === &#039;phone_otp&#039;) p = &#039;phone&#039;;
+
+    if (![&#039;gmail&#039;, &#039;facebook&#039;, &#039;phone&#039;].includes(p)) {
+      return res.status(400).json({ error: &#039;Invalid provider. Allowed: gmail, facebook, phone.&#039; });
+    }
+
+    if (p === &#039;phone&#039;) {
+      return phoneDemoLogin(req, res);
+    }
+
+    const rawToken = [body.idToken, body.accessToken, body.token].find((t) =&gt; typeof t === &#039;string&#039; &amp;&amp; t.trim());
+    if (!rawToken) {
+      return res.status(400).json({
+        error: &#039;A provider token is required (idToken for Google, accessToken for Facebook).&#039;
+      });
+    }
+
+    let profile;
+    try {
+      profile = await socialAuth.verifyProviderToken(p, rawToken.trim());
+    } catch (err) {
+      if (err instanceof socialAuth.SocialAuthError) {
+        return res.status(err.status).json({ error: err.message });
+      }
+      throw err;
+    }
+
+    const idField = p === &#039;gmail&#039; ? &#039;googleId&#039; : &#039;facebookId&#039;;
+    let user = UserModel.findBySocialId(p, profile.providerId);
+    let isNewUser = false;
+
+    // First time with this provider account: try to attach it to an existing social account by verified email
+    if (!user &amp;&amp; profile.email) {
+      if (!profile.emailVerified) {
+        return res.status(403).json({ error: &#039;The email address of this account has not been verified by the provider.&#039; });
+      }
+      const existing = UserModel.findByEmail(profile.email);
+      if (existing) {
+        if (
+          existing.role !== &#039;customer&#039; ||
+          existing.authProvider === &#039;local&#039;
+        ) {
+          return res.status(403).json({ error: SOCIAL_FORBIDDEN_MSG });
+        }
+        // A provider-verified matching email can link another social login to this customer account.
+        user = UserModel.update(existing.id, { [idField]: profile.providerId });
+      }
+    }
+
+    // Social login is never allowed for privileged accounts (even if a role was changed later)
+    if (user &amp;&amp; user.role !== &#039;customer&#039;) {
+      return res.status(403).json({ error: SOCIAL_FORBIDDEN_MSG });
+    }
+
+    if (!user) {
+      const email = profile.email || `${profile.providerId}@${p}.noemail.invalid`;
+      user = UserModel.create({
+        name: profile.name || (profile.email ? profile.email.split(&#039;@&#039;)[0] : `User ${p}`),
+        email,
+        phone: &#039;&#039;,
+        age: 0,
+        dob: &#039;&#039;,
+        gender: &#039;Unspecified&#039;,
+        nationalId: &#039;&#039;,
+        address: &#039;&#039;,
+        avatarUrl: profile.avatarUrl || &#039;&#039;,
+        passwordHash: &#039;&#039;,
+        authProvider: p,
+        [idField]: profile.providerId,
+        role: &#039;customer&#039;,
+        points: 100,
+        bookmarks: []
+      });
+      isNewUser = true;
+    }
+
+    const token = issueSession(res, user);
+    return res.json({
+      message: `Logged in via ${p}`,
+      token,
+      isNewUser,
+      user: sanitizeUser(user)
+    });
+  } catch (err) {
+    return res.status(500).json({ error: &#039;Social login failed: &#039; + err.message });
+  }
+}
+
+/**
+ * FR-03: User Logout
+ * POST /api/auth/logout
+ */
+function logout(_req, res) {
+  res.clearCookie(&#039;tickethub_token&#039;);
+  return res.json({ message: &#039;Logged out successfully&#039; });
+}
+
+/**
+ * FR-04: View Profile / Current Authenticated User
+ * GET /api/auth/me &amp; GET /api/auth/profile
+ */
+function getMe(req, res) {
+  return res.json({ user: sanitizeUser(req.user) });
+}
+
+/**
+ * FR-05: Edit Profile
+ * PUT /api/auth/profile
+ */
+function updateProfile(req, res) {
+  try {
+    const body = req.body || {};
+
+    if (body.dob !== undefined &amp;&amp; !isValidDateOfBirth(body.dob)) {
+      return res.status(400).json({ error: &#039;Date of birth must be a valid date that is not in the future.&#039; });
+    }
+
+    const textFields = [&#039;name&#039;, &#039;phone&#039;, &#039;address&#039;, &#039;dob&#039;, &#039;gender&#039;, &#039;nationalId&#039;, &#039;avatarUrl&#039;];
+    const updates = {};
+
+    if (body.age !== undefined) {
+      if (typeof body.age !== &#039;number&#039; &amp;&amp; typeof body.age !== &#039;string&#039;) {
+        return res.status(400).json({ error: &#039;Field &quot;age&quot; must be a number.&#039; });
+      }
+      const parsedAge = parseInt(body.age, 10);
+      updates.age = Number.isNaN(parsedAge) || parsedAge &lt; 0 ? 0 : parsedAge;
+    }
+
+    for (const key of textFields) {
+      if (body[key] !== undefined) {
+        if (typeof body[key] !== &#039;string&#039;) {
+          return res.status(400).json({ error: `Field &quot;${key}&quot; must be a string.` });
+        }
+
+        const val = body[key].trim();
+
+        if (key === &#039;nationalId&#039;) {
+          if (val) {
+            const existing = UserModel.findByNationalId(val);
+            if (existing &amp;&amp; existing.id !== req.user.id) {
+              return res.status(409).json({ error: &#039;An account with this national ID already exists.&#039; });
+            }
+          }
+        }
+
+        if (key === &#039;avatarUrl&#039;) {
+          if (val &amp;&amp; !isValidAvatarUrl(val)) {
+            return res.status(400).json({ error: &#039;Invalid or disallowed avatar URL scheme.&#039; });
+          }
+        }
+
+        updates[key] = val;
+      }
+    }
+
+    const updatedUser = UserModel.update(req.user.id, updates);
+    return res.json({
+      message: &#039;Profile updated successfully&#039;,
+      user: sanitizeUser(updatedUser)
+    });
+  } catch (err) {
+    return res.status(500).json({ error: &#039;Profile update failed: &#039; + err.message });
+  }
+}
+
+/**
+ * FR-05: Avatar Upload
+ * POST /api/auth/avatar
+ */
+function uploadAvatar(req, res) {
+  try {
+    let avatarUrl = &#039;&#039;;
+    if (req.file) {
+      avatarUrl = `/uploads/${req.file.filename}`;
+    } else if (req.body &amp;&amp; (req.body.avatarUrl !== undefined || req.body.avatarDataUrl !== undefined || req.body.avatar !== undefined)) {
+      const candidate = req.body.avatarUrl !== undefined
+        ? req.body.avatarUrl
+        : (req.body.avatarDataUrl !== undefined ? req.body.avatarDataUrl : req.body.avatar);
+
+      if (typeof candidate !== &#039;string&#039;) {
+        return res.status(400).json({ error: &#039;Invalid or disallowed avatar URL scheme.&#039; });
+      }
+
+      if (!candidate.trim()) {
+        return res.status(400).json({ error: &#039;No avatar image uploaded.&#039; });
+      }
+
+      if (!isValidAvatarUrl(candidate)) {
+        return res.status(400).json({ error: &#039;Invalid or disallowed avatar URL scheme.&#039; });
+      }
+
+      avatarUrl = candidate.trim();
+    }
+
+    if (!avatarUrl) {
+      return res.status(400).json({ error: &#039;No avatar image uploaded.&#039; });
+    }
+
+    if (!isValidAvatarUrl(avatarUrl)) {
+      return res.status(400).json({ error: &#039;Invalid or disallowed avatar URL scheme.&#039; });
+    }
+
+    const updatedUser = UserModel.update(req.user.id, { avatarUrl });
+    return res.json({
+      message: &#039;Avatar updated successfully&#039;,
+      avatarUrl,
+      user: sanitizeUser(updatedUser)
+    });
+  } catch (err) {
+    return res.status(500).json({ error: &#039;Avatar upload failed: &#039; + err.message });
+  }
+}
+
+module.exports = {
+  register,
+  login,
+  socialLogin,
+  getSocialConfig,
+  logout,
+  getMe,
+  getProfile: getMe,
+  updateProfile,
+  uploadAvatar
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

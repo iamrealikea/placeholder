@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - public/js/booking.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>public/js/booking.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">63.90</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">362</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">48.98</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">4.32</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Booking &amp; Interactive Seat Matrix Controller (public/js/booking.js)
+ * Implements UI-04 (black circles), UI-05 (cross mark ✕), UI-06 (check mark ✓),
+ * UI-07 (zones), UI-13 (Monday Blue booking theme), and atomic seat hold via POST /api/bookings/hold.
+ */
+
+document.addEventListener(&#039;DOMContentLoaded&#039;, async () =&gt; {
+  const urlParams = new URLSearchParams(window.location.search);
+  const eventId = urlParams.get(&#039;eventId&#039;) || &#039;evt-1&#039;;
+  let selectedRoundId = urlParams.get(&#039;roundId&#039;) || &#039;&#039;;
+
+  const bookingEventTitleEl = document.getElementById(&#039;bookingEventTitle&#039;);
+  const bookingVenueEl = document.getElementById(&#039;bookingVenue&#039;);
+  const roundSelectorEl = document.getElementById(&#039;roundSelector&#039;);
+  const zoneTabsEl = document.getElementById(&#039;zoneTabs&#039;);
+  const seatMatrixContainer = document.getElementById(&#039;seatMatrixContainer&#039;);
+  const summarySeatCountEl = document.getElementById(&#039;summarySeatCount&#039;);
+  const summarySeatsListEl = document.getElementById(&#039;summarySeatsList&#039;);
+  const summarySubtotalEl = document.getElementById(&#039;summarySubtotal&#039;);
+  const summaryTotalEl = document.getElementById(&#039;summaryTotal&#039;);
+  const proceedCheckoutBtn = document.getElementById(&#039;proceedCheckoutBtn&#039;);
+
+  const SERVICE_FEE_PER_TICKET = 40;
+  const MAX_SEATS = 6;
+
+  let eventData = null;
+  let allSeats = [];
+  let selectedSeatIds = new Set();
+  let activeZoneFilter = &#039;ALL&#039;;
+
+  async function initBooking() {
+    try {
+      const res = await API.events.getById(eventId);
+      eventData = res.event;
+      bookingEventTitleEl.textContent = eventData.title;
+      bookingVenueEl.innerHTML = `&lt;i class=&quot;fa-solid fa-location-dot&quot; style=&quot;margin-right: 4px;&quot;&gt;&lt;/i&gt; ${eventData.venue}`;
+
+      // Pick first round if not specified
+      if (!selectedRoundId &amp;&amp; eventData.rounds &amp;&amp; eventData.rounds.length &gt; 0) {
+        selectedRoundId = eventData.rounds[0].id;
+      }
+
+      renderRoundSelector();
+      await loadSeats();
+    } catch (err) {
+      console.error(&#039;Failed to init booking:&#039;, err);
+      seatMatrixContainer.innerHTML = `&lt;div style=&quot;padding: 40px; color: #DC2626; font-weight: 700;&quot;&gt;${err.message || &#039;Error loading event&#039;}&lt;/div&gt;`;
+    }
+  }
+
+  function renderRoundSelector() {
+    if (!roundSelectorEl || !eventData.rounds) return;
+    roundSelectorEl.innerHTML = eventData.rounds
+      .map(
+        (r) =&gt; `
+          &lt;button class=&quot;round-btn ${r.id === selectedRoundId ? &#039;active&#039; : &#039;&#039;}&quot; data-id=&quot;${r.id}&quot;&gt;
+            &lt;i class=&quot;fa-solid fa-calendar-days&quot; style=&quot;margin-right: 4px;&quot;&gt;&lt;/i&gt; ${r.date} • ${r.time} (${r.label || &#039;Round&#039;})
+          &lt;/button&gt;
+        `
+      )
+      .join(&#039;&#039;);
+
+    roundSelectorEl.querySelectorAll(&#039;.round-btn&#039;).forEach((btn) =&gt; {
+      btn.addEventListener(&#039;click&#039;, async () =&gt; {
+        if (selectedSeatIds.size &gt; 0) {
+          const confirmed = await Popup.confirm(&#039;Switching rounds will clear your currently selected seats. Continue?&#039;, { title: &#039;Switch Round&#039; });
+          if (!confirmed) {
+            return;
+          }
+        }
+        selectedRoundId = btn.dataset.id;
+        selectedSeatIds.clear();
+        updateSummary();
+        renderRoundSelector();
+        await loadSeats();
+      });
+    });
+  }
+
+  async function loadSeats() {
+    seatMatrixContainer.innerHTML = `&lt;div style=&quot;padding: 40px; color: #6B7280;&quot;&gt;Loading seating plan...&lt;/div&gt;`;
+    try {
+      const res = await API.booking.getSeats(eventId, selectedRoundId);
+      allSeats = res.seats || [];
+      renderZoneTabs();
+      renderSeatMatrix();
+    } catch (err) {
+      seatMatrixContainer.innerHTML = `&lt;div style=&quot;padding: 40px; color: #DC2626;&quot;&gt;Failed to load seating map: ${err.message}&lt;/div&gt;`;
+    }
+  }
+
+  function renderZoneTabs() {
+    if (!zoneTabsEl || !eventData.zones) return;
+
+    // Calculate live seat availability per zone
+    const zoneCounts = {};
+    for (const z of eventData.zones) {
+      zoneCounts[z.id] = { available: 0, total: 0 };
+    }
+    for (const s of allSeats) {
+      if (zoneCounts[s.zoneId]) {
+        zoneCounts[s.zoneId].total++;
+        if (s.status === &#039;AVAILABLE&#039;) zoneCounts[s.zoneId].available++;
+      }
+    }
+
+    let tabsHtml = `
+      &lt;div class=&quot;zone-tab ${activeZoneFilter === &#039;ALL&#039; ? &#039;active&#039; : &#039;&#039;}&quot; data-zone=&quot;ALL&quot;&gt;
+        &lt;span&gt;All Zones&lt;/span&gt;
+      &lt;/div&gt;
+    `;
+
+    for (const z of eventData.zones) {
+      const counts = zoneCounts[z.id] || { available: 0, total: 0 };
+      tabsHtml += `
+        &lt;div class=&quot;zone-tab ${activeZoneFilter === z.id ? &#039;active&#039; : &#039;&#039;}&quot; data-zone=&quot;${z.id}&quot;&gt;
+          &lt;span class=&quot;zone-color-indicator&quot; style=&quot;background-color: ${z.color || &#039;#1D56CF&#039;};&quot;&gt;&lt;/span&gt;
+          &lt;span&gt;${z.name} (${z.price.toLocaleString()} THB)&lt;/span&gt;
+          &lt;span style=&quot;font-size:0.75rem; background:#E5E7EB; padding:2px 8px; border-radius:9999px; font-weight:700;&quot;&gt;
+            ${counts.available}/${counts.total} left
+          &lt;/span&gt;
+        &lt;/div&gt;
+      `;
+    }
+
+    zoneTabsEl.innerHTML = tabsHtml;
+
+    zoneTabsEl.querySelectorAll(&#039;.zone-tab&#039;).forEach((tab) =&gt; {
+      tab.addEventListener(&#039;click&#039;, () =&gt; {
+        activeZoneFilter = tab.dataset.zone;
+        renderZoneTabs();
+        renderSeatMatrix();
+      });
+    });
+  }
+
+  function renderSeatMatrix() {
+    const seatsToDisplay = activeZoneFilter === &#039;ALL&#039;
+      ? allSeats
+      : allSeats.filter((s) =&gt; s.zoneId === activeZoneFilter);
+
+    if (seatsToDisplay.length === 0) {
+      seatMatrixContainer.innerHTML = `&lt;p style=&quot;padding: 32px; color: #6B7280;&quot;&gt;No seats available in this view.&lt;/p&gt;`;
+      return;
+    }
+
+    const useCoordinateLayout = seatsToDisplay.every(
+      (s) =&gt; typeof s.x === &#039;number&#039; &amp;&amp; typeof s.y === &#039;number&#039;
+    ) &amp;&amp; seatsToDisplay.some(
+      (s) =&gt;
+        s.layout === &#039;custom&#039; ||
+        (eventData &amp;&amp;
+          Array.isArray(eventData.zones) &amp;&amp;
+          eventData.zones.some(
+            (z) =&gt; z.layout === &#039;custom&#039; || z.layout === &#039;template&#039; || (Array.isArray(z.seats) &amp;&amp; z.seats.length &gt; 0)
+          ))
+    );
+
+    let matrixHtml = `
+      &lt;div class=&quot;stage-banner&quot;&gt;STAGE / SCREEN&lt;/div&gt;
+    `;
+
+    if (useCoordinateLayout) {
+      const maxX = Math.max(760, ...seatsToDisplay.map((s) =&gt; (typeof s.x === &#039;number&#039; ? s.x + 60 : 0)));
+      const maxY = Math.max(420, ...seatsToDisplay.map((s) =&gt; (typeof s.y === &#039;number&#039; ? s.y + 60 : 0)));
+      matrixHtml += `&lt;div class=&quot;seat-coordinate-canvas&quot; style=&quot;position:relative; width:${maxX}px; height:${maxY}px; margin:0 auto;&quot;&gt;`;
+
+      for (const seat of seatsToDisplay) {
+        let statusClass = &#039;available&#039;;
+        if (seat.status === &#039;BOOKED&#039; || seat.status === &#039;HELD&#039;) {
+          statusClass = &#039;booked&#039;;
+        } else if (selectedSeatIds.has(seat.id)) {
+          statusClass = &#039;selected&#039;;
+        }
+
+        const accentColor = seat.seatColor || seat.zoneColor || &#039;&#039;;
+        const accentClass = accentColor ? &#039;has-accent&#039; : &#039;&#039;;
+        const xPos = typeof seat.x === &#039;number&#039; ? seat.x : 40;
+        const yPos = typeof seat.y === &#039;number&#039; ? seat.y : 40;
+        const styleStr = `position:absolute; left:${xPos}px; top:${yPos}px; transform:translate(-50%, -50%);${accentColor ? ` --seat-accent:${accentColor}; box-shadow: 0 0 0 3px ${accentColor}, 0 2px 4px rgba(0,0,0,0.25);` : &#039;&#039;}`;
+
+        matrixHtml += `
+          &lt;div class=&quot;seat ${statusClass} ${accentClass}&quot;
+               style=&quot;${styleStr}&quot;
+               data-id=&quot;${seat.id}&quot;
+               data-number=&quot;${seat.seatNumber}&quot;
+               data-price=&quot;${seat.price}&quot;
+               data-zone=&quot;${seat.zoneName}&quot;
+               data-accent=&quot;${accentColor}&quot;
+               title=&quot;${seat.zoneName} - Seat ${seat.seatNumber} (${seat.price} THB)&quot;&gt;
+            ${statusClass === &#039;available&#039; ? seat.seatNumber : &#039;&#039;}
+          &lt;/div&gt;
+        `;
+      }
+
+      matrixHtml += `&lt;/div&gt;`;
+    } else {
+      // Group seats by zone first (when viewing ALL zones), then by row so zones do not collide on row &#039;A&#039;
+      const zonesOrder = (eventData &amp;&amp; Array.isArray(eventData.zones) &amp;&amp; eventData.zones.length &gt; 0)
+        ? eventData.zones.filter((z) =&gt; activeZoneFilter === &#039;ALL&#039; || z.id === activeZoneFilter)
+        : [{ id: &#039;default&#039;, name: &#039;Seating&#039;, color: &#039;#1D56CF&#039; }];
+
+      for (const z of zonesOrder) {
+        const zoneSeats = z.id === &#039;default&#039;
+          ? seatsToDisplay
+          : seatsToDisplay.filter((s) =&gt; s.zoneId === z.id);
+        if (zoneSeats.length === 0) continue;
+
+        if (activeZoneFilter === &#039;ALL&#039; &amp;&amp; zonesOrder.length &gt; 1) {
+          matrixHtml += `
+            &lt;div style=&quot;margin: 18px 0 8px; font-weight: 800; font-size: 0.9rem; color: #374151; display: flex; align-items: center; justify-content: center; gap: 8px;&quot;&gt;
+              &lt;span class=&quot;zone-color-indicator&quot; style=&quot;background-color: ${z.color || &#039;#1D56CF&#039;};&quot;&gt;&lt;/span&gt;
+              &lt;span&gt;${z.name} (${(z.price || zoneSeats[0].price || 0).toLocaleString()} THB)&lt;/span&gt;
+            &lt;/div&gt;
+          `;
+        }
+
+        const rowMap = {};
+        for (const s of zoneSeats) {
+          const rowName = s.row || (s.seatNumber ? s.seatNumber.charAt(0) : &#039;A&#039;);
+          if (!rowMap[rowName]) rowMap[rowName] = [];
+          rowMap[rowName].push(s);
+        }
+
+        const sortedRows = Object.keys(rowMap).sort();
+
+        for (const row of sortedRows) {
+          const rowSeats = rowMap[row].sort((a, b) =&gt; a.col - b.col);
+          matrixHtml += `&lt;div class=&quot;seat-row&quot;&gt;`;
+          matrixHtml += `&lt;div class=&quot;row-label&quot;&gt;${row}&lt;/div&gt;`;
+
+          for (const seat of rowSeats) {
+            let statusClass = &#039;available&#039;;
+
+            if (seat.status === &#039;BOOKED&#039; || seat.status === &#039;HELD&#039;) {
+              statusClass = &#039;booked&#039;;
+            } else if (selectedSeatIds.has(seat.id)) {
+              statusClass = &#039;selected&#039;;
+            }
+
+            const accentColor = seat.seatColor || seat.zoneColor || &#039;&#039;;
+            const accentClass = accentColor ? &#039;has-accent&#039; : &#039;&#039;;
+            const styleStr = accentColor ? `--seat-accent:${accentColor}; box-shadow: 0 0 0 3px ${accentColor}, 0 2px 4px rgba(0,0,0,0.25);` : &#039;&#039;;
+
+            matrixHtml += `
+              &lt;div class=&quot;seat ${statusClass} ${accentClass}&quot; 
+                   style=&quot;${styleStr}&quot;
+                   data-id=&quot;${seat.id}&quot; 
+                   data-number=&quot;${seat.seatNumber}&quot; 
+                   data-price=&quot;${seat.price}&quot;
+                   data-zone=&quot;${seat.zoneName}&quot;
+                   data-accent=&quot;${accentColor}&quot;
+                   title=&quot;${seat.zoneName} - Seat ${seat.seatNumber} (${seat.price} THB)&quot;&gt;
+                ${statusClass === &#039;available&#039; ? seat.seatNumber : &#039;&#039;}
+              &lt;/div&gt;
+            `;
+          }
+
+          matrixHtml += `&lt;div class=&quot;row-label&quot; style=&quot;text-align:left; margin-left:8px; margin-right:0;&quot;&gt;${row}&lt;/div&gt;`;
+          matrixHtml += `&lt;/div&gt;`;
+        }
+      }
+    }
+
+    seatMatrixContainer.innerHTML = matrixHtml;
+
+    // Attach click events to seats
+    seatMatrixContainer.querySelectorAll(&#039;.seat.available, .seat.selected&#039;).forEach((seatEl) =&gt; {
+      seatEl.addEventListener(&#039;click&#039;, async () =&gt; {
+        const id = seatEl.dataset.id;
+        const hasAccent = seatEl.dataset.accent ? &#039; has-accent&#039; : &#039;&#039;;
+        if (selectedSeatIds.has(id)) {
+          selectedSeatIds.delete(id);
+          seatEl.className = `seat available${hasAccent}`;
+          seatEl.textContent = seatEl.dataset.number;
+        } else {
+          if (selectedSeatIds.size &gt;= MAX_SEATS) {
+            await Popup.alert(`You can select a maximum of ${MAX_SEATS} seats per transaction.`, { title: &#039;Seat Limit&#039; });
+            return;
+          }
+          selectedSeatIds.add(id);
+          seatEl.className = `seat selected${hasAccent}`;
+          seatEl.textContent = &#039;&#039;;
+        }
+        updateSummary();
+      });
+    });
+  }
+
+  function updateSummary() {
+    const selectedArray = Array.from(selectedSeatIds).map((id) =&gt;
+      allSeats.find((s) =&gt; s.id === id)
+    ).filter(Boolean);
+
+    const count = selectedArray.length;
+    const subtotal = selectedArray.reduce((sum, s) =&gt; sum + s.price, 0);
+    const serviceFee = count * SERVICE_FEE_PER_TICKET;
+    const total = subtotal + serviceFee;
+
+    if (summarySeatCountEl) summarySeatCountEl.textContent = count;
+    if (summarySeatsListEl) {
+      summarySeatsListEl.textContent = count &gt; 0
+        ? selectedArray.map((s) =&gt; s.seatNumber).join(&#039;, &#039;)
+        : &#039;None selected&#039;;
+    }
+    if (summarySubtotalEl) summarySubtotalEl.textContent = `${subtotal.toLocaleString()} THB`;
+    if (summaryTotalEl) summaryTotalEl.textContent = `${total.toLocaleString()} THB`;
+
+    if (proceedCheckoutBtn) {
+      proceedCheckoutBtn.disabled = count === 0;
+    }
+  }
+
+  // Handle Proceed to Checkout button
+  if (proceedCheckoutBtn) {
+    proceedCheckoutBtn.addEventListener(&#039;click&#039;, async () =&gt; {
+      if (selectedSeatIds.size === 0) return;
+
+      // Check authentication
+      if (!Auth.isLoggedIn()) {
+        Auth.openAuthModal(async () =&gt; {
+          await executeSeatHold();
+        });
+        return;
+      }
+
+      await executeSeatHold();
+    });
+  }
+
+  async function executeSeatHold() {
+    proceedCheckoutBtn.disabled = true;
+    proceedCheckoutBtn.textContent = &#039;Reserving Seats...&#039;;
+
+    try {
+      const seatIds = Array.from(selectedSeatIds);
+      const res = await API.booking.holdSeats({
+        eventId,
+        roundId: selectedRoundId,
+        seatIds
+      });
+
+      // Redirect to checkout with booking ID
+      window.location.href = `/checkout?bookingId=${res.booking.id}`;
+    } catch (err) {
+      proceedCheckoutBtn.disabled = false;
+      proceedCheckoutBtn.textContent = &#039;Proceed to Checkout&#039;;
+
+      if (err.status === 409) {
+        await Popup.alert(&#039;One or more of the seats you selected have just been held or booked by another customer. Please choose other seats.&#039;, { title: &#039;Seats Unavailable&#039; });
+        selectedSeatIds.clear();
+        updateSummary();
+        await loadSeats();
+      } else {
+        await Popup.alert(err.message || &#039;Failed to hold seats.&#039;, { title: &#039;Reservation Error&#039; });
+      }
+    }
+  }
+
+  await initBooking();
+});
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

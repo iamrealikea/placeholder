@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/models/seat.model.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/models/seat.model.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">66.33</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">244</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">75.37</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">2.43</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">const { store } = require(&#039;../store/jsonStore&#039;);
+const { buildSeatsForEvent } = require(&#039;../store/seed&#039;);
+
+class SeatModel {
+  static expireHeldSeats() {
+    return store.expireHeldSeats();
+  }
+
+  static findAll() {
+    return store.getAll(&#039;seats&#039;);
+  }
+
+  static findByEvent(eventId) {
+    return store.find(&#039;seats&#039;, (s) =&gt; s.eventId === eventId);
+  }
+
+  static findByEventAndRound(eventId, roundId) {
+    return store.find(
+      &#039;seats&#039;,
+      (s) =&gt; s.eventId === eventId &amp;&amp; (!roundId || s.roundId === roundId)
+    );
+  }
+
+  static findByIds(seatIds) {
+    return store.find(&#039;seats&#039;, (s) =&gt; seatIds.includes(s.id));
+  }
+
+  static getZoneSeatAvailability(eventId, roundId) {
+    this.expireHeldSeats();
+    const seats = this.findByEventAndRound(eventId, roundId);
+
+    const zoneMap = {};
+    for (const s of seats) {
+      if (!zoneMap[s.zoneId]) {
+        zoneMap[s.zoneId] = {
+          zoneId: s.zoneId,
+          zoneName: s.zoneName,
+          zoneColor: s.zoneColor,
+          price: s.price,
+          totalSeats: 0,
+          availableSeats: 0,
+          heldSeats: 0,
+          bookedSeats: 0
+        };
+      }
+      zoneMap[s.zoneId].totalSeats++;
+      if (s.status === &#039;AVAILABLE&#039;) zoneMap[s.zoneId].availableSeats++;
+      else if (s.status === &#039;HELD&#039;) zoneMap[s.zoneId].heldSeats++;
+      else if (s.status === &#039;BOOKED&#039;) zoneMap[s.zoneId].bookedSeats++;
+    }
+    return Object.values(zoneMap);
+  }
+
+  /**
+   * Generates all seats for an event and inserts them into the store.
+   * Ensures x, y, and seatColor attributes are consistently defined.
+   */
+  static generateForEvent(event) {
+    const seats = buildSeatsForEvent(event);
+    for (const s of seats) {
+      if (!s || typeof s !== &#039;object&#039;) continue;
+      s.x = s.x !== undefined ? s.x : null;
+      s.y = s.y !== undefined ? s.y : null;
+      s.seatColor = s.seatColor !== undefined ? s.seatColor : null;
+    }
+    store.insertMany(&#039;seats&#039;, seats);
+    return seats;
+  }
+
+  /**
+   * Regenerates seats for an event when layout is modified.
+   * Removes existing AVAILABLE seats and inserts new seats.
+   */
+  static regenerateForEvent(event, updatedZones) {
+    this.expireHeldSeats();
+    store.removeWhere(&#039;seats&#039;, (s) =&gt; s &amp;&amp; s.eventId === event.id &amp;&amp; s.status === &#039;AVAILABLE&#039;);
+    const tempEvt = { ...event, zones: updatedZones || event.zones };
+    const newSeats = buildSeatsForEvent(tempEvt);
+
+    const seatsToInsert = [];
+    for (const ns of newSeats) {
+      if (!ns || typeof ns !== &#039;object&#039;) continue;
+      const existing = store.findOne(&#039;seats&#039;, (s) =&gt; s &amp;&amp; s.id === ns.id);
+      if (!existing) {
+        ns.x = ns.x !== undefined ? ns.x : null;
+        ns.y = ns.y !== undefined ? ns.y : null;
+        ns.seatColor = ns.seatColor !== undefined ? ns.seatColor : null;
+        seatsToInsert.push(ns);
+      }
+    }
+    if (seatsToInsert.length &gt; 0) {
+      store.insertMany(&#039;seats&#039;, seatsToInsert);
+    }
+    return seatsToInsert;
+  }
+
+  /**
+   * Propagates zone price, color, and name updates strictly to AVAILABLE seats.
+   * HELD and BOOKED seats remain completely unchanged (F-07).
+   */
+  static propagateZoneUpdates(eventId, updatedZones) {
+    this.expireHeldSeats();
+    const seats = store.find(&#039;seats&#039;, (s) =&gt; s &amp;&amp; s.eventId === eventId);
+    if (!seats.length || !Array.isArray(updatedZones) || updatedZones.length === 0) {
+      return { updatedCount: 0 };
+    }
+
+    const zoneMap = new Map();
+    for (const z of updatedZones) {
+      if (!z || typeof z !== &#039;object&#039;) continue;
+      if (z.id) zoneMap.set(z.id, z);
+      if (z.name) zoneMap.set(z.name, z);
+    }
+
+    let updatedCount = 0;
+    for (const s of seats) {
+      if (!s || typeof s !== &#039;object&#039;) continue;
+      if (s.status === &#039;AVAILABLE&#039;) {
+        const zone = zoneMap.get(s.zoneId) || zoneMap.get(s.zoneName);
+        if (zone) {
+          if (zone.price !== undefined) {
+            const num = Number(zone.price);
+            if (!isNaN(num)) {
+              s.price = Math.max(0, num);
+            }
+          }
+          if (zone.color !== undefined) {
+            s.zoneColor = zone.color;
+          }
+          if (zone.name !== undefined) {
+            s.zoneName = zone.name;
+          }
+          if (Array.isArray(zone.seats) &amp;&amp; zone.seats.length &gt; 0) {
+            const seatDef = zone.seats.find(
+              (zs) =&gt; zs &amp;&amp; typeof zs === &#039;object&#039; &amp;&amp; (zs.label || zs.seatNumber) === s.seatNumber
+            );
+            if (seatDef) {
+              if (seatDef.color !== undefined) {
+                s.seatColor = seatDef.color || null;
+              }
+              if (seatDef.price !== undefined) {
+                const sp = Number(seatDef.price);
+                if (!isNaN(sp)) {
+                  s.price = Math.max(0, sp);
+                }
+              }
+            }
+          }
+          updatedCount++;
+        }
+      }
+    }
+
+    if (updatedCount &gt; 0) {
+      store.save(&#039;seats&#039;);
+    }
+
+    return { updatedCount };
+  }
+
+  /**
+   * Checks whether an event (or specific round) has any non-AVAILABLE (HELD or BOOKED) seats.
+   * Used for layout lock verification (F-06).
+   */
+  static hasNonAvailableSeats(eventId, roundId = null) {
+    this.expireHeldSeats();
+    const seats = roundId
+      ? this.findByEventAndRound(eventId, roundId)
+      : this.findByEvent(eventId);
+    return seats.some((s) =&gt; s.status !== &#039;AVAILABLE&#039;);
+  }
+
+  /**
+   * Checks whether an event (or specific round) has any BOOKED seats.
+   */
+  static hasBookedSeats(eventId, roundId = null) {
+    const seats = roundId
+      ? this.findByEventAndRound(eventId, roundId)
+      : this.findByEvent(eventId);
+    return seats.some((s) =&gt; s.status === &#039;BOOKED&#039;);
+  }
+
+  /**
+   * Returns total, available, held, and booked seat counts for an event.
+   */
+  static getEventSeatSummary(eventId) {
+    this.expireHeldSeats();
+    const seats = this.findByEvent(eventId);
+    const summary = {
+      total: 0,
+      available: 0,
+      held: 0,
+      booked: 0
+    };
+    for (const s of seats) {
+      if (!s || typeof s !== &#039;object&#039;) continue;
+      summary.total++;
+      if (s.status === &#039;AVAILABLE&#039;) summary.available++;
+      else if (s.status === &#039;HELD&#039;) summary.held++;
+      else if (s.status === &#039;BOOKED&#039;) summary.booked++;
+    }
+    return summary;
+  }
+
+  static holdSeats(targetSeats, userId, bookingId, holdExpiresAt) {
+    for (const s of targetSeats) {
+      s.status = &#039;HELD&#039;;
+      s.heldByUserId = userId;
+      s.holdExpiresAt = holdExpiresAt;
+      s.bookingId = bookingId;
+    }
+    store.save(&#039;seats&#039;);
+    return targetSeats;
+  }
+
+  static markBooked(seatIds) {
+    const seats = this.findByIds(seatIds);
+    for (const s of seats) {
+      s.status = &#039;BOOKED&#039;;
+      s.holdExpiresAt = null;
+    }
+    store.save(&#039;seats&#039;);
+    return seats;
+  }
+
+  static releaseSeats(seatIds) {
+    const seats = this.findByIds(seatIds);
+    for (const s of seats) {
+      s.status = &#039;AVAILABLE&#039;;
+      s.heldByUserId = null;
+      s.holdExpiresAt = null;
+      s.bookingId = null;
+    }
+    store.save(&#039;seats&#039;);
+    return seats;
+  }
+
+  static removeByEvent(eventId) {
+    return store.removeWhere(&#039;seats&#039;, (s) =&gt; s.eventId === eventId);
+  }
+}
+
+module.exports = SeatModel;
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

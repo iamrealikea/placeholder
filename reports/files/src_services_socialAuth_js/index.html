@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/services/socialAuth.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/services/socialAuth.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">63.91</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">140</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">39.85</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">1.58</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * Social login token verification (Google &amp; Facebook).
+ *
+ * The browser obtains a token from the provider; the backend NEVER trusts profile data sent by the
+ * client. It verifies the token with the provider and uses only the identity returned by that check.
+ *
+ * Environment variables:
+ *   GOOGLE_CLIENT_ID      OAuth 2.0 Web client ID (Google Cloud Console)
+ *   FACEBOOK_APP_ID       Facebook App ID
+ *   FACEBOOK_APP_SECRET   Facebook App Secret (server-side only, never sent to the browser)
+ *
+ * Requires Node 18+ (global fetch).
+ */
+
+const GOOGLE_TOKENINFO_URL = &#039;https://oauth2.googleapis.com/tokeninfo&#039;;
+const GOOGLE_ISSUERS = [&#039;accounts.google.com&#039;, &#039;https://accounts.google.com&#039;];
+const FACEBOOK_GRAPH_URL = &#039;https://graph.facebook.com/v27.0&#039;;
+const REQUEST_TIMEOUT_MS = 8000;
+
+class SocialAuthError extends Error {
+  constructor(message, status = 401) {
+    super(message);
+    this.name = &#039;SocialAuthError&#039;;
+    this.status = status;
+  }
+}
+
+function env(name) {
+  return String(process.env[name] || &#039;&#039;).trim();
+}
+
+/** Simulated phone OTP login is a demo feature: disabled in production unless explicitly enabled. */
+function isPhoneDemoEnabled() {
+  return process.env.NODE_ENV !== &#039;production&#039; || env(&#039;ALLOW_SIMULATED_PHONE_LOGIN&#039;) === &#039;true&#039;;
+}
+
+/** Public, non-secret settings the browser needs to start the provider login flow. */
+function getPublicConfig() {
+  const googleClientId = env(&#039;GOOGLE_CLIENT_ID&#039;);
+  const facebookAppId = env(&#039;FACEBOOK_APP_ID&#039;);
+  const facebookConfigured = Boolean(facebookAppId &amp;&amp; env(&#039;FACEBOOK_APP_SECRET&#039;));
+  return {
+    google: { enabled: Boolean(googleClientId), clientId: googleClientId || null },
+    facebook: { enabled: facebookConfigured, appId: facebookConfigured ? facebookAppId : null },
+    phoneDemo: isPhoneDemoEnabled()
+  };
+}
+
+async function fetchJson(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() =&gt; controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    const data = await res.json().catch(() =&gt; ({}));
+    return { ok: res.ok, data: data || {} };
+  } catch (_err) {
+    throw new SocialAuthError(&#039;Could not reach the login provider. Please try again.&#039;, 502);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function safeAvatar(url) {
+  return typeof url === &#039;string&#039; &amp;&amp; /^https:\/\//i.test(url) ? url : &#039;&#039;;
+}
+
+/** Verifies a Google ID token (the &quot;credential&quot; returned by Google Identity Services). */
+async function verifyGoogleIdToken(idToken) {
+  const clientId = env(&#039;GOOGLE_CLIENT_ID&#039;);
+  if (!clientId) throw new SocialAuthError(&#039;Google login is not configured on this server.&#039;, 503);
+
+  const { ok, data } = await fetchJson(`${GOOGLE_TOKENINFO_URL}?id_token=${encodeURIComponent(idToken)}`);
+  if (!ok || !data.sub) throw new SocialAuthError(&#039;Invalid Google token.&#039;);
+  if (data.aud !== clientId) throw new SocialAuthError(&#039;Google token was not issued for this application.&#039;);
+  if (!GOOGLE_ISSUERS.includes(data.iss)) throw new SocialAuthError(&#039;Invalid Google token issuer.&#039;);
+  if (!(Number(data.exp) * 1000 &gt; Date.now())) throw new SocialAuthError(&#039;Google token has expired.&#039;);
+
+  return {
+    provider: &#039;gmail&#039;,
+    providerId: String(data.sub),
+    email: data.email ? String(data.email).trim().toLowerCase() : null,
+    emailVerified: data.email_verified === true || data.email_verified === &#039;true&#039;,
+    name: data.name ? String(data.name).trim() : &#039;&#039;,
+    avatarUrl: safeAvatar(data.picture)
+  };
+}
+
+/** Verifies a Facebook user access token and loads the profile with it. */
+async function verifyFacebookAccessToken(accessToken) {
+  const appId = env(&#039;FACEBOOK_APP_ID&#039;);
+  const appSecret = env(&#039;FACEBOOK_APP_SECRET&#039;);
+  if (!appId || !appSecret) throw new SocialAuthError(&#039;Facebook login is not configured on this server.&#039;, 503);
+
+  const appToken = `${appId}|${appSecret}`;
+  const debug = await fetchJson(
+    `${FACEBOOK_GRAPH_URL}/debug_token?input_token=${encodeURIComponent(accessToken)}&amp;access_token=${encodeURIComponent(appToken)}`
+  );
+  const info = debug.data &amp;&amp; debug.data.data;
+  if (!debug.ok || !info || info.is_valid !== true) throw new SocialAuthError(&#039;Invalid Facebook token.&#039;);
+  if (String(info.app_id) !== appId) throw new SocialAuthError(&#039;Facebook token was not issued for this application.&#039;);
+  if (info.expires_at &amp;&amp; Number(info.expires_at) * 1000 &lt; Date.now()) {
+    throw new SocialAuthError(&#039;Facebook token has expired.&#039;);
+  }
+
+  const me = await fetchJson(
+    `${FACEBOOK_GRAPH_URL}/me?fields=id,name,email,picture.type(large)&amp;access_token=${encodeURIComponent(accessToken)}`
+  );
+  if (!me.ok || !me.data.id) throw new SocialAuthError(&#039;Could not read the Facebook profile.&#039;);
+  if (info.user_id &amp;&amp; String(info.user_id) !== String(me.data.id)) {
+    throw new SocialAuthError(&#039;Facebook token does not match the profile.&#039;);
+  }
+
+  const email = me.data.email ? String(me.data.email).trim().toLowerCase() : null;
+  const picture = me.data.picture &amp;&amp; me.data.picture.data ? me.data.picture.data.url : &#039;&#039;;
+  return {
+    provider: &#039;facebook&#039;,
+    providerId: String(me.data.id),
+    email,
+    // Facebook only returns an email address it has confirmed.
+    emailVerified: Boolean(email),
+    name: me.data.name ? String(me.data.name).trim() : &#039;&#039;,
+    avatarUrl: safeAvatar(picture)
+  };
+}
+
+/** provider: &#039;gmail&#039; | &#039;facebook&#039;. Resolves to { provider, providerId, email, emailVerified, name, avatarUrl }. */
+async function verifyProviderToken(provider, token) {
+  if (provider === &#039;gmail&#039;) return verifyGoogleIdToken(token);
+  if (provider === &#039;facebook&#039;) return verifyFacebookAccessToken(token);
+  throw new SocialAuthError(&#039;Unsupported provider.&#039;, 400);
+}
+
+module.exports = {
+  SocialAuthError,
+  getPublicConfig,
+  isPhoneDemoEnabled,
+  verifyGoogleIdToken,
+  verifyFacebookAccessToken,
+  verifyProviderToken
+};</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>

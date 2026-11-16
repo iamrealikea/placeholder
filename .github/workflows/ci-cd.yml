@@ -1,0 +1,56 @@
+
+name: TicketHub CI/CD
+
+# กำหนดเหตุการณ์ที่ทำให้ Pipeline ทำงาน
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# กำหนดสิทธิ์ที่จำเป็น
+permissions:
+  contents: read
+
+jobs:
+  # Matrix ทำให้ Node.js 22 และ 24
+  # ทำงานเป็นคนละ Job พร้อมกันได้
+  test:
+    name: Test on Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        node-version: [22, 24]
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run automated tests
+        run: npm test
+
+  # JOB 2: CI GATE
+  # ทำงานเมื่อการทดสอบทุกเวอร์ชันผ่าน
+  delivery:
+    name: CI Ready
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: CI confirmation
+        run: echo "TicketHub passed CI on all configured Node.js versions."

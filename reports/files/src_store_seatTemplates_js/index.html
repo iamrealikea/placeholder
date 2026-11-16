@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/store/seatTemplates.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+      <li class="active">
+        <a href="display.html">Summary Display</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/store/seatTemplates.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">64.52</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">203</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">41.99</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">1.85</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">/**
+ * TicketHub - Seat Templates Catalog (src/store/seatTemplates.js)
+ * Predefined venue seating templates for Concert Arena, Theater/Hall, and Seminar Classroom.
+ * Implements F-01 (Milestone 1).
+ */
+
+const SEAT_DIAMETER = 36;
+const GRID_PITCH = 44;
+
+function getCenteredStartX(canvasWidth, cols, options = {}) {
+  const { dx = GRID_PITCH, aisleCol = null, aisleWidth = GRID_PITCH } = options;
+  const totalWidth = (cols - 1) * dx + SEAT_DIAMETER + (aisleCol ? aisleWidth : 0);
+  return Math.round((canvasWidth - totalWidth) / 2);
+}
+
+function generateZoneSeats(rowLetters, cols, startX, startY, options = {}) {
+  const { dx = GRID_PITCH, dy = GRID_PITCH, aisleCol = null, aisleWidth = GRID_PITCH } = options;
+  const seats = [];
+  for (let r = 0; r &lt; rowLetters.length; r++) {
+    const row = rowLetters[r];
+    let currentX = startX;
+    for (let c = 1; c &lt;= cols; c++) {
+      if (aisleCol &amp;&amp; c === aisleCol + 1) {
+        currentX += aisleWidth;
+      }
+      seats.push({
+        label: `${row}${c}`,
+        row,
+        col: c,
+        x: currentX,
+        y: startY + r * dy
+      });
+      currentX += dx;
+    }
+  }
+  return seats;
+}
+
+const TEMPLATES = {
+  &#039;concert-arena&#039;: {
+    id: &#039;concert-arena&#039;,
+    name: &#039;Concert Arena&#039;,
+    category: &#039;Concert&#039;,
+    description: &#039;Multi-tiered stadium arena with Floor VIP, Lower Bowl, and Upper Bowl seating.&#039;,
+    defaultVenue: &#039;Impact Arena, Muang Thong Thani&#039;,
+    canvasWidth: 900,
+    canvasHeight: 700,
+    zones: [
+      {
+        id: &#039;zone-floor&#039;,
+        name: &#039;Floor VIP&#039;,
+        color: &#039;#FF0800&#039;,
+        price: 5000,
+        layout: &#039;template&#039;,
+        rows: 4,
+        cols: 10,
+        originX: getCenteredStartX(900, 10),
+        originY: 96,
+        seats: generateZoneSeats([&#039;A&#039;, &#039;B&#039;, &#039;C&#039;, &#039;D&#039;], 10, getCenteredStartX(900, 10), 96)
+      },
+      {
+        id: &#039;zone-lower&#039;,
+        name: &#039;Lower Bowl&#039;,
+        color: &#039;#1D56CF&#039;,
+        price: 3000,
+        layout: &#039;template&#039;,
+        rows: 4,
+        cols: 14,
+        originX: getCenteredStartX(900, 14),
+        originY: 296,
+        seats: generateZoneSeats([&#039;E&#039;, &#039;F&#039;, &#039;G&#039;, &#039;H&#039;], 14, getCenteredStartX(900, 14), 296)
+      },
+      {
+        id: &#039;zone-upper&#039;,
+        name: &#039;Upper Bowl&#039;,
+        color: &#039;#0D9488&#039;,
+        price: 1500,
+        layout: &#039;template&#039;,
+        rows: 4,
+        cols: 16,
+        originX: getCenteredStartX(900, 16),
+        originY: 496,
+        seats: generateZoneSeats([&#039;J&#039;, &#039;K&#039;, &#039;L&#039;, &#039;M&#039;], 16, getCenteredStartX(900, 16), 496)
+      }
+    ]
+  },
+  &#039;theater-hall&#039;: {
+    id: &#039;theater-hall&#039;,
+    name: &#039;Theater / Hall&#039;,
+    category: &#039;Concert&#039;,
+    description: &#039;Proscenium theater layout featuring split Orchestra stalls and elevated Balcony circle.&#039;,
+    defaultVenue: &#039;Siam Paragon Royal Paragon Hall&#039;,
+    canvasWidth: 850,
+    canvasHeight: 600,
+    zones: [
+      {
+        id: &#039;zone-orchestra&#039;,
+        name: &#039;Orchestra&#039;,
+        color: &#039;#1D56CF&#039;,
+        price: 3500,
+        layout: &#039;template&#039;,
+        rows: 5,
+        cols: 10,
+        originX: getCenteredStartX(850, 10, { aisleCol: 5, aisleWidth: 44 }),
+        originY: 96,
+        seats: generateZoneSeats(
+          [&#039;A&#039;, &#039;B&#039;, &#039;C&#039;, &#039;D&#039;, &#039;E&#039;],
+          10,
+          getCenteredStartX(850, 10, { aisleCol: 5, aisleWidth: 44 }),
+          96,
+          { aisleCol: 5, aisleWidth: 44 }
+        )
+      },
+      {
+        id: &#039;zone-balcony&#039;,
+        name: &#039;Balcony&#039;,
+        color: &#039;#F59E0B&#039;,
+        price: 2000,
+        layout: &#039;template&#039;,
+        rows: 4,
+        cols: 12,
+        originX: getCenteredStartX(850, 12, { aisleCol: 6, aisleWidth: 44 }),
+        originY: 360,
+        seats: generateZoneSeats(
+          [&#039;F&#039;, &#039;G&#039;, &#039;H&#039;, &#039;J&#039;],
+          12,
+          getCenteredStartX(850, 12, { aisleCol: 6, aisleWidth: 44 }),
+          360,
+          { aisleCol: 6, aisleWidth: 44 }
+        )
+      }
+    ]
+  },
+  &#039;seminar-classroom&#039;: {
+    id: &#039;seminar-classroom&#039;,
+    name: &#039;Seminar Classroom&#039;,
+    category: &#039;Seminar&#039;,
+    description: &#039;Tiered classroom configuration with Executive Front desks and General Delegate rows.&#039;,
+    defaultVenue: &#039;Queen Sirikit National Convention Center (QSNCC)&#039;,
+    canvasWidth: 800,
+    canvasHeight: 550,
+    zones: [
+      {
+        id: &#039;zone-exec&#039;,
+        name: &#039;Executive Front Row&#039;,
+        color: &#039;#FF0800&#039;,
+        price: 2500,
+        layout: &#039;template&#039;,
+        rows: 2,
+        cols: 8,
+        originX: getCenteredStartX(800, 8, { aisleCol: 4, aisleWidth: 44 }),
+        originY: 96,
+        seats: generateZoneSeats(
+          [&#039;A&#039;, &#039;B&#039;],
+          8,
+          getCenteredStartX(800, 8, { aisleCol: 4, aisleWidth: 44 }),
+          96,
+          { aisleCol: 4, aisleWidth: 44 }
+        )
+      },
+      {
+        id: &#039;zone-delegate&#039;,
+        name: &#039;General Delegate&#039;,
+        color: &#039;#1D56CF&#039;,
+        price: 1200,
+        layout: &#039;template&#039;,
+        rows: 4,
+        cols: 10,
+        originX: getCenteredStartX(800, 10, { aisleCol: 5, aisleWidth: 44 }),
+        originY: 228,
+        seats: generateZoneSeats(
+          [&#039;C&#039;, &#039;D&#039;, &#039;E&#039;, &#039;F&#039;],
+          10,
+          getCenteredStartX(800, 10, { aisleCol: 5, aisleWidth: 44 }),
+          228,
+          { aisleCol: 5, aisleWidth: 44 }
+        )
+      }
+    ]
+  }
+};
+
+function getTemplate(key) {
+  if (!key) return null;
+  const normalizedKey = String(key).trim().toLowerCase();
+  if (!Object.prototype.hasOwnProperty.call(TEMPLATES, normalizedKey)) {
+    return null;
+  }
+  const template = TEMPLATES[normalizedKey];
+  if (!template) return null;
+  return JSON.parse(JSON.stringify(template));
+}
+
+function getAllTemplates() {
+  return Object.values(TEMPLATES).map((t) =&gt; JSON.parse(JSON.stringify(t)));
+}
+
+module.exports = {
+  TEMPLATES,
+  getTemplate,
+  getAllTemplates
+};
+</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ complexity.cyclomatic }} <br>
+    Length : {{ complexity.halstead.length }} <br>
+    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>
