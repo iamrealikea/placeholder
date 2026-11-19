@@ -3,9 +3,9 @@
 ## สมาชิกกลุ่ม
 | ลำดับ | ชื่อ-สกุล | รหัสนิสิต | บทบาทหน้าที่รับผิดชอบ (Role) |
 | :---: | :--- | :---: | :--- |
-| 1 | นางสาวชนิตา ชาญสำโรง | 68102010195 | UX/UI Designer & Frontend Developer |
+| 1 | นางสาวชนิตา ชาญสำโรง | 68102010195 |  QA & Frontend Developer |
 | 2 | นายสิรวิชญ์ อัครสมบูรณ์ | 68102010217 | Backend Architect & DevOps Engineer |
-| 3 | นายศุภกิตต์ แพรเมือง | 68102010561 | QA, Security & Data Engineer |
+| 3 | นายศุภกิตต์ แพรเมือง | 68102010561 | UX/UI Designer, Security & Data Engineer |
 
 ---
 # ที่มาและความสำคัญ
