@@ -391,6 +391,17 @@ function notifyEventChanges(existing, updated, updates) {
     .map(([, label]) => label);
 
   if (
+    (updates.galleryUrl !== undefined || updates.galleryUrls !== undefined) &&
+    !changedDetails.includes('gallery') &&
+    (
+      updated.galleryUrl !== existing.galleryUrl ||
+      JSON.stringify(updated.galleryUrls) !== JSON.stringify(existing.galleryUrls)
+    )
+  ) {
+    changedDetails.push('gallery');
+  }
+
+  if (
     updates.rounds !== undefined &&
     JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds)
   ) {
