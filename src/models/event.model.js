@@ -209,6 +209,45 @@ class EventModel {
     };
   }
 
+  static parseGalleryList(value) {
+    if (Array.isArray(value)) {
+      return value.map((u) => String(u || '').trim()).filter(Boolean);
+    }
+    if (typeof value === 'string') {
+      return value.split(',').map((u) => u.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  static normalizeGalleryFields(payload = {}, existing = null, { isUpdate = false } = {}) {
+    const defaultGalleryUrl =
+      'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80';
+    const hasUrlsField = payload.galleryUrls !== undefined;
+    const hasUrlField = payload.galleryUrl !== undefined;
+
+    let urls = hasUrlsField ? EventModel.parseGalleryList(payload.galleryUrls) : [];
+    if (urls.length === 0 && hasUrlField) {
+      urls = EventModel.parseGalleryList(payload.galleryUrl);
+    }
+
+    if (isUpdate && (hasUrlsField || hasUrlField)) {
+      return {
+        galleryUrl: urls[0] || '',
+        galleryUrls: urls
+      };
+    }
+
+    const fallbackUrl =
+      (existing && typeof existing.galleryUrl === 'string' && existing.galleryUrl.trim()) ||
+      defaultGalleryUrl;
+    const primaryUrl = urls[0] || fallbackUrl;
+
+    return {
+      galleryUrl: primaryUrl,
+      galleryUrls: urls.length > 0 ? urls : [primaryUrl]
+    };
+  }
+
   static create(payload) {
     const {
       title,
@@ -216,7 +255,6 @@ class EventModel {
       category,
       status,
       posterUrl,
-      galleryUrl,
       description,
       venue,
       province,
@@ -230,6 +268,8 @@ class EventModel {
       isFeatured
     } = payload;
 
+    const { galleryUrl, galleryUrls } = EventModel.normalizeGalleryFields(payload);
+
     const newEvent = {
       id: `evt-${uuidv4().slice(0, 8)}`,
       title: String(title).trim(),
@@ -240,9 +280,8 @@ class EventModel {
       posterUrl:
         posterUrl ||
         'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
-      galleryUrl:
-        galleryUrl ||
-        'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&w=900&q=80',
+      galleryUrl,
+      galleryUrls,
       description: description || '',
       venue: venue || 'Main Arena',
       province: String(province || '').trim(),
@@ -271,6 +310,13 @@ class EventModel {
     const existing = store.findById('events', id);
     const cleanUpdates = { ...updates };
     delete cleanUpdates.id;
+
+    if (cleanUpdates.galleryUrls !== undefined || cleanUpdates.galleryUrl !== undefined) {
+      Object.assign(
+        cleanUpdates,
+        EventModel.normalizeGalleryFields(cleanUpdates, existing, { isUpdate: true })
+      );
+    }
 
     if (cleanUpdates.zones && Array.isArray(cleanUpdates.zones)) {
       cleanUpdates.zones = cleanUpdates.zones

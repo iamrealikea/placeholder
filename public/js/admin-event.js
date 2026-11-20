@@ -564,12 +564,43 @@
         }
       }
 
+      expandCanvasToFitSeats(State.seats);
+
+      if (!State.isLayoutLocked) {
+        const activeZone = State.zones.find(z => z.id === State.activeZoneId) || State.zones[0];
+        const isCustom = Boolean(
+          activeZone &&
+          (activeZone.layout === 'custom' || (Array.isArray(activeZone.seats) && activeZone.seats.length > 0))
+        );
+        setBuilderMode(isCustom ? 'custom' : 'matrix');
+      }
+
       renderRoundsList();
       updateSidePanelZones();
       renderCanvas();
       updateCanvasStats();
     } catch (err) {
       showToast('Failed to load event: ' + err.message, 'error');
+    }
+  }
+
+  function expandCanvasToFitSeats(seats) {
+    if (!Array.isArray(seats) || seats.length === 0) return;
+    const maxSeatX = Math.max(...seats.map(s => Number(s.x) || 0));
+    const maxSeatY = Math.max(...seats.map(s => Number(s.y) || 0));
+    const neededWidth = maxSeatX + SEAT_DIAMETER + 40;
+    const neededHeight = maxSeatY + SEAT_DIAMETER + 60;
+    let dimsChanged = false;
+    if (neededWidth > State.logicalWidth) {
+      State.logicalWidth = neededWidth;
+      dimsChanged = true;
+    }
+    if (neededHeight > State.logicalHeight) {
+      State.logicalHeight = neededHeight;
+      dimsChanged = true;
+    }
+    if (dimsChanged) {
+      applyCanvasDimensions();
     }
   }
 
@@ -611,14 +642,56 @@
     return localDate.toISOString().slice(0, 16);
   }
 
+  function syncCategoryField(categoryValue) {
+    const catSelect = getEl(['event-category']);
+    if (!catSelect) return;
+    const targetCategory = String(categoryValue || 'Concert').trim();
+    const matchedOption = Array.from(catSelect.options).find(
+      (opt) => opt.value.toLowerCase() === targetCategory.toLowerCase()
+    );
+    if (matchedOption) {
+      catSelect.value = matchedOption.value;
+    } else if (targetCategory) {
+      const opt = document.createElement('option');
+      opt.value = targetCategory;
+      opt.textContent = targetCategory;
+      catSelect.appendChild(opt);
+      catSelect.value = targetCategory;
+    }
+  }
+
+  function syncGalleryField(eventData) {
+    const galleryInput = getEl(['event-gallery']);
+    if (!galleryInput) return;
+    let galleryList = [];
+    if (Array.isArray(eventData.galleryUrls) && eventData.galleryUrls.length > 0) {
+      galleryList = eventData.galleryUrls.map((u) => String(u || '').trim()).filter(Boolean);
+    } else if (typeof eventData.galleryUrls === 'string' && eventData.galleryUrls.trim()) {
+      galleryList = eventData.galleryUrls.split(',').map((u) => u.trim()).filter(Boolean);
+    } else if (eventData.galleryUrl) {
+      galleryList = [String(eventData.galleryUrl).trim()];
+    }
+    galleryInput.value = galleryList.join(', ');
+  }
+
+  function syncFirstRoundHiddenInputs(firstRound = {}, fallbackTime = '19:00') {
+    const dateInput = getEl(['event-date']);
+    if (dateInput) dateInput.value = firstRound.date || '';
+
+    const timeVal = firstRound.time || fallbackTime || '19:00';
+    const timeEl = getEl(['event-time']);
+    if (timeEl) timeEl.value = timeVal;
+    const showTimeEl = getEl(['event-show-time']);
+    if (showTimeEl) showTimeEl.value = timeVal;
+  }
+
   function populateFormFields() {
     const d = State.eventData;
 
     const titleInput = getEl(['event-title']);
     if (titleInput) titleInput.value = d.title || '';
 
-    const catSelect = getEl(['event-category']);
-    if (catSelect) catSelect.value = d.category || 'Concert';
+    syncCategoryField(d.category);
 
     const venueInput = getEl(['event-venue']);
     if (venueInput) venueInput.value = d.venue || '';
@@ -641,8 +714,7 @@
     const posterInput = getEl(['event-poster-url', 'event-poster']);
     if (posterInput) posterInput.value = d.posterUrl || '';
 
-    const galleryInput = getEl(['event-gallery']);
-    if (galleryInput) galleryInput.value = Array.isArray(d.galleryUrls) ? d.galleryUrls.join(', ') : (d.galleryUrls || '');
+    syncGalleryField(d);
 
     const saleStart = getEl(['event-sale-start']);
     if (saleStart) saleStart.value = toDateTimeLocal(d.saleStartAt || d.saleStartDate);
@@ -658,11 +730,7 @@
 
     // Single Round sync
     const firstRound = (d.rounds && d.rounds[0]) || {};
-    const dateInput = getEl(['event-date']);
-    if (dateInput) dateInput.value = firstRound.date || '';
-
-    const timeInput = getEl(['event-time', 'event-show-time']);
-    if (timeInput) timeInput.value = firstRound.time || d.showTime || '19:00';
+    syncFirstRoundHiddenInputs(firstRound, d.showTime || '19:00');
   }
 
   // -------------------------------------------------------------------------
@@ -947,6 +1015,7 @@
         targetZone.cols = cols;
         targetZone.originX = originX;
         targetZone.originY = originY;
+        targetZone.seats = [];
 
         // Expand canvas height if needed so large matrices fit comfortably
         const requiredHeight = originY + rows * GRID_PITCH + 60;
@@ -967,6 +1036,7 @@
   function regenerateMatrixForZone(zone, replaceExisting = true) {
     if (replaceExisting) {
       State.seats = State.seats.filter(s => s.zoneId !== zone.id);
+      zone.seats = [];
     }
 
     const rowLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -1322,6 +1392,13 @@
 
   function deleteSelectedSeats() {
     if (State.selectedSeatIds.size > 0) {
+      const affectedZoneIds = new Set(
+        State.seats.filter(s => State.selectedSeatIds.has(s.id)).map(s => s.zoneId)
+      );
+      affectedZoneIds.forEach(zoneId => {
+        const zone = State.zones.find(z => z.id === zoneId);
+        if (zone) zone.layout = 'custom';
+      });
       State.seats = State.seats.filter(s => !State.selectedSeatIds.has(s.id));
       State.selectedSeatIds.clear();
       updateSidePanelSelection();
@@ -1495,14 +1572,65 @@
     updateRowLabelControl();
   }
 
+  function syncActiveZoneInputs(zone) {
+    if (!zone) return;
+
+    const price = zone.price !== undefined && zone.price !== null ? zone.price : 1000;
+    const priceInput = getEl(['seat-price-input']);
+    if (priceInput) priceInput.value = price;
+    const zonePriceAlias = getEl(['zone-price']);
+    if (zonePriceAlias) zonePriceAlias.value = price;
+
+    const color = zone.color || '#1D56CF';
+    const colorInput = getEl(['seat-color-input']);
+    if (colorInput) colorInput.value = color;
+    const zoneColorAlias = getEl(['zone-color']);
+    if (zoneColorAlias) zoneColorAlias.value = color;
+
+    const colorNative = getEl(['seat-color-native']);
+    if (colorNative && /^#[0-9a-fA-F]{6}$/.test(color)) {
+      colorNative.value = color;
+    }
+
+    const swatch = getEl(['color-swatch-preview']);
+    if (swatch) swatch.style.backgroundColor = color;
+
+    const rows = Math.max(1, Number(zone.rows) || 4);
+    const cols = Math.max(1, Number(zone.cols) || 8);
+    const originX =
+      zone.originX !== undefined && zone.originX !== null
+        ? Number(zone.originX)
+        : getCenteredOriginX(cols, State.logicalWidth);
+    const originY =
+      zone.originY !== undefined && zone.originY !== null
+        ? Number(zone.originY)
+        : 96;
+
+    const rowsEl = getEl(['matrix-rows']);
+    if (rowsEl) rowsEl.value = rows;
+    const colsEl = getEl(['matrix-cols']);
+    if (colsEl) colsEl.value = cols;
+    const originXEl = getEl(['matrix-origin-x']);
+    if (originXEl) originXEl.value = originX;
+    const originYEl = getEl(['matrix-origin-y']);
+    if (originYEl) originYEl.value = originY;
+  }
+
   function updateSidePanelZones() {
     const zoneSelect = getEl(['zone-select']);
     if (zoneSelect) {
       zoneSelect.innerHTML = State.zones
-        .map(z => `<option value="${z.id}">${z.name} (${z.price} THB)</option>`)
+        .map(z => `<option value="${escapeHtml(z.id)}">${escapeHtml(z.name)} (${z.price} THB)</option>`)
         .concat(['<option value="__new__">+ Create New Zone</option>'])
         .join('');
       if (State.activeZoneId) zoneSelect.value = State.activeZoneId;
+    }
+
+    if (State.selectedSeatIds.size === 0) {
+      const activeZone = State.zones.find(z => z.id === State.activeZoneId) || State.zones[0];
+      if (activeZone) {
+        syncActiveZoneInputs(activeZone);
+      }
     }
 
     renderZonesTable();
@@ -1615,10 +1743,13 @@
     if (createZoneConfirmBtn) {
       createZoneConfirmBtn.addEventListener('click', () => {
         const created = createNewZoneFromInputs();
-        if (created && State.selectedSeatIds.size > 0) {
+        if (created && State.selectedSeatIds.size > 0 && !State.isLayoutLocked) {
+          created.layout = 'custom';
           State.selectedSeatIds.forEach(id => {
             const s = State.seats.find(st => st.id === id);
             if (s) {
+              const sourceZone = State.zones.find(z => z.id === s.zoneId);
+              if (sourceZone) sourceZone.layout = 'custom';
               s.zoneId = created.id;
               s.price = created.price;
               s.color = created.color;
@@ -1642,17 +1773,7 @@
           State.activeZoneId = zoneSelect.value;
           const targetZone = State.zones.find(z => z.id === State.activeZoneId);
           if (targetZone) {
-            const priceInput = getEl(['seat-price-input', 'zone-price']);
-            if (priceInput) priceInput.value = targetZone.price;
-
-            const colorInput = getEl(['seat-color-input', 'zone-color']);
-            if (colorInput) colorInput.value = targetZone.color;
-
-            const colorNative = getEl(['seat-color-native']);
-            if (colorNative && /^#[0-9a-fA-F]{6}$/.test(targetZone.color)) colorNative.value = targetZone.color;
-
-            const swatch = getEl(['color-swatch-preview']);
-            if (swatch) swatch.style.backgroundColor = targetZone.color;
+            syncActiveZoneInputs(targetZone);
           }
         }
       });
@@ -1677,72 +1798,92 @@
       });
     }
 
+    function applyZoneToSelection() {
+      const priceInput = getEl(['seat-price-input', 'zone-price']);
+      const newPrice = priceInput ? Math.max(0, Number(priceInput.value)) : 1000;
+
+      const newColor = (colorInput ? colorInput.value : '#1D56CF').trim();
+      if (!/^#[0-9a-fA-F]{6}$/.test(newColor)) {
+        showToast('Invalid color hex format. Expected #RRGGBB (e.g. #1D56CF)', 'error');
+        return;
+      }
+
+      let targetZoneId = zoneSelect ? zoneSelect.value : State.activeZoneId;
+      const isNewZoneBoxVisible =
+        newZoneBox &&
+        newZoneBox.style.display !== 'none' &&
+        (window.getComputedStyle ? window.getComputedStyle(newZoneBox).display !== 'none' : true);
+
+      if (targetZoneId === '__new__' || (newZoneNameInput && newZoneNameInput.value.trim() && isNewZoneBoxVisible)) {
+        const created = createNewZoneFromInputs();
+        targetZoneId = created.id;
+      }
+
+      const targetZone = State.zones.find(z => z.id === targetZoneId);
+      if (targetZone) {
+        State.activeZoneId = targetZone.id;
+      }
+
+      if (State.selectedSeatIds.size === 0) {
+        if (!targetZone) {
+          showToast('Please select seats or choose a zone to apply pricing', 'info');
+          return;
+        }
+        targetZone.price = newPrice;
+        targetZone.color = newColor;
+        let count = 0;
+        State.seats.forEach(s => {
+          if (s.zoneId === targetZone.id && s.status === 'AVAILABLE') {
+            s.price = newPrice;
+            s.color = newColor;
+            count++;
+          }
+        });
+        updateSidePanelZones();
+        renderCanvas();
+        showToast(`Updated zone "${targetZone.name}" (${count} available seats)`, 'success');
+        return;
+      }
+
+      const targetZoneSeats = State.seats.filter(s => s.zoneId === targetZoneId);
+      const shouldUpdateTargetZoneMeta = Boolean(
+        targetZone &&
+        (targetZoneSeats.length === 0 || targetZoneSeats.every(s => State.selectedSeatIds.has(s.id)))
+      );
+
+      if (shouldUpdateTargetZoneMeta) {
+        targetZone.price = newPrice;
+        targetZone.color = newColor;
+      }
+
+      State.selectedSeatIds.forEach(id => {
+        const s = State.seats.find(st => st.id === id);
+        if (!s) return;
+
+        if (!State.isLayoutLocked && s.zoneId !== targetZoneId) {
+          const sourceZone = State.zones.find(z => z.id === s.zoneId);
+          if (sourceZone) sourceZone.layout = 'custom';
+          s.zoneId = targetZoneId;
+          if (targetZone) targetZone.layout = 'custom';
+        } else if (!State.isLayoutLocked && !shouldUpdateTargetZoneMeta && targetZone) {
+          targetZone.layout = 'custom';
+        }
+
+        if (s.status === 'AVAILABLE' || !State.isLayoutLocked) {
+          s.price = newPrice;
+          s.color = newColor;
+        }
+      });
+
+      updateSidePanelZones();
+      renderCanvas();
+      showToast(`Updated ${State.selectedSeatIds.size} seat(s)`, 'success');
+    }
+
     // Apply Zone / Pricing to Selection (or active zone if no seats selected)
     const applyBtn = getEl(['apply-zone-btn', 'apply-pricing-btn']);
     if (applyBtn) {
-      applyBtn.addEventListener('click', () => {
-        const priceInput = getEl(['seat-price-input', 'zone-price']);
-        const newPrice = priceInput ? Math.max(0, Number(priceInput.value)) : 1000;
-
-        let newColor = (colorInput ? colorInput.value : '#1D56CF').trim();
-        if (!/^#[0-9a-fA-F]{6}$/.test(newColor)) {
-          showToast('Invalid color hex format. Expected #RRGGBB (e.g. #1D56CF)', 'error');
-          return;
-        }
-
-        let targetZoneId = zoneSelect ? zoneSelect.value : State.activeZoneId;
-
-        // Check for new zone creation
-        const isNewZoneBoxVisible = newZoneBox && newZoneBox.style.display !== 'none' && (window.getComputedStyle ? window.getComputedStyle(newZoneBox).display !== 'none' : true);
-        if (targetZoneId === '__new__' || (newZoneNameInput && newZoneNameInput.value.trim() && isNewZoneBoxVisible)) {
-          const created = createNewZoneFromInputs();
-          targetZoneId = created.id;
-        }
-
-        const targetZone = State.zones.find(z => z.id === targetZoneId);
-        if (targetZone) {
-          targetZone.price = newPrice;
-          targetZone.color = newColor;
-        }
-
-        if (State.selectedSeatIds.size === 0) {
-          // If no individual seats are selected, update all AVAILABLE seats in the active zone
-          if (targetZone) {
-            let count = 0;
-            State.seats.forEach(s => {
-              if (s.zoneId === targetZone.id && s.status === 'AVAILABLE') {
-                s.price = newPrice;
-                s.color = newColor;
-                count++;
-              }
-            });
-            updateSidePanelZones();
-            renderCanvas();
-            showToast(`Updated zone "${targetZone.name}" (${count} available seats)`, 'success');
-          } else {
-            showToast('Please select seats or choose a zone to apply pricing', 'info');
-          }
-          return;
-        }
-
-        // Apply to all selected seats
-        State.selectedSeatIds.forEach(id => {
-          const s = State.seats.find(st => st.id === id);
-          if (s) {
-            if (!State.isLayoutLocked) {
-              s.zoneId = targetZoneId;
-            }
-            if (s.status === 'AVAILABLE' || !State.isLayoutLocked) {
-              s.price = newPrice;
-              s.color = newColor;
-            }
-          }
-        });
-
-        updateSidePanelZones();
-        renderCanvas();
-        showToast(`Updated ${State.selectedSeatIds.size} seat(s)`, 'success');
-      });
+      applyBtn.addEventListener('click', applyZoneToSelection);
     }
 
     // Clear Selection
@@ -1975,11 +2116,11 @@
         <div class="round-card-row">
           <div>
             <label class="form-label fs-075">Date</label>
-            <input type="date" class="form-control round-date-input" value="${r.date || ''}" onchange="window.AdminEventEngine.updateRound(${idx}, 'date', this.value)">
+            <input type="date" class="form-control round-date-input" value="${r.date || ''}" oninput="window.AdminEventEngine.updateRound(${idx}, 'date', this.value)" onchange="window.AdminEventEngine.updateRound(${idx}, 'date', this.value)">
           </div>
           <div>
             <label class="form-label fs-075">Time</label>
-            <input type="time" class="form-control round-time-input" value="${r.time || '19:00'}" onchange="window.AdminEventEngine.updateRound(${idx}, 'time', this.value)">
+            <input type="time" class="form-control round-time-input" value="${r.time || '19:00'}" oninput="window.AdminEventEngine.updateRound(${idx}, 'time', this.value)" onchange="window.AdminEventEngine.updateRound(${idx}, 'time', this.value)">
           </div>
         </div>
       </div>
@@ -1988,10 +2129,8 @@
     // Sync first round with hidden inputs for backward compatibility
     const first = State.eventData.rounds[0];
     if (first) {
-      const dateEl = getEl(['event-date']);
-      if (dateEl) dateEl.value = first.date || '';
-      const timeEl = getEl(['event-time', 'event-show-time']);
-      if (timeEl) timeEl.value = first.time || '19:00';
+      State.eventData.showTime = first.time || State.eventData.showTime || '19:00';
+      syncFirstRoundHiddenInputs(first, State.eventData.showTime);
     }
   }
 
@@ -2095,6 +2234,72 @@
     }
   }
 
+  function isMatrixSeatMatch(seat, expectedX, expectedY, zonePrice, zoneColor) {
+    if (!seat) return false;
+    const seatColor = String(seat.color || zoneColor).trim().toLowerCase();
+    return (
+      Math.abs(Number(seat.x) - expectedX) <= 0.5 &&
+      Math.abs(Number(seat.y) - expectedY) <= 0.5 &&
+      Number(seat.price) === zonePrice &&
+      seatColor === zoneColor
+    );
+  }
+
+  function isUniformMatrixZone(zone, zoneSeats) {
+    if (!zone || zone.layout !== 'matrix') return false;
+    if (Array.isArray(zone.seats) && zone.seats.length > 0) return false;
+
+    const rows = Number(zone.rows || 4);
+    const cols = Number(zone.cols || 8);
+    if (!Array.isArray(zoneSeats) || zoneSeats.length !== rows * cols) return false;
+
+    const seatMap = new Map(zoneSeats.map(s => [s.label, s]));
+    if (seatMap.size !== zoneSeats.length) return false;
+
+    const rowLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const originX =
+      zone.originX !== undefined
+        ? Number(zone.originX)
+        : getCenteredOriginX(cols, State.logicalWidth);
+    const originY = zone.originY !== undefined ? Number(zone.originY) : 96;
+    const zonePrice = Number(zone.price !== undefined ? zone.price : 1000);
+    const zoneColor = String(zone.color || '#1D56CF').trim().toLowerCase();
+
+    for (let r = 0; r < rows; r++) {
+      const rowLetter = rowLetters[r] || `R${r + 1}`;
+      for (let c = 1; c <= cols; c++) {
+        const seat = seatMap.get(`${rowLetter}${c}`);
+        const expectedX = originX + (c - 1) * GRID_PITCH;
+        const expectedY = originY + r * GRID_PITCH;
+        if (!isMatrixSeatMatch(seat, expectedX, expectedY, zonePrice, zoneColor)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  function syncRoundsFromDom() {
+    const roundCards = document.querySelectorAll('#rounds-list .round-card-item');
+    if (roundCards.length === 0 || !Array.isArray(State.eventData.rounds)) return;
+
+    roundCards.forEach((card) => {
+      const idx = Number(card.dataset.index);
+      const round = State.eventData.rounds[idx];
+      if (!round) return;
+      const dateField = card.querySelector('.round-date-input');
+      const timeField = card.querySelector('.round-time-input');
+      if (dateField) round.date = dateField.value;
+      if (timeField && timeField.value) round.time = timeField.value;
+    });
+
+    if (State.eventData.rounds[0]) {
+      State.eventData.showTime = State.eventData.rounds[0].time || State.eventData.showTime || '19:00';
+      syncFirstRoundHiddenInputs(State.eventData.rounds[0], State.eventData.showTime);
+    }
+  }
+
   // -------------------------------------------------------------------------
   // 18. Form Payload Serialization & Submission Pipeline
   // -------------------------------------------------------------------------
@@ -2112,6 +2317,8 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      syncRoundsFromDom();
 
       const title = (getEl(['event-title']) || {}).value.trim();
       const category = (getEl(['event-category']) || {}).value || 'Concert';
@@ -2207,14 +2414,14 @@
         }
 
         const zoneSeats = State.seats.filter(s => s.zoneId === z.id);
-        const isMatrixMode = z.layout === 'matrix' && (!Array.isArray(z.seats) || z.seats.length === 0);
+        const isMatrixMode = isUniformMatrixZone(z, zoneSeats);
 
         return {
           id: z.id,
           name: z.name,
           color: z.color || '#1D56CF',
           price: Number(z.price !== undefined ? z.price : 1000),
-          layout: isMatrixMode ? 'matrix' : (z.layout || (zoneSeats.length > 0 ? 'custom' : 'matrix')),
+          layout: isMatrixMode ? 'matrix' : 'custom',
           rows: Number(z.rows || 4),
           cols: Number(z.cols || 8),
           originX: Number(z.originX !== undefined ? z.originX : getCenteredOriginX(z.cols || 8, State.logicalWidth)),
@@ -2243,6 +2450,8 @@
         }
       }
 
+      const showTime = (rounds[0] && rounds[0].time) || timeVal;
+
       const payload = {
         title,
         category,
@@ -2256,7 +2465,7 @@
         galleryUrls,
         isFeatured,
         gateOpenTime,
-        showTime: timeVal,
+        showTime,
         saleStartAt,
         saleEndAt,
         rounds,
@@ -2361,6 +2570,12 @@
     updateRound: (idx, field, val) => {
       if (State.eventData.rounds[idx]) {
         State.eventData.rounds[idx][field] = val;
+        if (idx === 0) {
+          if (field === 'time' && val) {
+            State.eventData.showTime = val;
+          }
+          syncFirstRoundHiddenInputs(State.eventData.rounds[0], State.eventData.showTime || '19:00');
+        }
       }
     }
   };

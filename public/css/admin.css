@@ -1779,6 +1779,39 @@
     padding: 16px 12px 36px;
   }
 
+  .admin-kpi-grid,
+  .role-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr));
+    gap: 12px;
+  }
+
+  .kpi-card {
+    padding: 16px;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+  }
+
+  .chart-card {
+    padding: 18px;
+  }
+
+  .canvas-container {
+    height: 280px;
+  }
+
+  .portal-tab-btn {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+
+  .admin-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+
   .panel-card {
     padding: 16px;
   }

@@ -81,7 +81,9 @@
 .hero-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
+  row-gap: 8px;
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -250,7 +252,7 @@
 
 .events-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 24px;
   margin-bottom: 48px;
 }
@@ -570,6 +572,7 @@
 .card-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -1604,7 +1607,7 @@ dialog::backdrop {
 }
 
 .eticket-card {
-  width: 380px;
+  width: min(380px, 100%);
   background: #FFFFFF;
   border-radius: 20px;
   box-shadow: var(--shadow-lg);
@@ -1672,6 +1675,7 @@ dialog::backdrop {
 /* History Table */
 .table-responsive {
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   background: #FFFFFF;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
