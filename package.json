@@ -12,7 +12,7 @@
     "test": "node --test --test-concurrency=1 tests/unit/models.unit.test.js tests/unit/other-classes.unit.test.js tests/integration/api-e2e.test.js",
     "test:coverage": "node --test --test-concurrency=1 --experimental-test-coverage tests/unit/models.unit.test.js",
     "test:profile": "node tests/profiling/run-profiling.js",
-    "test:plato": "npx --no-install plato -r -d reports -t \"TicketHub\" src models",
+    "test:plato": "npx --no-install plato -r -d reports -t \"TicketHub\" src",
     "test:ui": "playwright test",
     "test:ui:headed": "playwright test --headed",
     "dev": "nodemon server.js"

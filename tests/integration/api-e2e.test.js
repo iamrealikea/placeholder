@@ -530,4 +530,84 @@ describe('TicketHub REST API E2E Integration Tests', () => {
     assert.equal(roleUpd.body.user.role, 'admin');
     assert.equal(roleUpd.body.user.passwordHash, undefined);
   });
+
+  it('IT-36: POST/GET/PUT /api/events preserve galleryUrls, galleryUrl, showTime, rounds, and custom seat overrides', async () => {
+    const createRes = await req('POST', '/api/events', {
+      token: adminToken,
+      body: {
+        title: 'Issue 42 API Persistence Show',
+        artist: 'API Ensemble',
+        category: 'Concert',
+        venue: 'Main Hall',
+        province: 'Bangkok',
+        organizer: 'TicketHub Studio',
+        status: 'Coming Soon',
+        posterUrl: 'https://example.com/poster-api.jpg',
+        galleryUrls: ['https://example.com/api-g1.jpg', 'https://example.com/api-g2.jpg'],
+        gateOpenTime: '17:15',
+        showTime: '20:45',
+        saleStartAt: '2026-11-22T09:00:00.000Z',
+        saleEndAt: '2026-12-20T21:00:00.000Z',
+        isFeatured: true,
+        rounds: [
+          { id: 'rnd-42-1', date: '2026-12-22', time: '20:45' },
+          { id: 'rnd-42-2', date: '2026-12-23', time: '18:30' }
+        ],
+        zones: [
+          {
+            id: 'z-42-custom',
+            name: 'Custom VIP',
+            color: '#0D9488',
+            price: 2500,
+            layout: 'custom',
+            rows: 2,
+            cols: 2,
+            originX: 200,
+            originY: 96,
+            seats: [
+              { label: 'A1', x: 200, y: 96, color: '#FF0800', price: 3900 },
+              { label: 'A2', x: 244, y: 96, color: '#0D9488', price: 2500 }
+            ]
+          }
+        ]
+      }
+    });
+    assert.equal(createRes.status, 201);
+    const eventId = createRes.body.event.id;
+    assert.equal(createRes.body.event.galleryUrl, 'https://example.com/api-g1.jpg');
+    assert.deepEqual(createRes.body.event.galleryUrls, [
+      'https://example.com/api-g1.jpg',
+      'https://example.com/api-g2.jpg'
+    ]);
+    assert.equal(createRes.body.event.showTime, '20:45');
+
+    const getRes = await req('GET', `/api/events/${eventId}`);
+    assert.equal(getRes.status, 200);
+    const loaded = getRes.body.event;
+    assert.equal(loaded.galleryUrl, 'https://example.com/api-g1.jpg');
+    assert.deepEqual(loaded.galleryUrls, [
+      'https://example.com/api-g1.jpg',
+      'https://example.com/api-g2.jpg'
+    ]);
+    assert.equal(loaded.showTime, '20:45');
+    assert.equal(loaded.rounds.length, 2);
+    assert.equal(loaded.zones[0].layout, 'custom');
+    assert.equal(loaded.zones[0].seats.length, 2);
+
+    const updRes = await req('PUT', `/api/events/${eventId}`, {
+      token: adminToken,
+      body: {
+        galleryUrls: ['https://example.com/api-g3.jpg'],
+        showTime: '21:15',
+        rounds: [
+          { id: 'rnd-42-1', date: '2026-12-22', time: '21:15' },
+          { id: 'rnd-42-2', date: '2026-12-23', time: '18:30' }
+        ]
+      }
+    });
+    assert.equal(updRes.status, 200);
+    assert.equal(updRes.body.event.galleryUrl, 'https://example.com/api-g3.jpg');
+    assert.deepEqual(updRes.body.event.galleryUrls, ['https://example.com/api-g3.jpg']);
+    assert.equal(updRes.body.event.showTime, '21:15');
+  });
 });
