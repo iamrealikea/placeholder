@@ -544,3 +544,80 @@ const Popup = {
 };
 
 window.Popup = Popup;
+
+function initMobileNavbar() {
+  if (typeof document === 'undefined') return;
+
+  const setup = () => {
+    document.querySelectorAll('header.navbar').forEach((navbar, idx) => {
+      if (navbar.dataset.mobileNavReady) return;
+      const navLinks = navbar.querySelector('ul.nav-links');
+      const navbarInner = navbar.querySelector('.navbar-inner');
+      if (!navLinks || !navbarInner) return;
+
+      navbar.dataset.mobileNavReady = '1';
+      navbar.classList.add('has-nav-toggle');
+
+      if (!navLinks.id) {
+        navLinks.id = idx === 0 ? 'primaryNavLinks' : `primaryNavLinks-${idx}`;
+      }
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'btn-icon nav-toggle-btn';
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      toggleBtn.setAttribute('aria-controls', navLinks.id);
+      toggleBtn.setAttribute('aria-label', 'Toggle navigation menu');
+
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid fa-bars';
+      icon.setAttribute('aria-hidden', 'true');
+      toggleBtn.appendChild(icon);
+
+      const targetContainer = navbarInner.querySelector('.nav-actions') || navbarInner;
+      targetContainer.appendChild(toggleBtn);
+
+      const setOpen = (isOpen) => {
+        navbar.classList.toggle('is-menu-open', isOpen);
+        toggleBtn.setAttribute('aria-expanded', String(isOpen));
+        icon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+      };
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setOpen(!navbar.classList.contains('is-menu-open'));
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navbar.classList.contains('is-menu-open')) {
+          setOpen(false);
+          toggleBtn.focus();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (navbar.classList.contains('is-menu-open') && !navbar.contains(e.target)) {
+          setOpen(false);
+        }
+      });
+
+      navLinks.querySelectorAll('.nav-link').forEach((link) => {
+        link.addEventListener('click', () => setOpen(false));
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && navbar.classList.contains('is-menu-open')) {
+          setOpen(false);
+        }
+      });
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
+}
+
+initMobileNavbar();

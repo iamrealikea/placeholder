@@ -180,6 +180,10 @@ textarea {
   gap: 16px;
 }
 
+.nav-toggle-btn {
+  display: none;
+}
+
 /* Search Icon Button */
 .btn-icon {
   background: none;
@@ -381,7 +385,7 @@ dialog::backdrop {
   padding: 0;
   margin: auto;
   max-width: 623px;
-  width: min(623px, calc(100vw - 32px));
+  width: min(623px, calc(100% - 32px));
   box-shadow: none;
   overflow: visible;
 }
