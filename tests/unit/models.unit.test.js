@@ -240,6 +240,49 @@ describe('Data Structure Unit Tests (src/models)', () => {
     assert.equal(EventModel.findById(created.id), null);
   });
 
+  // UT-DS-11b
+  it('UT-DS-11b: EventModel.create and update synchronize galleryUrls and galleryUrl fields', () => {
+    const withGalleryArray = EventModel.create({
+      title: 'Gallery Sync Concert',
+      category: 'Concert',
+      venue: 'Hall 2',
+      galleryUrls: ['https://example.com/g1.jpg', 'https://example.com/g2.jpg'],
+      rounds: [{ date: '2026-12-10', time: '20:30' }],
+      zones: [{ name: 'VIP', price: 2500, rows: 2, cols: 2 }]
+    });
+    assert.equal(withGalleryArray.galleryUrl, 'https://example.com/g1.jpg');
+    assert.deepEqual(withGalleryArray.galleryUrls, [
+      'https://example.com/g1.jpg',
+      'https://example.com/g2.jpg'
+    ]);
+
+    const updatedSingle = EventModel.update(withGalleryArray.id, {
+      galleryUrl: 'https://example.com/g3.jpg'
+    });
+    assert.equal(updatedSingle.galleryUrl, 'https://example.com/g3.jpg');
+    assert.deepEqual(updatedSingle.galleryUrls, ['https://example.com/g3.jpg']);
+
+    const clearedGallery = EventModel.update(withGalleryArray.id, {
+      galleryUrls: []
+    });
+    assert.equal(clearedGallery.galleryUrl, '');
+    assert.deepEqual(clearedGallery.galleryUrls, []);
+
+    const withSingleUrl = EventModel.create({
+      title: 'Single Gallery Concert',
+      category: 'Concert',
+      venue: 'Hall 3',
+      galleryUrl: 'https://example.com/single.jpg',
+      rounds: [{ date: '2026-12-11', time: '18:30' }],
+      zones: [{ name: 'GA', price: 1000, rows: 1, cols: 2 }]
+    });
+    assert.equal(withSingleUrl.galleryUrl, 'https://example.com/single.jpg');
+    assert.deepEqual(withSingleUrl.galleryUrls, ['https://example.com/single.jpg']);
+
+    EventModel.remove(withGalleryArray.id);
+    EventModel.remove(withSingleUrl.id);
+  });
+
   // UT-DS-12
   it('UT-DS-12: SeatModel.generateForEvent builds matrix and custom seats queryable by event, round, and ids', () => {
     const evt = EventModel.create({

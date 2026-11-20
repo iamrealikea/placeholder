@@ -2019,4 +2019,80 @@ describe('TicketHub E2E Automated Integration Test Suite', () => {
       assert.strictEqual(p.emailVerified, false);
     });
   });
+
+  describe('Suite 16: Event Edit Data Persistence (Issue #42)', () => {
+    it('Preserves galleryUrls, galleryUrl, showTime, rounds, and custom seat overrides across POST -> GET -> PUT', async () => {
+      const createRes = await request('/api/events', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${adminToken}` },
+        body: {
+          title: 'Issue 42 Integration Concert',
+          artist: 'Integration Band',
+          category: 'Concert',
+          venue: 'Grand Hall',
+          province: 'Bangkok',
+          organizer: 'TicketHub Live',
+          status: 'Coming Soon',
+          posterUrl: 'https://example.com/poster.jpg',
+          galleryUrls: ['https://example.com/g1.jpg', 'https://example.com/g2.jpg'],
+          gateOpenTime: '17:00',
+          showTime: '20:30',
+          saleStartAt: '2026-11-22T09:00:00.000Z',
+          saleEndAt: '2026-12-20T21:00:00.000Z',
+          isFeatured: true,
+          rounds: [
+            { id: 'rnd-i42-1', date: '2026-12-22', time: '20:30' },
+            { id: 'rnd-i42-2', date: '2026-12-23', time: '18:00' }
+          ],
+          zones: [
+            {
+              id: 'z-i42',
+              name: 'Custom Zone',
+              color: '#0D9488',
+              price: 2400,
+              layout: 'custom',
+              rows: 2,
+              cols: 2,
+              originX: 200,
+              originY: 96,
+              seats: [
+                { label: 'A1', x: 200, y: 96, color: '#FF0800', price: 3600 },
+                { label: 'A2', x: 244, y: 96, color: '#0D9488', price: 2400 }
+              ]
+            }
+          ]
+        }
+      });
+      assert.strictEqual(createRes.status, 201);
+      const eventId = createRes.data.event.id;
+      assert.strictEqual(createRes.data.event.galleryUrl, 'https://example.com/g1.jpg');
+      assert.deepStrictEqual(createRes.data.event.galleryUrls, [
+        'https://example.com/g1.jpg',
+        'https://example.com/g2.jpg'
+      ]);
+
+      const getRes = await request(`/api/events/${eventId}`);
+      assert.strictEqual(getRes.status, 200);
+      assert.strictEqual(getRes.data.event.galleryUrl, 'https://example.com/g1.jpg');
+      assert.deepStrictEqual(getRes.data.event.galleryUrls, [
+        'https://example.com/g1.jpg',
+        'https://example.com/g2.jpg'
+      ]);
+      assert.strictEqual(getRes.data.event.showTime, '20:30');
+      assert.strictEqual(getRes.data.event.rounds.length, 2);
+
+      const updRes = await request(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${adminToken}` },
+        body: {
+          galleryUrls: ['https://example.com/g3.jpg'],
+          showTime: '21:00'
+        }
+      });
+      assert.strictEqual(updRes.status, 200);
+      assert.strictEqual(updRes.data.event.galleryUrl, 'https://example.com/g3.jpg');
+      assert.deepStrictEqual(updRes.data.event.galleryUrls, ['https://example.com/g3.jpg']);
+      assert.strictEqual(updRes.data.event.showTime, '21:00');
+    });
+  });
 });
