@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Plato - src/models/notification.model.js</title>
+  <title>Plato - src\models\notification.model.js</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -12,12 +12,12 @@
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
 
 </head>
 
@@ -25,13 +25,10 @@
 
 <div class="navbar navbar-fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
     <ul class="nav navbar-nav">
       <li>
         <a href="../../index.html">Report Home</a>
-      </li>
-      <li class="active">
-        <a href="display.html">Summary Display</a>
       </li>
     </ul>
   </div>
@@ -39,7 +36,7 @@
 
 <div class="jumbotron">
   <div class="container">
-    <h1>src/models/notification.model.js</h1>
+    <h1>src\models\notification.model.js</h1>
   </div>
 </div>
 
@@ -47,11 +44,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
-      <p class="stat">76.43</p>
+      <p class="stat">70.45</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
-      <p class="stat">36</p>
+      <p class="stat">68</p>
     </div>
   </div>
   <div class="row historical">
@@ -65,11 +62,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
-      <p class="stat">19.46</p>
+      <p class="stat">26.56</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
-      <p class="stat">0.35</p>
+      <p class="stat">0.69</p>
     </div>
   </div>
 </div>
@@ -94,6 +91,8 @@
   <div class="row">
     <textarea id="file-source" class="col-md-12">const { v4: uuidv4 } = require(&#039;uuid&#039;);
 const { store } = require(&#039;../store/jsonStore&#039;);
+const UserModel = require(&#039;./user.model&#039;);
+const { isEmailConfigured, sendEmailNotification } = require(&#039;../services/email.service&#039;);
 
 class NotificationModel {
   static findById(id) {
@@ -107,18 +106,49 @@ class NotificationModel {
   }
 
   static create(data) {
+    const channel = data.channel || &#039;BOTH&#039;;
+    const user = data.userId ? UserModel.findById(data.userId) : null;
+    const emailTo = data.emailTo || (user &amp;&amp; user.email);
+    const emailRequested = channel === &#039;EMAIL&#039; || channel === &#039;BOTH&#039;;
+    const emailStatus = !emailRequested
+      ? &#039;NOT_REQUESTED&#039;
+      : !emailTo
+      ? &#039;FAILED&#039;
+      : isEmailConfigured()
+      ? &#039;PENDING&#039;
+      : &#039;NOT_CONFIGURED&#039;;
+
     const notif = {
       id: data.id || `ntf-${uuidv4().slice(0, 8)}`,
       userId: data.userId,
-      channel: data.channel || &#039;BOTH&#039;,
+      channel,
       type: data.type,
       subject: data.subject,
       message: data.message,
-      ...(data.emailTo !== undefined ? { emailTo: data.emailTo } : {}),
+      ...(emailTo !== undefined ? { emailTo } : {}),
+      emailStatus,
       isRead: Boolean(data.isRead),
       createdAt: data.createdAt || new Date().toISOString()
     };
-    return store.insert(&#039;notifications&#039;, notif);
+
+    store.insert(&#039;notifications&#039;, notif);
+    if (emailStatus === &#039;PENDING&#039;) {
+      sendEmailNotification(notif)
+        .then(() =&gt; {
+          store.update(&#039;notifications&#039;, notif.id, {
+            emailStatus: &#039;SENT&#039;,
+            emailSentAt: new Date().toISOString()
+          });
+        })
+        .catch((error) =&gt; {
+          store.update(&#039;notifications&#039;, notif.id, { emailStatus: &#039;FAILED&#039; });
+          console.error(`Email delivery failed for notification ${notif.id}: ${error.message}`);
+        });
+    } else if (emailStatus === &#039;FAILED&#039;) {
+      console.error(`Email delivery skipped for notification ${notif.id}: recipient address is missing.`);
+    }
+
+    return notif;
   }
 
   static markAsRead(id) {
@@ -126,8 +156,7 @@ class NotificationModel {
   }
 }
 
-module.exports = NotificationModel;
-</textarea>
+module.exports = NotificationModel;</textarea>
   </div>
 </div>
 
@@ -139,10 +168,10 @@ module.exports = NotificationModel;
 
 <script type="text/html" id="complexity-popover-template">
   <div class="complexity-notice">
-    Complexity : {{ complexity.cyclomatic }} <br>
-    Length : {{ complexity.halstead.length }} <br>
-    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
-    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
   </div>
 </script>
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Plato - src/controllers/event.controller.js</title>
+  <title>Plato - src\controllers\event.controller.js</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -12,12 +12,12 @@
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
 
 </head>
 
@@ -25,13 +25,10 @@
 
 <div class="navbar navbar-fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
     <ul class="nav navbar-nav">
       <li>
         <a href="../../index.html">Report Home</a>
-      </li>
-      <li class="active">
-        <a href="display.html">Summary Display</a>
       </li>
     </ul>
   </div>
@@ -39,7 +36,7 @@
 
 <div class="jumbotron">
   <div class="container">
-    <h1>src/controllers/event.controller.js</h1>
+    <h1>src\controllers\event.controller.js</h1>
   </div>
 </div>
 
@@ -47,11 +44,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
-      <p class="stat">49.66</p>
+      <p class="stat">49.98</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
-      <p class="stat">639</p>
+      <p class="stat">740</p>
     </div>
   </div>
   <div class="row historical">
@@ -65,11 +62,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
-      <p class="stat">85.33</p>
+      <p class="stat">86.37</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
-      <p class="stat">8.52</p>
+      <p class="stat">9.94</p>
     </div>
   </div>
 </div>
@@ -150,6 +147,33 @@ store.resetWithSeed = function (...args) {
 };
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+function normalizeSalePeriodPayload(payload) {
+  const normalized = { ...payload };
+
+  for (const [field, legacyField] of [
+    [&#039;saleStartAt&#039;, &#039;saleStartDate&#039;],
+    [&#039;saleEndAt&#039;, &#039;saleEndDate&#039;]
+  ]) {
+    const value = normalized[field] !== undefined ? normalized[field] : normalized[legacyField];
+    delete normalized[legacyField];
+
+    if (value === undefined || value === null || value === &#039;&#039;) {
+      delete normalized[field];
+      continue;
+    }
+
+    if (typeof value === &#039;string&#039;) {
+      const timestamp = new Date(value).getTime();
+      normalized[field] = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : value;
+    } else {
+      normalized[field] = value;
+    }
+  }
+
+  return normalized;
+}
+
 /**
  * Validates event creation or update payload against strict invariants:
  * - Category must exist in the admin-managed category list
@@ -162,6 +186,24 @@ const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 function validateEventPayload(payload, { isUpdate = false } = {}) {
   if (!payload || typeof payload !== &#039;object&#039; || Array.isArray(payload)) {
     return { valid: false, error: &#039;Event payload must be a JSON object.&#039; };
+  }
+
+  const saleStartAt = payload.saleStartAt;
+  const saleEndAt = payload.saleEndAt;
+  const hasSaleStart = saleStartAt !== undefined &amp;&amp; saleStartAt !== null &amp;&amp; saleStartAt !== &#039;&#039;;
+  const hasSaleEnd = saleEndAt !== undefined &amp;&amp; saleEndAt !== null &amp;&amp; saleEndAt !== &#039;&#039;;
+
+  if (hasSaleStart &amp;&amp; (typeof saleStartAt !== &#039;string&#039; || !Number.isFinite(new Date(saleStartAt).getTime()))) {
+    return { valid: false, error: &#039;Sale start must be a valid date and time.&#039; };
+  }
+  if (hasSaleEnd &amp;&amp; (typeof saleEndAt !== &#039;string&#039; || !Number.isFinite(new Date(saleEndAt).getTime()))) {
+    return { valid: false, error: &#039;Sale end must be a valid date and time.&#039; };
+  }
+  if (hasSaleStart !== hasSaleEnd) {
+    return { valid: false, error: &#039;Both sale start and sale end must be provided.&#039; };
+  }
+  if (hasSaleStart &amp;&amp; new Date(saleStartAt) &gt; new Date(saleEndAt)) {
+    return { valid: false, error: &#039;Sale start must be before or equal to sale end.&#039; };
   }
 
   // 1. Title validation
@@ -417,37 +459,85 @@ function isLayoutModified(existing = [], incoming = []) {
 }
 
 function notifyEventChanges(existing, updated, updates) {
-  const dateOrVenueChanged =
-    (updates.venue &amp;&amp; updates.venue !== existing.venue) ||
-    (updates.showTime &amp;&amp; updates.showTime !== existing.showTime) ||
-    (updates.rounds &amp;&amp; JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds));
+  const changedDetails = [
+    [&#039;title&#039;, &#039;event title&#039;],
+    [&#039;artist&#039;, &#039;artist&#039;],
+    [&#039;category&#039;, &#039;category&#039;],
+    [&#039;description&#039;, &#039;description&#039;],
+    [&#039;venue&#039;, &#039;venue&#039;],
+    [&#039;province&#039;, &#039;location&#039;],
+    [&#039;organizer&#039;, &#039;organizer&#039;],
+    [&#039;gateOpenTime&#039;, &#039;gate opening time&#039;],
+    [&#039;showTime&#039;, &#039;show time&#039;],
+    [&#039;status&#039;, &#039;availability status&#039;],
+    [&#039;saleStartAt&#039;, &#039;sale start time&#039;],
+    [&#039;saleEndAt&#039;, &#039;sale end time&#039;],
+    [&#039;posterUrl&#039;, &#039;poster&#039;],
+    [&#039;galleryUrl&#039;, &#039;gallery&#039;]
+  ]
+    .filter(([field]) =&gt;
+      updates[field] !== undefined &amp;&amp;
+      JSON.stringify(updates[field]) !== JSON.stringify(existing[field])
+    )
+    .map(([, label]) =&gt; label);
+
+  if (
+    (updates.galleryUrl !== undefined || updates.galleryUrls !== undefined) &amp;&amp;
+    !changedDetails.includes(&#039;gallery&#039;) &amp;&amp;
+    (
+      updated.galleryUrl !== existing.galleryUrl ||
+      JSON.stringify(updated.galleryUrls) !== JSON.stringify(existing.galleryUrls)
+    )
+  ) {
+    changedDetails.push(&#039;gallery&#039;);
+  }
+
+  if (
+    updates.rounds !== undefined &amp;&amp;
+    JSON.stringify(updates.rounds) !== JSON.stringify(existing.rounds)
+  ) {
+    changedDetails.push(&#039;event schedule&#039;);
+  }
+
+  const saleOpened = existing.status !== &#039;On Sale&#039; &amp;&amp; updated.status === &#039;On Sale&#039;;
 
   // FR-34: Dispatches notification to users when event details change
-  if (dateOrVenueChanged) {
+  const paidUserIds = new Set();
+  if (changedDetails.length &gt; 0) {
     const bookings = BookingModel.findPaidByEventId(existing.id);
     const userIds = Array.from(new Set(bookings.map((b) =&gt; b.userId)));
     for (const uid of userIds) {
+      paidUserIds.add(uid);
       NotificationModel.create({
         userId: uid,
         channel: &#039;BOTH&#039;,
         type: &#039;EVENT_CHANGE&#039;,
         subject: `Update on ${updated.title}`,
-        message: `Important update regarding ${updated.title}: Venue is now &quot;${updated.venue}&quot;, showtime &quot;${updated.showTime}&quot;. Please review your ticket details.`
+        message: `Important update regarding ${updated.title}: ${changedDetails.join(&#039;, &#039;)} changed. Please review your ticket details.`
       });
     }
   }
 
-  // FR-37: Bookmark notification if status moved to &#039;On Sale&#039;
-  if (existing.status !== &#039;On Sale&#039; &amp;&amp; updated.status === &#039;On Sale&#039;) {
-    const allUsers = UserModel.findAll();
-    for (const u of allUsers) {
-      if ((u.bookmarks || []).includes(updated.id)) {
+  // FR-37: Notify users who bookmarked the event when it opens or changes.
+  if (saleOpened || changedDetails.length &gt; 0) {
+    const changeMessage = changedDetails.length &gt; 0
+      ? `The event &quot;${updated.title}&quot; you&#039;ve bookmarked has changed: ${changedDetails.join(&#039;, &#039;)}. Please review the updated event details.`
+      : &#039;&#039;;
+    const saleMessage = saleOpened
+      ? `Great news! &quot;${updated.title}&quot; has opened ticket sales. Book your seats now!`
+      : &#039;&#039;;
+    const message = [saleMessage, changeMessage].filter(Boolean).join(&#039; &#039;);
+
+    for (const user of UserModel.findAll()) {
+      if ((user.bookmarks || []).includes(updated.id) &amp;&amp; !paidUserIds.has(user.id)) {
         NotificationModel.create({
-          userId: u.id,
+          userId: user.id,
           channel: &#039;BOTH&#039;,
           type: &#039;BOOKMARK_ALERT&#039;,
-          subject: `Tickets Now On Sale: ${updated.title}`,
-          message: `Great news! &quot;${updated.title}&quot; has opened ticket sales. Book your seats now!`
+          subject: saleOpened
+            ? `Tickets Now On Sale: ${updated.title}`
+            : `Event Update: ${updated.title}`,
+          message
         });
       }
     }
@@ -579,12 +669,12 @@ function getTemplates(_req, res) {
  * POST /api/events
  */
 function createEvent(req, res) {
-  const validation = validateEventPayload(req.body, { isUpdate: false });
+  const payload = normalizeSalePeriodPayload(req.body);
+  const validation = validateEventPayload(payload, { isUpdate: false });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
-  const payload = { ...req.body };
   if (payload.category) {
     payload.category = CategoryModel.findByName(payload.category).name;
   }
@@ -609,12 +699,20 @@ function updateEvent(req, res) {
     return res.status(404).json({ error: &#039;Event not found.&#039; });
   }
 
-  const validation = validateEventPayload(req.body, { isUpdate: true });
+  const updates = normalizeSalePeriodPayload(req.body);
+  const validationPayload = { ...updates };
+  if (validationPayload.saleStartAt === undefined) {
+    validationPayload.saleStartAt = existing.saleStartAt;
+  }
+  if (validationPayload.saleEndAt === undefined) {
+    validationPayload.saleEndAt = existing.saleEndAt;
+  }
+
+  const validation = validateEventPayload(validationPayload, { isUpdate: true });
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
-  const updates = { ...req.body };
   delete updates.id;
 
   if (updates.category) {
@@ -742,10 +840,10 @@ module.exports = {
 
 <script type="text/html" id="complexity-popover-template">
   <div class="complexity-notice">
-    Complexity : {{ complexity.cyclomatic }} <br>
-    Length : {{ complexity.halstead.length }} <br>
-    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
-    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
   </div>
 </script>
 

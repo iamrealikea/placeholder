@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Plato - src/store/seed.js</title>
+  <title>Plato - src\store\seed.js</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -12,12 +12,12 @@
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
 
 </head>
 
@@ -25,13 +25,10 @@
 
 <div class="navbar navbar-fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
     <ul class="nav navbar-nav">
       <li>
         <a href="../../index.html">Report Home</a>
-      </li>
-      <li class="active">
-        <a href="display.html">Summary Display</a>
       </li>
     </ul>
   </div>
@@ -39,7 +36,7 @@
 
 <div class="jumbotron">
   <div class="container">
-    <h1>src/store/seed.js</h1>
+    <h1>src\store\seed.js</h1>
   </div>
 </div>
 
@@ -47,11 +44,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
-      <p class="stat">28.47</p>
+      <p class="stat">28.06</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
-      <p class="stat">663</p>
+      <p class="stat">690</p>
     </div>
   </div>
   <div class="row historical">
@@ -65,11 +62,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
-      <p class="stat">49.33</p>
+      <p class="stat">49.00</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
-      <p class="stat">7.14</p>
+      <p class="stat">7.30</p>
     </div>
   </div>
 </div>
@@ -475,8 +472,14 @@ function generateSeedData() {
     {
       id: &#039;bkg-demo-1&#039;,
       userId: &#039;usr-customer-1&#039;,
+      userEmail: &#039;user@ticket.com&#039;,
+      userName: &#039;Chanita Chansamrong&#039;,
+      userPhone: &#039;0812345678&#039;,
       eventId: &#039;evt-1&#039;,
+      eventTitle: &#039;Forza Horizon Somethings Live Festival&#039;,
+      venue: &#039;Impact Arena, Muang Thong Thani&#039;,
       roundId: &#039;rnd-1a&#039;,
+      roundLabel: &#039;11 Nov 2026 • 19:00&#039;,
       seatIds: [&#039;seat-evt-1-rnd-1a-zone-vip-A1&#039;, &#039;seat-evt-1-rnd-1a-zone-vip-A2&#039;],
       seatNumbers: [&#039;A1&#039;, &#039;A2&#039;],
       zoneName: &#039;VIP Stage Front&#039;,
@@ -489,13 +492,19 @@ function generateSeedData() {
       paymentMethod: &#039;PROMPTPAY&#039;,
       status: &#039;PAID&#039;,
       holdExpiresAt: null,
-      createdAt: &#039;2026-10-15T14:20:00.000Z&#039;
+      createdAt: &#039;2026-01-15T14:20:00.000Z&#039;
     },
     {
       id: &#039;bkg-hist-1&#039;,
       userId: &#039;usr-customer-1&#039;,
+      userEmail: &#039;user@ticket.com&#039;,
+      userName: &#039;Chanita Chansamrong&#039;,
+      userPhone: &#039;0812345678&#039;,
       eventId: &#039;evt-2&#039;,
+      eventTitle: &#039;Neon Cyberpop World Tour: Bangkok&#039;,
+      venue: &#039;Thunder Dome, Nonthaburi&#039;,
       roundId: &#039;rnd-2a&#039;,
+      roundLabel: &#039;11 Nov 2026 • 19:30&#039;,
       seatIds: [],
       seatNumbers: [&#039;B1&#039;, &#039;B2&#039;],
       zoneName: &#039;VIP Ring&#039;,
@@ -508,13 +517,19 @@ function generateSeedData() {
       paymentMethod: &#039;CREDIT_CARD&#039;,
       status: &#039;PAID&#039;,
       holdExpiresAt: null,
-      createdAt: &#039;2026-07-12T11:00:00.000Z&#039;
+      createdAt: &#039;2026-01-05T11:00:00.000Z&#039;
     },
     {
       id: &#039;bkg-hist-2&#039;,
       userId: &#039;usr-customer-1&#039;,
+      userEmail: &#039;user@ticket.com&#039;,
+      userName: &#039;Chanita Chansamrong&#039;,
+      userPhone: &#039;0812345678&#039;,
       eventId: &#039;evt-3&#039;,
+      eventTitle: &#039;Global AI &amp; Cloud Architecture Seminar 2026&#039;,
+      venue: &#039;Queen Sirikit National Convention Center (QSNCC)&#039;,
       roundId: &#039;rnd-3a&#039;,
+      roundLabel: &#039;20 Nov 2026 • 09:30&#039;,
       seatIds: [],
       seatNumbers: [&#039;A3&#039;],
       zoneName: &#039;Executive Front Row&#039;,
@@ -527,13 +542,19 @@ function generateSeedData() {
       paymentMethod: &#039;KBANK&#039;,
       status: &#039;PAID&#039;,
       holdExpiresAt: null,
-      createdAt: &#039;2026-08-19T16:30:00.000Z&#039;
+      createdAt: &#039;2026-01-08T16:30:00.000Z&#039;
     },
     {
       id: &#039;bkg-hist-3&#039;,
       userId: &#039;usr-customer-1&#039;,
+      userEmail: &#039;user@ticket.com&#039;,
+      userName: &#039;Chanita Chansamrong&#039;,
+      userPhone: &#039;0812345678&#039;,
       eventId: &#039;evt-1&#039;,
+      eventTitle: &#039;Forza Horizon Somethings Live Festival&#039;,
+      venue: &#039;Impact Arena, Muang Thong Thani&#039;,
       roundId: &#039;rnd-1b&#039;,
+      roundLabel: &#039;12 Nov 2026 • 18:00&#039;,
       seatIds: [],
       seatNumbers: [&#039;C1&#039;, &#039;C2&#039;],
       zoneName: &#039;Zone A (Monday Blue)&#039;,
@@ -546,7 +567,7 @@ function generateSeedData() {
       paymentMethod: &#039;TRUEMONEY&#039;,
       status: &#039;PAID&#039;,
       holdExpiresAt: null,
-      createdAt: &#039;2026-09-22T18:15:00.000Z&#039;
+      createdAt: &#039;2026-01-12T18:15:00.000Z&#039;
     }
   ];
 
@@ -560,7 +581,7 @@ function generateSeedData() {
       referenceCode: &#039;TH-PP-20261015-001&#039;,
       status: &#039;SUCCESS&#039;,
       refundAmount: 0,
-      paidAt: &#039;2026-10-15T14:21:00.000Z&#039;,
+      paidAt: &#039;2026-01-15T14:21:00.000Z&#039;,
       refundedAt: null
     },
     {
@@ -572,7 +593,7 @@ function generateSeedData() {
       referenceCode: &#039;TH-CC-20260712-002&#039;,
       status: &#039;SUCCESS&#039;,
       refundAmount: 0,
-      paidAt: &#039;2026-07-12T11:01:00.000Z&#039;,
+      paidAt: &#039;2026-01-05T11:01:00.000Z&#039;,
       refundedAt: null
     },
     {
@@ -584,7 +605,7 @@ function generateSeedData() {
       referenceCode: &#039;TH-KB-20260819-003&#039;,
       status: &#039;SUCCESS&#039;,
       refundAmount: 0,
-      paidAt: &#039;2026-08-19T16:31:00.000Z&#039;,
+      paidAt: &#039;2026-01-08T16:31:00.000Z&#039;,
       refundedAt: null
     },
     {
@@ -596,7 +617,7 @@ function generateSeedData() {
       referenceCode: &#039;TH-TM-20260922-004&#039;,
       status: &#039;SUCCESS&#039;,
       refundAmount: 0,
-      paidAt: &#039;2026-09-22T18:16:00.000Z&#039;,
+      paidAt: &#039;2026-01-12T18:16:00.000Z&#039;,
       refundedAt: null
     }
   ];
@@ -609,6 +630,7 @@ function generateSeedData() {
       userId: &#039;usr-customer-1&#039;,
       eventId: &#039;evt-1&#039;,
       eventTitle: &#039;Forza Horizon Somethings Live Festival&#039;,
+      holderName: &#039;Chanita Chansamrong&#039;,
       venue: &#039;Impact Arena, Muang Thong Thani&#039;,
       roundId: &#039;rnd-1a&#039;,
       roundLabel: &#039;11 Nov 2026 • 19:00&#039;,
@@ -619,13 +641,14 @@ function generateSeedData() {
       qrPayload: JSON.stringify({
         ticketCode: &#039;TKT-FH26-VIP-A1&#039;,
         eventId: &#039;evt-1&#039;,
-        seatNumber: &#039;A1&#039;
+        seatNumber: &#039;A1&#039;,
+        holder: &#039;Chanita Chansamrong&#039;
       }),
       qrDataUrl: &#039;&#039;,
       status: &#039;VALID&#039;,
       checkedInAt: null,
       checkedInBy: null,
-      createdAt: &#039;2026-10-15T14:21:00.000Z&#039;
+      createdAt: &#039;2026-01-15T14:21:00.000Z&#039;
     },
     {
       id: &#039;tkt-demo-2&#039;,
@@ -634,6 +657,7 @@ function generateSeedData() {
       userId: &#039;usr-customer-1&#039;,
       eventId: &#039;evt-1&#039;,
       eventTitle: &#039;Forza Horizon Somethings Live Festival&#039;,
+      holderName: &#039;Chanita Chansamrong&#039;,
       venue: &#039;Impact Arena, Muang Thong Thani&#039;,
       roundId: &#039;rnd-1a&#039;,
       roundLabel: &#039;11 Nov 2026 • 19:00&#039;,
@@ -644,13 +668,14 @@ function generateSeedData() {
       qrPayload: JSON.stringify({
         ticketCode: &#039;TKT-FH26-VIP-A2&#039;,
         eventId: &#039;evt-1&#039;,
-        seatNumber: &#039;A2&#039;
+        seatNumber: &#039;A2&#039;,
+        holder: &#039;Chanita Chansamrong&#039;
       }),
       qrDataUrl: &#039;&#039;,
       status: &#039;VALID&#039;,
       checkedInAt: null,
       checkedInBy: null,
-      createdAt: &#039;2026-10-15T14:21:00.000Z&#039;
+      createdAt: &#039;2026-01-15T14:21:00.000Z&#039;
     }
   ];
 
@@ -753,8 +778,7 @@ module.exports = {
   generateSeedData,
   buildSeatsForEvent,
   ensureTicketQrCodes
-};
-</textarea>
+};</textarea>
   </div>
 </div>
 
@@ -766,10 +790,10 @@ module.exports = {
 
 <script type="text/html" id="complexity-popover-template">
   <div class="complexity-notice">
-    Complexity : {{ complexity.cyclomatic }} <br>
-    Length : {{ complexity.halstead.length }} <br>
-    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
-    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
   </div>
 </script>
 
