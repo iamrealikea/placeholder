@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Plato - src/models/event.model.js</title>
+  <title>Plato - src\models\event.model.js</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -12,12 +12,12 @@
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
 
 </head>
 
@@ -25,13 +25,10 @@
 
 <div class="navbar navbar-fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
     <ul class="nav navbar-nav">
       <li>
         <a href="../../index.html">Report Home</a>
-      </li>
-      <li class="active">
-        <a href="display.html">Summary Display</a>
       </li>
     </ul>
   </div>
@@ -39,7 +36,7 @@
 
 <div class="jumbotron">
   <div class="container">
-    <h1>src/models/event.model.js</h1>
+    <h1>src\models\event.model.js</h1>
   </div>
 </div>
 
@@ -47,11 +44,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
-      <p class="stat">67.29</p>
+      <p class="stat">66.95</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
-      <p class="stat">308</p>
+      <p class="stat">354</p>
     </div>
   </div>
   <div class="row historical">
@@ -65,11 +62,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
-      <p class="stat">98.57</p>
+      <p class="stat">96.05</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
-      <p class="stat">4.57</p>
+      <p class="stat">5.14</p>
     </div>
   </div>
 </div>
@@ -303,6 +300,45 @@ class EventModel {
     };
   }
 
+  static parseGalleryList(value) {
+    if (Array.isArray(value)) {
+      return value.map((u) =&gt; String(u || &#039;&#039;).trim()).filter(Boolean);
+    }
+    if (typeof value === &#039;string&#039;) {
+      return value.split(&#039;,&#039;).map((u) =&gt; u.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  static normalizeGalleryFields(payload = {}, existing = null, { isUpdate = false } = {}) {
+    const defaultGalleryUrl =
+      &#039;https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;;
+    const hasUrlsField = payload.galleryUrls !== undefined;
+    const hasUrlField = payload.galleryUrl !== undefined;
+
+    let urls = hasUrlsField ? EventModel.parseGalleryList(payload.galleryUrls) : [];
+    if (urls.length === 0 &amp;&amp; hasUrlField) {
+      urls = EventModel.parseGalleryList(payload.galleryUrl);
+    }
+
+    if (isUpdate &amp;&amp; (hasUrlsField || hasUrlField)) {
+      return {
+        galleryUrl: urls[0] || &#039;&#039;,
+        galleryUrls: urls
+      };
+    }
+
+    const fallbackUrl =
+      (existing &amp;&amp; typeof existing.galleryUrl === &#039;string&#039; &amp;&amp; existing.galleryUrl.trim()) ||
+      defaultGalleryUrl;
+    const primaryUrl = urls[0] || fallbackUrl;
+
+    return {
+      galleryUrl: primaryUrl,
+      galleryUrls: urls.length &gt; 0 ? urls : [primaryUrl]
+    };
+  }
+
   static create(payload) {
     const {
       title,
@@ -310,7 +346,6 @@ class EventModel {
       category,
       status,
       posterUrl,
-      galleryUrl,
       description,
       venue,
       province,
@@ -324,6 +359,8 @@ class EventModel {
       isFeatured
     } = payload;
 
+    const { galleryUrl, galleryUrls } = EventModel.normalizeGalleryFields(payload);
+
     const newEvent = {
       id: `evt-${uuidv4().slice(0, 8)}`,
       title: String(title).trim(),
@@ -334,9 +371,8 @@ class EventModel {
       posterUrl:
         posterUrl ||
         &#039;https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&amp;fit=crop&amp;w=1200&amp;q=80&#039;,
-      galleryUrl:
-        galleryUrl ||
-        &#039;https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&amp;fit=crop&amp;w=900&amp;q=80&#039;,
+      galleryUrl,
+      galleryUrls,
       description: description || &#039;&#039;,
       venue: venue || &#039;Main Arena&#039;,
       province: String(province || &#039;&#039;).trim(),
@@ -365,6 +401,13 @@ class EventModel {
     const existing = store.findById(&#039;events&#039;, id);
     const cleanUpdates = { ...updates };
     delete cleanUpdates.id;
+
+    if (cleanUpdates.galleryUrls !== undefined || cleanUpdates.galleryUrl !== undefined) {
+      Object.assign(
+        cleanUpdates,
+        EventModel.normalizeGalleryFields(cleanUpdates, existing, { isUpdate: true })
+      );
+    }
 
     if (cleanUpdates.zones &amp;&amp; Array.isArray(cleanUpdates.zones)) {
       cleanUpdates.zones = cleanUpdates.zones
@@ -411,10 +454,10 @@ module.exports = EventModel;</textarea>
 
 <script type="text/html" id="complexity-popover-template">
   <div class="complexity-notice">
-    Complexity : {{ complexity.cyclomatic }} <br>
-    Length : {{ complexity.halstead.length }} <br>
-    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
-    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
   </div>
 </script>
 

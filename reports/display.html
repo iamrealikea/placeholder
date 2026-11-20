@@ -12,26 +12,26 @@
   <![endif]-->
 
   <script>
-    var __options = {"flags":{"complexity":{"ecmaFeatures":{"arrowFunctions":true,"blockBindings":true,"destructuring":true,"regexYFlag":true,"regexUFlag":true,"templateStrings":true,"binaryLiterals":true,"octalLiterals":true,"unicodeCodePointEscapes":true,"defaultParams":true,"restParams":true,"forOf":true,"objectLiteralComputedProperties":true,"objectLiteralShorthandMethods":true,"objectLiteralShorthandProperties":true,"objectLiteralDuplicateProperties":true,"generators":true,"spread":true,"classes":true,"modules":true,"jsx":true,"globalReturn":true,"experimentalObjectRestSpread":true},"sourceType":"module","ecmaVersion":6,"loc":true,"newmi":true,"range":true},"eslint":{"rules":{"quotes":[2,"single"],"semi":[2,"always"],"curly":["error"],"no-dupe-keys":2,"func-names":[1,"always"]},"env":{"es6":true,"browser":true},"globals":["__dirname","module","exports","process","require"],"parserOptions":{"sourceType":"module","ecmaFeatures":{"jsx":true,"experimentalObjectRestSpread":true,"modules":true}}}}}
+    var __options = {"title":"TicketHub","flags":{"complexity":{"commonjs":true,"logicalor":true,"switchcase":true,"forin":false,"trycatch":false,"newmi":true},"jshint":{}}}
   </script>
 
-  <link href="./assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="./assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="./assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="./assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="./assets/css/plato-display.css" rel="stylesheet" type="text/css">
+  <link href="assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="assets/css/plato.css" rel="stylesheet">
+  <link href="assets/css/plato-display.css" rel="stylesheet">
 </head>
 
 <body>
 
 <div class="container">
-    <h1>JavaScript Source Analysis</h1>
+    <h1>TicketHub</h1>
     <div class="row">
         <div class="col-md-6">
             <div class="reportBlock lineCount">
                 <div class="reportContent">
                     <small class="chart-label">Total / Average Lines</small>
-                    <h1>10899 / 214</h1>
+                    <h1>5623 / 140</h1>
                 </div>
                 <div id="chart_historical_sloc" class="chart js-chart"></div>
             </div>
@@ -40,7 +40,7 @@
             <div class="reportBlock maintainability">
                 <div class="reportContent">
                     <small class="chart-label">Average Maintainability</small>
-                    <h1>66.18</h1>
+                    <h1>65.60</h1>
                 </div>
                 <div id="chart_historical_maint" class="chart js-chart"></div>
             </div>
@@ -52,32 +52,32 @@
             <div class="reportBlock maintainabilityList">
                 <h2 class="reportTitle">Worst Maintainability Scores</h2>
                 <ul class="list-unstyled">
-                  
+
                     <li>
                         <strong>28 score</strong>
-                        <small>src/store/seed.js</small>
+                        <small>src\store\seed.js</small>
                     </li>
-                    
+
                     <li>
                         <strong>50 score</strong>
-                        <small>src/controllers/event.controller.js</small>
+                        <small>src\controllers\auth.controller.js</small>
                     </li>
-                    
+
                     <li>
                         <strong>50 score</strong>
-                        <small>src/controllers/auth.controller.js</small>
+                        <small>src\controllers\event.controller.js</small>
                     </li>
-                    
+
                     <li>
                         <strong>52 score</strong>
-                        <small>src/services/paymentGateway.js</small>
+                        <small>src\services\paymentGateway.js</small>
                     </li>
-                    
+
                     <li>
                         <strong>52 score</strong>
-                        <small>src/controllers/booking.controller.js</small>
+                        <small>src\controllers\booking.controller.js</small>
                     </li>
-                    
+
                 </ul>
             </div>
         </div>
@@ -85,32 +85,32 @@
             <div class="reportBlock locList">
                 <h2 class="reportTitle">Largest Files</h2>
                 <ul class="list-unstyled">
-                    
+
                     <li>
-                        <strong>2343 lines</strong>
-                        <small>public/js/admin-event.js</small>
+                        <strong>740 lines</strong>
+                        <small>src\controllers\event.controller.js</small>
                     </li>
-                    
+
                     <li>
-                        <strong>663 lines</strong>
-                        <small>src/store/seed.js</small>
+                        <strong>690 lines</strong>
+                        <small>src\store\seed.js</small>
                     </li>
-                    
+
                     <li>
-                        <strong>644 lines</strong>
-                        <small>public/js/checkout.js</small>
+                        <strong>522 lines</strong>
+                        <small>src\controllers\admin.controller.js</small>
                     </li>
-                    
+
                     <li>
-                        <strong>639 lines</strong>
-                        <small>src/controllers/event.controller.js</small>
+                        <strong>503 lines</strong>
+                        <small>src\controllers\auth.controller.js</small>
                     </li>
-                    
+
                     <li>
-                        <strong>546 lines</strong>
-                        <small>public/js/api.js</small>
+                        <strong>487 lines</strong>
+                        <small>src\controllers\booking.controller.js</small>
                     </li>
-                    
+
                 </ul>
             </div>
         </div>
@@ -119,32 +119,32 @@
             <div class="reportBlock lintList">
                 <h2 class="reportTitle">Lint Warnings</h2>
                 <ul class="list-unstyled">
-                  
+
                     <li>
-                        <strong>1 lint errors</strong>
-                        <small>src/controllers/admin.controller.js</small>
+                        <strong>51 lint errors</strong>
+                        <small>src\controllers\admin.controller.js</small>
                    </li>
-                   
+
                     <li>
-                        <strong>1 lint errors</strong>
-                        <small>src/controllers/auth.controller.js</small>
+                        <strong>51 lint errors</strong>
+                        <small>src\controllers\auth.controller.js</small>
                    </li>
-                   
+
                     <li>
-                        <strong>1 lint errors</strong>
-                        <small>src/controllers/booking.controller.js</small>
+                        <strong>51 lint errors</strong>
+                        <small>src\controllers\booking.controller.js</small>
                    </li>
-                   
+
                     <li>
-                        <strong>1 lint errors</strong>
-                        <small>src/controllers/category.controller.js</small>
+                        <strong>51 lint errors</strong>
+                        <small>src\models\event.model.js</small>
                    </li>
-                   
+
                     <li>
-                        <strong>1 lint errors</strong>
-                        <small>src/controllers/event.controller.js</small>
+                        <strong>51 lint errors</strong>
+                        <small>src\models\notification.model.js</small>
                    </li>
-                   
+
                 </ul>
             </div>
         </div>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Plato - public/js/api.js</title>
+  <title>Plato - public\js\api.js</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -12,12 +12,12 @@
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
 
 </head>
 
@@ -25,13 +25,10 @@
 
 <div class="navbar navbar-fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
     <ul class="nav navbar-nav">
       <li>
         <a href="../../index.html">Report Home</a>
-      </li>
-      <li class="active">
-        <a href="display.html">Summary Display</a>
       </li>
     </ul>
   </div>
@@ -39,7 +36,7 @@
 
 <div class="jumbotron">
   <div class="container">
-    <h1>public/js/api.js</h1>
+    <h1>public\js\api.js</h1>
   </div>
 </div>
 
@@ -47,11 +44,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
-      <p class="stat">73.30</p>
+      <p class="stat">72.92</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
-      <p class="stat">546</p>
+      <p class="stat">623</p>
     </div>
   </div>
   <div class="row historical">
@@ -65,11 +62,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
-      <p class="stat">64.30</p>
+      <p class="stat">57.73</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
-      <p class="stat">7.41</p>
+      <p class="stat">8.44</p>
     </div>
   </div>
 </div>
@@ -637,7 +634,84 @@ const Popup = {
   }
 };
 
-window.Popup = Popup;</textarea>
+window.Popup = Popup;
+
+function initMobileNavbar() {
+  if (typeof document === &#039;undefined&#039;) return;
+
+  const setup = () =&gt; {
+    document.querySelectorAll(&#039;header.navbar&#039;).forEach((navbar, idx) =&gt; {
+      if (navbar.dataset.mobileNavReady) return;
+      const navLinks = navbar.querySelector(&#039;ul.nav-links&#039;);
+      const navbarInner = navbar.querySelector(&#039;.navbar-inner&#039;);
+      if (!navLinks || !navbarInner) return;
+
+      navbar.dataset.mobileNavReady = &#039;1&#039;;
+      navbar.classList.add(&#039;has-nav-toggle&#039;);
+
+      if (!navLinks.id) {
+        navLinks.id = idx === 0 ? &#039;primaryNavLinks&#039; : `primaryNavLinks-${idx}`;
+      }
+
+      const toggleBtn = document.createElement(&#039;button&#039;);
+      toggleBtn.type = &#039;button&#039;;
+      toggleBtn.className = &#039;btn-icon nav-toggle-btn&#039;;
+      toggleBtn.setAttribute(&#039;aria-expanded&#039;, &#039;false&#039;);
+      toggleBtn.setAttribute(&#039;aria-controls&#039;, navLinks.id);
+      toggleBtn.setAttribute(&#039;aria-label&#039;, &#039;Toggle navigation menu&#039;);
+
+      const icon = document.createElement(&#039;i&#039;);
+      icon.className = &#039;fa-solid fa-bars&#039;;
+      icon.setAttribute(&#039;aria-hidden&#039;, &#039;true&#039;);
+      toggleBtn.appendChild(icon);
+
+      const targetContainer = navbarInner.querySelector(&#039;.nav-actions&#039;) || navbarInner;
+      targetContainer.appendChild(toggleBtn);
+
+      const setOpen = (isOpen) =&gt; {
+        navbar.classList.toggle(&#039;is-menu-open&#039;, isOpen);
+        toggleBtn.setAttribute(&#039;aria-expanded&#039;, String(isOpen));
+        icon.className = isOpen ? &#039;fa-solid fa-xmark&#039; : &#039;fa-solid fa-bars&#039;;
+      };
+
+      toggleBtn.addEventListener(&#039;click&#039;, (e) =&gt; {
+        e.stopPropagation();
+        setOpen(!navbar.classList.contains(&#039;is-menu-open&#039;));
+      });
+
+      document.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Escape&#039; &amp;&amp; navbar.classList.contains(&#039;is-menu-open&#039;)) {
+          setOpen(false);
+          toggleBtn.focus();
+        }
+      });
+
+      document.addEventListener(&#039;click&#039;, (e) =&gt; {
+        if (navbar.classList.contains(&#039;is-menu-open&#039;) &amp;&amp; !navbar.contains(e.target)) {
+          setOpen(false);
+        }
+      });
+
+      navLinks.querySelectorAll(&#039;.nav-link&#039;).forEach((link) =&gt; {
+        link.addEventListener(&#039;click&#039;, () =&gt; setOpen(false));
+      });
+
+      window.addEventListener(&#039;resize&#039;, () =&gt; {
+        if (window.innerWidth &gt; 768 &amp;&amp; navbar.classList.contains(&#039;is-menu-open&#039;)) {
+          setOpen(false);
+        }
+      });
+    });
+  };
+
+  if (document.readyState === &#039;loading&#039;) {
+    document.addEventListener(&#039;DOMContentLoaded&#039;, setup);
+  } else {
+    setup();
+  }
+}
+
+initMobileNavbar();</textarea>
   </div>
 </div>
 
@@ -649,10 +723,10 @@ window.Popup = Popup;</textarea>
 
 <script type="text/html" id="complexity-popover-template">
   <div class="complexity-notice">
-    Complexity : {{ complexity.cyclomatic }} <br>
-    Length : {{ complexity.halstead.length }} <br>
-    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
-    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
   </div>
 </script>
 

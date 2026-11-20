@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Plato - public/js/admin-event.js</title>
+  <title>Plato - public\js\admin-event.js</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
@@ -12,12 +12,12 @@
   <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <link href="../../assets/css/vendor/morris.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato.css" rel="stylesheet" type="text/css">
-  <link href="../../assets/css/plato-file.css" rel="stylesheet" type="text/css">
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
 
 </head>
 
@@ -25,13 +25,10 @@
 
 <div class="navbar navbar-fixed-top">
   <div class="container">
-    <a class="navbar-brand" href="https://github.com/the-simian/es6-plato">ES6 Plato on Github</a>
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
     <ul class="nav navbar-nav">
       <li>
         <a href="../../index.html">Report Home</a>
-      </li>
-      <li class="active">
-        <a href="display.html">Summary Display</a>
       </li>
     </ul>
   </div>
@@ -39,7 +36,7 @@
 
 <div class="jumbotron">
   <div class="container">
-    <h1>public/js/admin-event.js</h1>
+    <h1>public\js\admin-event.js</h1>
   </div>
 </div>
 
@@ -47,11 +44,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
-      <p class="stat">59.83</p>
+      <p class="stat">60.36</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
-      <p class="stat">2343</p>
+      <p class="stat">2583</p>
     </div>
   </div>
   <div class="row historical">
@@ -65,11 +62,11 @@
   <div class="row">
     <div class="col-md-6">
       <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
-      <p class="stat">136.52</p>
+      <p class="stat">140.88</p>
     </div>
     <div class="col-md-6">
       <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
-      <p class="stat">38.45</p>
+      <p class="stat">43.33</p>
     </div>
   </div>
 </div>
@@ -658,12 +655,43 @@
         }
       }
 
+      expandCanvasToFitSeats(State.seats);
+
+      if (!State.isLayoutLocked) {
+        const activeZone = State.zones.find(z =&gt; z.id === State.activeZoneId) || State.zones[0];
+        const isCustom = Boolean(
+          activeZone &amp;&amp;
+          (activeZone.layout === &#039;custom&#039; || (Array.isArray(activeZone.seats) &amp;&amp; activeZone.seats.length &gt; 0))
+        );
+        setBuilderMode(isCustom ? &#039;custom&#039; : &#039;matrix&#039;);
+      }
+
       renderRoundsList();
       updateSidePanelZones();
       renderCanvas();
       updateCanvasStats();
     } catch (err) {
       showToast(&#039;Failed to load event: &#039; + err.message, &#039;error&#039;);
+    }
+  }
+
+  function expandCanvasToFitSeats(seats) {
+    if (!Array.isArray(seats) || seats.length === 0) return;
+    const maxSeatX = Math.max(...seats.map(s =&gt; Number(s.x) || 0));
+    const maxSeatY = Math.max(...seats.map(s =&gt; Number(s.y) || 0));
+    const neededWidth = maxSeatX + SEAT_DIAMETER + 40;
+    const neededHeight = maxSeatY + SEAT_DIAMETER + 60;
+    let dimsChanged = false;
+    if (neededWidth &gt; State.logicalWidth) {
+      State.logicalWidth = neededWidth;
+      dimsChanged = true;
+    }
+    if (neededHeight &gt; State.logicalHeight) {
+      State.logicalHeight = neededHeight;
+      dimsChanged = true;
+    }
+    if (dimsChanged) {
+      applyCanvasDimensions();
     }
   }
 
@@ -697,14 +725,64 @@
   // -------------------------------------------------------------------------
   // 8. Form Data Population &amp; Binding
   // -------------------------------------------------------------------------
+  function toDateTimeLocal(value) {
+    if (!value) return &#039;&#039;;
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return &#039;&#039;;
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 16);
+  }
+
+  function syncCategoryField(categoryValue) {
+    const catSelect = getEl([&#039;event-category&#039;]);
+    if (!catSelect) return;
+    const targetCategory = String(categoryValue || &#039;Concert&#039;).trim();
+    const matchedOption = Array.from(catSelect.options).find(
+      (opt) =&gt; opt.value.toLowerCase() === targetCategory.toLowerCase()
+    );
+    if (matchedOption) {
+      catSelect.value = matchedOption.value;
+    } else if (targetCategory) {
+      const opt = document.createElement(&#039;option&#039;);
+      opt.value = targetCategory;
+      opt.textContent = targetCategory;
+      catSelect.appendChild(opt);
+      catSelect.value = targetCategory;
+    }
+  }
+
+  function syncGalleryField(eventData) {
+    const galleryInput = getEl([&#039;event-gallery&#039;]);
+    if (!galleryInput) return;
+    let galleryList = [];
+    if (Array.isArray(eventData.galleryUrls) &amp;&amp; eventData.galleryUrls.length &gt; 0) {
+      galleryList = eventData.galleryUrls.map((u) =&gt; String(u || &#039;&#039;).trim()).filter(Boolean);
+    } else if (typeof eventData.galleryUrls === &#039;string&#039; &amp;&amp; eventData.galleryUrls.trim()) {
+      galleryList = eventData.galleryUrls.split(&#039;,&#039;).map((u) =&gt; u.trim()).filter(Boolean);
+    } else if (eventData.galleryUrl) {
+      galleryList = [String(eventData.galleryUrl).trim()];
+    }
+    galleryInput.value = galleryList.join(&#039;, &#039;);
+  }
+
+  function syncFirstRoundHiddenInputs(firstRound = {}, fallbackTime = &#039;19:00&#039;) {
+    const dateInput = getEl([&#039;event-date&#039;]);
+    if (dateInput) dateInput.value = firstRound.date || &#039;&#039;;
+
+    const timeVal = firstRound.time || fallbackTime || &#039;19:00&#039;;
+    const timeEl = getEl([&#039;event-time&#039;]);
+    if (timeEl) timeEl.value = timeVal;
+    const showTimeEl = getEl([&#039;event-show-time&#039;]);
+    if (showTimeEl) showTimeEl.value = timeVal;
+  }
+
   function populateFormFields() {
     const d = State.eventData;
 
     const titleInput = getEl([&#039;event-title&#039;]);
     if (titleInput) titleInput.value = d.title || &#039;&#039;;
 
-    const catSelect = getEl([&#039;event-category&#039;]);
-    if (catSelect) catSelect.value = d.category || &#039;Concert&#039;;
+    syncCategoryField(d.category);
 
     const venueInput = getEl([&#039;event-venue&#039;]);
     if (venueInput) venueInput.value = d.venue || &#039;&#039;;
@@ -727,14 +805,13 @@
     const posterInput = getEl([&#039;event-poster-url&#039;, &#039;event-poster&#039;]);
     if (posterInput) posterInput.value = d.posterUrl || &#039;&#039;;
 
-    const galleryInput = getEl([&#039;event-gallery&#039;]);
-    if (galleryInput) galleryInput.value = Array.isArray(d.galleryUrls) ? d.galleryUrls.join(&#039;, &#039;) : (d.galleryUrls || &#039;&#039;);
+    syncGalleryField(d);
 
     const saleStart = getEl([&#039;event-sale-start&#039;]);
-    if (saleStart) saleStart.value = d.saleStartDate || d.saleStartAt || &#039;&#039;;
+    if (saleStart) saleStart.value = toDateTimeLocal(d.saleStartAt || d.saleStartDate);
 
     const saleEnd = getEl([&#039;event-sale-end&#039;]);
-    if (saleEnd) saleEnd.value = d.saleEndDate || d.saleEndAt || &#039;&#039;;
+    if (saleEnd) saleEnd.value = toDateTimeLocal(d.saleEndAt || d.saleEndDate);
 
     const gateTime = getEl([&#039;event-gate-time&#039;]);
     if (gateTime) gateTime.value = d.gateOpenTime || &#039;&#039;;
@@ -744,11 +821,7 @@
 
     // Single Round sync
     const firstRound = (d.rounds &amp;&amp; d.rounds[0]) || {};
-    const dateInput = getEl([&#039;event-date&#039;]);
-    if (dateInput) dateInput.value = firstRound.date || &#039;&#039;;
-
-    const timeInput = getEl([&#039;event-time&#039;, &#039;event-show-time&#039;]);
-    if (timeInput) timeInput.value = firstRound.time || d.showTime || &#039;19:00&#039;;
+    syncFirstRoundHiddenInputs(firstRound, d.showTime || &#039;19:00&#039;);
   }
 
   // -------------------------------------------------------------------------
@@ -1033,6 +1106,7 @@
         targetZone.cols = cols;
         targetZone.originX = originX;
         targetZone.originY = originY;
+        targetZone.seats = [];
 
         // Expand canvas height if needed so large matrices fit comfortably
         const requiredHeight = originY + rows * GRID_PITCH + 60;
@@ -1053,6 +1127,7 @@
   function regenerateMatrixForZone(zone, replaceExisting = true) {
     if (replaceExisting) {
       State.seats = State.seats.filter(s =&gt; s.zoneId !== zone.id);
+      zone.seats = [];
     }
 
     const rowLetters = &#039;ABCDEFGHIJKLMNOPQRSTUVWXYZ&#039;;
@@ -1408,6 +1483,13 @@
 
   function deleteSelectedSeats() {
     if (State.selectedSeatIds.size &gt; 0) {
+      const affectedZoneIds = new Set(
+        State.seats.filter(s =&gt; State.selectedSeatIds.has(s.id)).map(s =&gt; s.zoneId)
+      );
+      affectedZoneIds.forEach(zoneId =&gt; {
+        const zone = State.zones.find(z =&gt; z.id === zoneId);
+        if (zone) zone.layout = &#039;custom&#039;;
+      });
       State.seats = State.seats.filter(s =&gt; !State.selectedSeatIds.has(s.id));
       State.selectedSeatIds.clear();
       updateSidePanelSelection();
@@ -1581,14 +1663,65 @@
     updateRowLabelControl();
   }
 
+  function syncActiveZoneInputs(zone) {
+    if (!zone) return;
+
+    const price = zone.price !== undefined &amp;&amp; zone.price !== null ? zone.price : 1000;
+    const priceInput = getEl([&#039;seat-price-input&#039;]);
+    if (priceInput) priceInput.value = price;
+    const zonePriceAlias = getEl([&#039;zone-price&#039;]);
+    if (zonePriceAlias) zonePriceAlias.value = price;
+
+    const color = zone.color || &#039;#1D56CF&#039;;
+    const colorInput = getEl([&#039;seat-color-input&#039;]);
+    if (colorInput) colorInput.value = color;
+    const zoneColorAlias = getEl([&#039;zone-color&#039;]);
+    if (zoneColorAlias) zoneColorAlias.value = color;
+
+    const colorNative = getEl([&#039;seat-color-native&#039;]);
+    if (colorNative &amp;&amp; /^#[0-9a-fA-F]{6}$/.test(color)) {
+      colorNative.value = color;
+    }
+
+    const swatch = getEl([&#039;color-swatch-preview&#039;]);
+    if (swatch) swatch.style.backgroundColor = color;
+
+    const rows = Math.max(1, Number(zone.rows) || 4);
+    const cols = Math.max(1, Number(zone.cols) || 8);
+    const originX =
+      zone.originX !== undefined &amp;&amp; zone.originX !== null
+        ? Number(zone.originX)
+        : getCenteredOriginX(cols, State.logicalWidth);
+    const originY =
+      zone.originY !== undefined &amp;&amp; zone.originY !== null
+        ? Number(zone.originY)
+        : 96;
+
+    const rowsEl = getEl([&#039;matrix-rows&#039;]);
+    if (rowsEl) rowsEl.value = rows;
+    const colsEl = getEl([&#039;matrix-cols&#039;]);
+    if (colsEl) colsEl.value = cols;
+    const originXEl = getEl([&#039;matrix-origin-x&#039;]);
+    if (originXEl) originXEl.value = originX;
+    const originYEl = getEl([&#039;matrix-origin-y&#039;]);
+    if (originYEl) originYEl.value = originY;
+  }
+
   function updateSidePanelZones() {
     const zoneSelect = getEl([&#039;zone-select&#039;]);
     if (zoneSelect) {
       zoneSelect.innerHTML = State.zones
-        .map(z =&gt; `&lt;option value=&quot;${z.id}&quot;&gt;${z.name} (${z.price} THB)&lt;/option&gt;`)
+        .map(z =&gt; `&lt;option value=&quot;${escapeHtml(z.id)}&quot;&gt;${escapeHtml(z.name)} (${z.price} THB)&lt;/option&gt;`)
         .concat([&#039;&lt;option value=&quot;__new__&quot;&gt;+ Create New Zone&lt;/option&gt;&#039;])
         .join(&#039;&#039;);
       if (State.activeZoneId) zoneSelect.value = State.activeZoneId;
+    }
+
+    if (State.selectedSeatIds.size === 0) {
+      const activeZone = State.zones.find(z =&gt; z.id === State.activeZoneId) || State.zones[0];
+      if (activeZone) {
+        syncActiveZoneInputs(activeZone);
+      }
     }
 
     renderZonesTable();
@@ -1701,10 +1834,13 @@
     if (createZoneConfirmBtn) {
       createZoneConfirmBtn.addEventListener(&#039;click&#039;, () =&gt; {
         const created = createNewZoneFromInputs();
-        if (created &amp;&amp; State.selectedSeatIds.size &gt; 0) {
+        if (created &amp;&amp; State.selectedSeatIds.size &gt; 0 &amp;&amp; !State.isLayoutLocked) {
+          created.layout = &#039;custom&#039;;
           State.selectedSeatIds.forEach(id =&gt; {
             const s = State.seats.find(st =&gt; st.id === id);
             if (s) {
+              const sourceZone = State.zones.find(z =&gt; z.id === s.zoneId);
+              if (sourceZone) sourceZone.layout = &#039;custom&#039;;
               s.zoneId = created.id;
               s.price = created.price;
               s.color = created.color;
@@ -1728,17 +1864,7 @@
           State.activeZoneId = zoneSelect.value;
           const targetZone = State.zones.find(z =&gt; z.id === State.activeZoneId);
           if (targetZone) {
-            const priceInput = getEl([&#039;seat-price-input&#039;, &#039;zone-price&#039;]);
-            if (priceInput) priceInput.value = targetZone.price;
-
-            const colorInput = getEl([&#039;seat-color-input&#039;, &#039;zone-color&#039;]);
-            if (colorInput) colorInput.value = targetZone.color;
-
-            const colorNative = getEl([&#039;seat-color-native&#039;]);
-            if (colorNative &amp;&amp; /^#[0-9a-fA-F]{6}$/.test(targetZone.color)) colorNative.value = targetZone.color;
-
-            const swatch = getEl([&#039;color-swatch-preview&#039;]);
-            if (swatch) swatch.style.backgroundColor = targetZone.color;
+            syncActiveZoneInputs(targetZone);
           }
         }
       });
@@ -1763,72 +1889,92 @@
       });
     }
 
+    function applyZoneToSelection() {
+      const priceInput = getEl([&#039;seat-price-input&#039;, &#039;zone-price&#039;]);
+      const newPrice = priceInput ? Math.max(0, Number(priceInput.value)) : 1000;
+
+      const newColor = (colorInput ? colorInput.value : &#039;#1D56CF&#039;).trim();
+      if (!/^#[0-9a-fA-F]{6}$/.test(newColor)) {
+        showToast(&#039;Invalid color hex format. Expected #RRGGBB (e.g. #1D56CF)&#039;, &#039;error&#039;);
+        return;
+      }
+
+      let targetZoneId = zoneSelect ? zoneSelect.value : State.activeZoneId;
+      const isNewZoneBoxVisible =
+        newZoneBox &amp;&amp;
+        newZoneBox.style.display !== &#039;none&#039; &amp;&amp;
+        (window.getComputedStyle ? window.getComputedStyle(newZoneBox).display !== &#039;none&#039; : true);
+
+      if (targetZoneId === &#039;__new__&#039; || (newZoneNameInput &amp;&amp; newZoneNameInput.value.trim() &amp;&amp; isNewZoneBoxVisible)) {
+        const created = createNewZoneFromInputs();
+        targetZoneId = created.id;
+      }
+
+      const targetZone = State.zones.find(z =&gt; z.id === targetZoneId);
+      if (targetZone) {
+        State.activeZoneId = targetZone.id;
+      }
+
+      if (State.selectedSeatIds.size === 0) {
+        if (!targetZone) {
+          showToast(&#039;Please select seats or choose a zone to apply pricing&#039;, &#039;info&#039;);
+          return;
+        }
+        targetZone.price = newPrice;
+        targetZone.color = newColor;
+        let count = 0;
+        State.seats.forEach(s =&gt; {
+          if (s.zoneId === targetZone.id &amp;&amp; s.status === &#039;AVAILABLE&#039;) {
+            s.price = newPrice;
+            s.color = newColor;
+            count++;
+          }
+        });
+        updateSidePanelZones();
+        renderCanvas();
+        showToast(`Updated zone &quot;${targetZone.name}&quot; (${count} available seats)`, &#039;success&#039;);
+        return;
+      }
+
+      const targetZoneSeats = State.seats.filter(s =&gt; s.zoneId === targetZoneId);
+      const shouldUpdateTargetZoneMeta = Boolean(
+        targetZone &amp;&amp;
+        (targetZoneSeats.length === 0 || targetZoneSeats.every(s =&gt; State.selectedSeatIds.has(s.id)))
+      );
+
+      if (shouldUpdateTargetZoneMeta) {
+        targetZone.price = newPrice;
+        targetZone.color = newColor;
+      }
+
+      State.selectedSeatIds.forEach(id =&gt; {
+        const s = State.seats.find(st =&gt; st.id === id);
+        if (!s) return;
+
+        if (!State.isLayoutLocked &amp;&amp; s.zoneId !== targetZoneId) {
+          const sourceZone = State.zones.find(z =&gt; z.id === s.zoneId);
+          if (sourceZone) sourceZone.layout = &#039;custom&#039;;
+          s.zoneId = targetZoneId;
+          if (targetZone) targetZone.layout = &#039;custom&#039;;
+        } else if (!State.isLayoutLocked &amp;&amp; !shouldUpdateTargetZoneMeta &amp;&amp; targetZone) {
+          targetZone.layout = &#039;custom&#039;;
+        }
+
+        if (s.status === &#039;AVAILABLE&#039; || !State.isLayoutLocked) {
+          s.price = newPrice;
+          s.color = newColor;
+        }
+      });
+
+      updateSidePanelZones();
+      renderCanvas();
+      showToast(`Updated ${State.selectedSeatIds.size} seat(s)`, &#039;success&#039;);
+    }
+
     // Apply Zone / Pricing to Selection (or active zone if no seats selected)
     const applyBtn = getEl([&#039;apply-zone-btn&#039;, &#039;apply-pricing-btn&#039;]);
     if (applyBtn) {
-      applyBtn.addEventListener(&#039;click&#039;, () =&gt; {
-        const priceInput = getEl([&#039;seat-price-input&#039;, &#039;zone-price&#039;]);
-        const newPrice = priceInput ? Math.max(0, Number(priceInput.value)) : 1000;
-
-        let newColor = (colorInput ? colorInput.value : &#039;#1D56CF&#039;).trim();
-        if (!/^#[0-9a-fA-F]{6}$/.test(newColor)) {
-          showToast(&#039;Invalid color hex format. Expected #RRGGBB (e.g. #1D56CF)&#039;, &#039;error&#039;);
-          return;
-        }
-
-        let targetZoneId = zoneSelect ? zoneSelect.value : State.activeZoneId;
-
-        // Check for new zone creation
-        const isNewZoneBoxVisible = newZoneBox &amp;&amp; newZoneBox.style.display !== &#039;none&#039; &amp;&amp; (window.getComputedStyle ? window.getComputedStyle(newZoneBox).display !== &#039;none&#039; : true);
-        if (targetZoneId === &#039;__new__&#039; || (newZoneNameInput &amp;&amp; newZoneNameInput.value.trim() &amp;&amp; isNewZoneBoxVisible)) {
-          const created = createNewZoneFromInputs();
-          targetZoneId = created.id;
-        }
-
-        const targetZone = State.zones.find(z =&gt; z.id === targetZoneId);
-        if (targetZone) {
-          targetZone.price = newPrice;
-          targetZone.color = newColor;
-        }
-
-        if (State.selectedSeatIds.size === 0) {
-          // If no individual seats are selected, update all AVAILABLE seats in the active zone
-          if (targetZone) {
-            let count = 0;
-            State.seats.forEach(s =&gt; {
-              if (s.zoneId === targetZone.id &amp;&amp; s.status === &#039;AVAILABLE&#039;) {
-                s.price = newPrice;
-                s.color = newColor;
-                count++;
-              }
-            });
-            updateSidePanelZones();
-            renderCanvas();
-            showToast(`Updated zone &quot;${targetZone.name}&quot; (${count} available seats)`, &#039;success&#039;);
-          } else {
-            showToast(&#039;Please select seats or choose a zone to apply pricing&#039;, &#039;info&#039;);
-          }
-          return;
-        }
-
-        // Apply to all selected seats
-        State.selectedSeatIds.forEach(id =&gt; {
-          const s = State.seats.find(st =&gt; st.id === id);
-          if (s) {
-            if (!State.isLayoutLocked) {
-              s.zoneId = targetZoneId;
-            }
-            if (s.status === &#039;AVAILABLE&#039; || !State.isLayoutLocked) {
-              s.price = newPrice;
-              s.color = newColor;
-            }
-          }
-        });
-
-        updateSidePanelZones();
-        renderCanvas();
-        showToast(`Updated ${State.selectedSeatIds.size} seat(s)`, &#039;success&#039;);
-      });
+      applyBtn.addEventListener(&#039;click&#039;, applyZoneToSelection);
     }
 
     // Clear Selection
@@ -2061,11 +2207,11 @@
         &lt;div class=&quot;round-card-row&quot;&gt;
           &lt;div&gt;
             &lt;label class=&quot;form-label fs-075&quot;&gt;Date&lt;/label&gt;
-            &lt;input type=&quot;date&quot; class=&quot;form-control round-date-input&quot; value=&quot;${r.date || &#039;&#039;}&quot; onchange=&quot;window.AdminEventEngine.updateRound(${idx}, &#039;date&#039;, this.value)&quot;&gt;
+            &lt;input type=&quot;date&quot; class=&quot;form-control round-date-input&quot; value=&quot;${r.date || &#039;&#039;}&quot; oninput=&quot;window.AdminEventEngine.updateRound(${idx}, &#039;date&#039;, this.value)&quot; onchange=&quot;window.AdminEventEngine.updateRound(${idx}, &#039;date&#039;, this.value)&quot;&gt;
           &lt;/div&gt;
           &lt;div&gt;
             &lt;label class=&quot;form-label fs-075&quot;&gt;Time&lt;/label&gt;
-            &lt;input type=&quot;time&quot; class=&quot;form-control round-time-input&quot; value=&quot;${r.time || &#039;19:00&#039;}&quot; onchange=&quot;window.AdminEventEngine.updateRound(${idx}, &#039;time&#039;, this.value)&quot;&gt;
+            &lt;input type=&quot;time&quot; class=&quot;form-control round-time-input&quot; value=&quot;${r.time || &#039;19:00&#039;}&quot; oninput=&quot;window.AdminEventEngine.updateRound(${idx}, &#039;time&#039;, this.value)&quot; onchange=&quot;window.AdminEventEngine.updateRound(${idx}, &#039;time&#039;, this.value)&quot;&gt;
           &lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
@@ -2074,10 +2220,8 @@
     // Sync first round with hidden inputs for backward compatibility
     const first = State.eventData.rounds[0];
     if (first) {
-      const dateEl = getEl([&#039;event-date&#039;]);
-      if (dateEl) dateEl.value = first.date || &#039;&#039;;
-      const timeEl = getEl([&#039;event-time&#039;, &#039;event-show-time&#039;]);
-      if (timeEl) timeEl.value = first.time || &#039;19:00&#039;;
+      State.eventData.showTime = first.time || State.eventData.showTime || &#039;19:00&#039;;
+      syncFirstRoundHiddenInputs(first, State.eventData.showTime);
     }
   }
 
@@ -2181,6 +2325,72 @@
     }
   }
 
+  function isMatrixSeatMatch(seat, expectedX, expectedY, zonePrice, zoneColor) {
+    if (!seat) return false;
+    const seatColor = String(seat.color || zoneColor).trim().toLowerCase();
+    return (
+      Math.abs(Number(seat.x) - expectedX) &lt;= 0.5 &amp;&amp;
+      Math.abs(Number(seat.y) - expectedY) &lt;= 0.5 &amp;&amp;
+      Number(seat.price) === zonePrice &amp;&amp;
+      seatColor === zoneColor
+    );
+  }
+
+  function isUniformMatrixZone(zone, zoneSeats) {
+    if (!zone || zone.layout !== &#039;matrix&#039;) return false;
+    if (Array.isArray(zone.seats) &amp;&amp; zone.seats.length &gt; 0) return false;
+
+    const rows = Number(zone.rows || 4);
+    const cols = Number(zone.cols || 8);
+    if (!Array.isArray(zoneSeats) || zoneSeats.length !== rows * cols) return false;
+
+    const seatMap = new Map(zoneSeats.map(s =&gt; [s.label, s]));
+    if (seatMap.size !== zoneSeats.length) return false;
+
+    const rowLetters = &#039;ABCDEFGHIJKLMNOPQRSTUVWXYZ&#039;;
+    const originX =
+      zone.originX !== undefined
+        ? Number(zone.originX)
+        : getCenteredOriginX(cols, State.logicalWidth);
+    const originY = zone.originY !== undefined ? Number(zone.originY) : 96;
+    const zonePrice = Number(zone.price !== undefined ? zone.price : 1000);
+    const zoneColor = String(zone.color || &#039;#1D56CF&#039;).trim().toLowerCase();
+
+    for (let r = 0; r &lt; rows; r++) {
+      const rowLetter = rowLetters[r] || `R${r + 1}`;
+      for (let c = 1; c &lt;= cols; c++) {
+        const seat = seatMap.get(`${rowLetter}${c}`);
+        const expectedX = originX + (c - 1) * GRID_PITCH;
+        const expectedY = originY + r * GRID_PITCH;
+        if (!isMatrixSeatMatch(seat, expectedX, expectedY, zonePrice, zoneColor)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  function syncRoundsFromDom() {
+    const roundCards = document.querySelectorAll(&#039;#rounds-list .round-card-item&#039;);
+    if (roundCards.length === 0 || !Array.isArray(State.eventData.rounds)) return;
+
+    roundCards.forEach((card) =&gt; {
+      const idx = Number(card.dataset.index);
+      const round = State.eventData.rounds[idx];
+      if (!round) return;
+      const dateField = card.querySelector(&#039;.round-date-input&#039;);
+      const timeField = card.querySelector(&#039;.round-time-input&#039;);
+      if (dateField) round.date = dateField.value;
+      if (timeField &amp;&amp; timeField.value) round.time = timeField.value;
+    });
+
+    if (State.eventData.rounds[0]) {
+      State.eventData.showTime = State.eventData.rounds[0].time || State.eventData.showTime || &#039;19:00&#039;;
+      syncFirstRoundHiddenInputs(State.eventData.rounds[0], State.eventData.showTime);
+    }
+  }
+
   // -------------------------------------------------------------------------
   // 18. Form Payload Serialization &amp; Submission Pipeline
   // -------------------------------------------------------------------------
@@ -2199,6 +2409,8 @@
     form.addEventListener(&#039;submit&#039;, async (e) =&gt; {
       e.preventDefault();
 
+      syncRoundsFromDom();
+
       const title = (getEl([&#039;event-title&#039;]) || {}).value.trim();
       const category = (getEl([&#039;event-category&#039;]) || {}).value || &#039;Concert&#039;;
       const venue = (getEl([&#039;event-venue&#039;]) || {}).value.trim();
@@ -2212,8 +2424,25 @@
       const galleryUrls = galleryVal ? galleryVal.split(&#039;,&#039;).map(s =&gt; s.trim()).filter(Boolean) : [];
       const isFeatured = !!(getEl([&#039;event-featured&#039;]) || {}).checked;
 
-      const saleStartDate = (getEl([&#039;event-sale-start&#039;]) || {}).value || null;
-      const saleEndDate = (getEl([&#039;event-sale-end&#039;]) || {}).value || null;
+      const saleStartValue = (getEl([&#039;event-sale-start&#039;]) || {}).value || &#039;&#039;;
+      const saleEndValue = (getEl([&#039;event-sale-end&#039;]) || {}).value || &#039;&#039;;
+      if (Boolean(saleStartValue) !== Boolean(saleEndValue)) {
+        showToast(&#039;Both sale start and sale end must be set&#039;, &#039;error&#039;);
+        return;
+      }
+
+      const saleStartDate = saleStartValue ? new Date(saleStartValue) : null;
+      const saleEndDate = saleEndValue ? new Date(saleEndValue) : null;
+      if (
+        (saleStartDate &amp;&amp; !Number.isFinite(saleStartDate.getTime())) ||
+        (saleEndDate &amp;&amp; !Number.isFinite(saleEndDate.getTime())) ||
+        (saleStartDate &amp;&amp; saleEndDate &amp;&amp; saleStartDate &gt; saleEndDate)
+      ) {
+        showToast(&#039;Sale start must be before or equal to sale end&#039;, &#039;error&#039;);
+        return;
+      }
+      const saleStartAt = saleStartDate ? saleStartDate.toISOString() : null;
+      const saleEndAt = saleEndDate ? saleEndDate.toISOString() : null;
       const gateOpenTime = ((getEl([&#039;event-gate-time&#039;]) || {}).value || &#039;&#039;).trim() || &#039;17:30&#039;;
 
       const dateVal = (getEl([&#039;event-date&#039;]) || {}).value;
@@ -2276,14 +2505,14 @@
         }
 
         const zoneSeats = State.seats.filter(s =&gt; s.zoneId === z.id);
-        const isMatrixMode = z.layout === &#039;matrix&#039; &amp;&amp; (!Array.isArray(z.seats) || z.seats.length === 0);
+        const isMatrixMode = isUniformMatrixZone(z, zoneSeats);
 
         return {
           id: z.id,
           name: z.name,
           color: z.color || &#039;#1D56CF&#039;,
           price: Number(z.price !== undefined ? z.price : 1000),
-          layout: isMatrixMode ? &#039;matrix&#039; : (z.layout || (zoneSeats.length &gt; 0 ? &#039;custom&#039; : &#039;matrix&#039;)),
+          layout: isMatrixMode ? &#039;matrix&#039; : &#039;custom&#039;,
           rows: Number(z.rows || 4),
           cols: Number(z.cols || 8),
           originX: Number(z.originX !== undefined ? z.originX : getCenteredOriginX(z.cols || 8, State.logicalWidth)),
@@ -2312,6 +2541,8 @@
         }
       }
 
+      const showTime = (rounds[0] &amp;&amp; rounds[0].time) || timeVal;
+
       const payload = {
         title,
         category,
@@ -2325,9 +2556,9 @@
         galleryUrls,
         isFeatured,
         gateOpenTime,
-        showTime: timeVal,
-        saleStartDate,
-        saleEndDate,
+        showTime,
+        saleStartAt,
+        saleEndAt,
         rounds,
         zones: zonesPayload
       };
@@ -2430,6 +2661,12 @@
     updateRound: (idx, field, val) =&gt; {
       if (State.eventData.rounds[idx]) {
         State.eventData.rounds[idx][field] = val;
+        if (idx === 0) {
+          if (field === &#039;time&#039; &amp;&amp; val) {
+            State.eventData.showTime = val;
+          }
+          syncFirstRoundHiddenInputs(State.eventData.rounds[0], State.eventData.showTime || &#039;19:00&#039;);
+        }
       }
     }
   };
@@ -2446,10 +2683,10 @@
 
 <script type="text/html" id="complexity-popover-template">
   <div class="complexity-notice">
-    Complexity : {{ complexity.cyclomatic }} <br>
-    Length : {{ complexity.halstead.length }} <br>
-    Difficulty : {{ complexity.halstead.difficulty.toFixed(2) }} <br>
-    Est # bugs : {{ complexity.halstead.bugs.toFixed(2) }}<br>
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
   </div>
 </script>
 
