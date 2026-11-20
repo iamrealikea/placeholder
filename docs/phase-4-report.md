@@ -1,0 +1,206 @@
+# Phase 4 Report — Final Product, UI Testing, Profiling Comparison & CI/CD
+## โครงการ: Ticket Platform Web Application (TicketHub)
+
+> **อ้างอิงรายชื่อสมาชิกกลุ่มและรายงานเฟสก่อนหน้า (References):**
+> * **รายชื่อสมาชิกกลุ่ม, Phase 1 (Requirements, TOR, Backlogs):** [`README.md`](../README.md), [`TOR.md`](../TOR.md)
+> * **Phase 2 (Initial Design, Figma Prototype, Architecture/Use Case Diagrams):** [`docs/phase-2-report.md`](./phase-2-report.md)
+> * **Phase 3 (MVC Implementation, 37 Unit Tests, 97.89% Model Coverage & Profiling Baseline):** [`docs/phase-3-report.md`](./phase-3-report.md)
+
+---
+
+## 1. สถานะความสมบูรณ์ของเว็บไซต์ (Final Website Status & Bug Assessment)
+
+ระบบ **TicketHub** พัฒนาเสร็จสมบูรณ์ครบทั้ง 12 หน้าจอและ 50 HTTP Endpoints รองรับข้อกำหนดทั้งหมด (`FR-01`–`FR-50`, `NFR-01`–`NFR-17`, `UI-01`–`UI-13`) และผ่านการทดสอบอัตโนมัติครบทุกชั้นรวม **131 Automated Checks (0 Failures)**:
+* **Unit Tests (`npm test`):** 25 Data Structure + 12 Other Classes = **37 / 37 PASS**
+* **REST API E2E Integration Tests (`npm test`):** **35 / 35 PASS**
+* **Adversarial Security & Concurrency Harness (`node tests/adversarial-harness.js`):** **44 / 44 PASS**
+* **Playwright Browser UI Tests (`npm run test:ui`):** **15 / 15 PASS** (Zero JS `pageerror`, Zero HTTP 5xx, Zero horizontal overflow)
+
+**ข้อจำกัดที่ขึ้นอยู่กับสภาพแวดล้อมภายนอก (ไม่นับเป็น Bug ของระบบ):**
+* การส่งอีเมลจริง (`FR-35`) และ OAuth Login (`Google` / `Facebook`) ต้องกำหนดค่า Credentials (`SMTP_*`, `GOOGLE_CLIENT_ID`, `FACEBOOK_APP_ID`) ในไฟล์ `.env` บนเซิร์ฟเวอร์จริง หากไม่ได้กำหนด ระบบจะจัดการสถานะอย่างปลอดภัย (`NOT_CONFIGURED` / `503`) โดยไม่เกิด Error หรือ Crash
+
+---
+
+## 2. สรุปข้อมูลเดิมจาก Phase 1, Phase 2 และ Phase 3 (Executive Reference)
+
+* **Phase 1 ([`README.md`](../README.md)):** เก็บความต้องการจากผู้ใช้งานจริงนอกกลุ่ม วิเคราะห์ปัญหา Double Booking และบัตรผี จัดทำ `FR-01`–`FR-49`, `NFR-01`–`NFR-17`, `UI-01`–`UI-13`, เอกสาร [`TOR.md`](../TOR.md) และ GitHub Backlogs
+* **Phase 2 ([`docs/phase-2-report.md`](./phase-2-report.md)):** เพิ่ม `FR-50` (ระบุชื่อผู้ถือบัตร), ออกแบบ Figma UI Prototype, แผนภาพ Architecture Design & Use Case ด้วย Mermaid และกำหนดมาตรฐาน Scrum / Git Branch / Commit Convention
+* **Phase 3 ([`docs/phase-3-report.md`](./phase-3-report.md)):** พัฒนาระบบ MVC สมบูรณ์บน Node.js/Express + `JsonStore`, สร้างชุดทดสอบ Unit/E2E/Adversarial, วัด Statement Coverage ของ `src/models/*` ได้เฉลี่ย **97.89%** (ทุกไฟล์ >= 80%) และเก็บผล Baseline Static & Dynamic Profiling
+
+---
+
+## 3. ภาพหน้าจอของเว็บไซต์ (Website Screenshots)
+
+ระบบเว็บแอปพลิเคชันทั้งหมด 12 หน้าใน `public/` พัฒนาตาม Design System (`Lato`, Oat Milk `#FDF9F2`, Monday Blue `#1D56CF`, Candy Apple Red `#FF0800`) และผ่านการตรวจจับภาพและ Layout บน Desktop (`1280x800`) และ Mobile (`390x844`):
+
+* **ต้นแบบการออกแบบ UI (Figma Prototype):** [`screenshot/design-prototype.png`](../screenshot/design-prototype.png)
+  <img width="1201" height="620" alt="TicketHub Design Prototype" src="https://github.com/user-attachments/assets/1be8cfba-502c-4a27-b71d-18859b639d65" />
+* **รายการหน้าจอสำคัญของระบบจริง (Live Web Pages บน Local / AWS Elastic Beanstalk):**
+  1. **หน้าหลักและค้นหากิจกรรม (`/home` — `public/index.html`):** พื้นหลัง Oat Milk `#FDF9F2`, แถบค้นหา, ตัวกรองจังหวัด/ราคา, การ์ด Popular Event พร้อมปุ่ม CTA สี Candy Apple Red `#FF0800`
+  2. **หน้ารายละเอียดกิจกรรม (`/event?id=evt-1` — `public/event.html`):** โปสเตอร์งาน, รายละเอียดรอบแสดง, จำนวนที่นั่งว่างรายโซนแบบ Real-time และปุ่ม `Buy Now`
+  3. **หน้าผังที่นั่ง Interactive (`/booking?eventId=evt-1` — `public/booking.html`):** ธีม Monday Blue `#1D56CF`, แท็บเลือกโซน, ผังที่นั่งแยกสถานะว่าง/จองแล้ว (`✕`)/กำลังเลือก (`✓`) พร้อมสรุปราคาและค่าธรรมเนียม
+  4. **หน้าชำระเงิน 4 ขั้นตอน (`/checkout` — `public/checkout.html`):** นับถอยหลังล็อกที่นั่ง `10:00`, ช่องใส่โค้ดส่วนลด (`TICKETHUB10`), แลกคะแนนสะสม และจำลองการชำระเงิน 6 ช่องทาง
+  5. **หน้าบัตรอิเล็กทรอนิกส์ (`/my-tickets` — `public/my-tickets.html`):** แสดงการ์ดตั๋วพร้อม QR Code PNG Base64, สถานะ `VALID`, และกระดิ่งแจ้งเตือน (`PAYMENT_SUCCESS`)
+  6. **หน้าสแกนตรวจบัตร (`/scanner` — `public/scanner.html`):** แสดงผล `ADMISSION GRANTED` เมื่อสแกนครั้งแรก และกล่องแจ้งเตือนสีแดง `DUPLICATE SCAN DETECTED` เมื่อสแกนซ้ำ
+  7. **หน้าแผงควบคุมผู้ดูแลระบบ (`/admin` — `public/admin.html`):** แสดง KPI ยอดขาย, กราฟรายเดือน 12 เดือน, แท็บจัดการ Role (ป้องกันลดสิทธิ์ตัวเอง), ตอบกลับ Support และสร้าง/กู้คืน Backup
+
+---
+
+## 4. UI Test Cases จำนวน 5 กรณีทดสอบ (Playwright Automated UI Testing)
+
+ใน Phase 4 ทีมได้เพิ่มชุดทดสอบ **Playwright E2E Browser UI Tests** (`@playwright/test` v1.65.1) รันผ่านคำสั่ง `npm run test:ui` บน Chrome จริงเชื่อมต่อกับ Isolated Test Server (`tests/ui/start-test-server.js`) รวม **15 automated specs (ผ่านครบ 15/15)**
+
+ด้านล่างคือ **5 UI Test Cases หลัก** ที่มีการตรวจสอบค่า **Expected Results (`expect(...)` assertions)** อย่างชัดเจนครบทุกกรณีทดสอบ:
+
+| รหัส | ชื่อ UI Test Case & ไฟล์อ้างอิง | ขั้นตอนการทดสอบ (Test Steps) | การตรวจสอบค่าที่คาดหวัง (Expected Results & Assertions) | สถานะ |
+| :---: | :--- | :--- | :--- | :---: |
+| **UI-TC-01** | **Design Tokens, Brand Palette & Event Filter Reset**<br>(`tests/ui/home-auth.spec.js`) | 1. เปิดหน้า `/home`<br>2. อ่านค่า CSS `getComputedStyle` ของ `body`, `.brand-pill`, `#heroBanner .btn-pill-red`<br>3. กรอกคำค้น `'Forza'` ใน `#searchInput`, เลือกจังหวัด `'Nonthaburi'`, เรียงราคา `'price_asc'`<br>4. กดปุ่ม `#resetFilters` | - `fontFamily` ต้องมี `'Lato'`<br>- `bodyBg === 'rgb(253, 249, 242)'` (`#FDF9F2` Oat Milk)<br>- `brandBg === 'rgb(29, 86, 207)'` (`#1D56CF` Monday Blue)<br>- `ctaBg === 'rgb(255, 8, 0)'` (`#FF0800` Candy Apple Red)<br>- `#popularContainer` ต้องมีข้อความ `'Forza Horizon'`<br>- หลังรีเซ็ต: `#searchInput` และ `#provinceFilter` มีค่า `''` และจำนวนการ์ดเท่ากับ `initialCount` | **PASS** |
+| **UI-TC-02** | **Auth Modal Validation, Login State & Zero `passwordHash` Leak**<br>(`tests/ui/home-auth.spec.js`) | 1. เปิด Auth Modal และล็อกอินด้วย `user@ticket.com` + รหัสผ่านผิด `'wrong-password'`<br>2. ล็อกอินอีกครั้งด้วยรหัสผ่านที่ถูกต้อง `'password123'`<br>3. ตรวจสอบ DOM, `localStorage` และ `window.Auth.currentUser` | - กรณีรหัสผิด: `#authAlert` ต้องแสดง (`toBeVisible`) และมีข้อความตรง `/invalid/i`<br>- กรณีรหัสถูก: `#authModal` ต้องซ่อน (`toBeHidden`), `.avatar-pill` แสดง `'CH'`<br>- `localStorage.getItem('tickethub_token').length > 10`<br>- `window.Auth.currentUser.email === 'user@ticket.com'`<br>- ไม่พบ `'passwordHash'` ใน `localStorage` และ `window.Auth.currentUser` (`hasPasswordHash === false`) | **PASS** |
+| **UI-TC-03** | **End-to-End Seat Selection, 4-Step Checkout, Promo, Payment Retry & QR E-Ticket**<br>(`tests/ui/booking-checkout.spec.js`) | 1. ล็อกอินลูกค้า เข้า `/event?id=evt-1` กด `#buyNowBtn`<br>2. เลือกที่นั่งว่าง 2 ที่นั่ง สลับแท็บโซนแล้วกด `#proceedCheckoutBtn`<br>3. ขั้น 2 ใช้โค้ด `'TICKETHUB10'`<br>4. ขั้น 3 กด `#simulateFailBtn` -> กด `#retryGatewayBtn` -> กด `#confirmPaymentBtn`<br>5. เปิดหน้า `/my-tickets`, เปิดแจ้งเตือน และส่งคำร้องหน้า `/support` | - `#eventTitle` เท่ากับ `'Forza Horizon Somethings Live Festival'` และ URL เปลี่ยนเป็น `/booking?eventId=evt-1`<br>- `.seat.available` และ `.seat.booked` แสดงผล; หลังเลือก 2 ที่นั่ง `.seat.selected` มี count = `2`, `#summarySeatCount` = `'2'`, `#summaryTotal` = `(price1 + price2 + 80).toLocaleString() + ' THB'`<br>- หน้า Checkout: `#countdownTimer` ตรง `/^\d{2}:\d{2}$/`, `#breakdownDiscountRow` แสดงผล<br>- หลังจำลองจ่ายล้มเหลว: `#paymentErrorActions` แสดง; หลังจ่ายสำเร็จ: `#paymentStatusTitle` = `'Payment Successful'`<br>- หน้า My Tickets: `#ticketStatusBadge` = `'VALID'`, `#ticketCode` ตรง `/^TKT-/`, `#ticketQrImage[src]` ตรง `/^data:image\/png;base64,/`<br>- `.notification-badge` แสดงผล และ `#myInquiriesContainer` มี `'Playwright E2E Seat Help'` | **PASS** |
+| **UI-TC-04** | **RBAC UI Guards & Staff Gate Scanner Anti-Reuse Fraud Alert**<br>(`tests/ui/rbac-scanner-admin.spec.js`) | 1. ล็อกอินบัญชี `customer` แล้วลองเข้าหน้า `/scanner` และ `/admin`<br>2. ล็อกอินบัญชี `staff@ticket.com` เข้าหน้า `/scanner`<br>3. กรอกรหัสตั๋วใหม่ใน `#manualTicketCode` แล้วกด `#validateCodeBtn` ครั้งที่ 1<br>4. กรอกรหัสตั๋วเดิมแล้วกด `#validateCodeBtn` ซ้ำครั้งที่ 2 | - บัญชี Customer: `#scannerGuard` และ `#admin-guard` ต้องแสดง (`toBeVisible`) ส่วน `#scannerContent` และ `#admin-content` ต้องซ่อน (`toBeHidden`)<br>- บัญชี Staff สแกนครั้งที่ 1: `#scanResultArea` ต้องมีข้อความ `'ADMISSION GRANTED'` และ `'CHECKED_IN'`<br>- บัญชี Staff สแกนซ้ำครั้งที่ 2: `.fraud-warning-alert` ต้องแสดง (`toBeVisible`) และ `#scanResultArea` ต้องมีข้อความ `'DUPLICATE SCAN DETECTED'` | **PASS** |
+| **UI-TC-05** | **Admin Portal Anti-Self-Demotion, Support Resolution & Multi-Viewport Responsive Integrity**<br>(`tests/ui/rbac-scanner-admin.spec.js`, `tests/ui/responsive-a11y.spec.js`) | 1. ล็อกอิน `admin@ticket.com` เข้า `/admin` ตรวจ KPI<br>2. เข้าแท็บ `roles` ลองเปลี่ยน role ของ `usr-admin-1` เป็น `customer`<br>3. เข้าแท็บ `support` กดตอบกลับคำร้องด้วย `'Resolved via Playwright E2E'`<br>4. ทดสอบเปิด 4 หน้า (`/home`, `/event?id=evt-1`, `/booking?eventId=evt-1`, `/support`) บน Desktop `1280x800` และ Mobile `390x844` | - `#admin-content` แสดงผล และ `#kpi-revenue` ไม่เท่ากับ `'0 THB'`<br>- พยายามลดสิทธิ์ตัวเอง: `dialog.th-popup-dialog` แจ้ง `/Cannot demote your own/i` และ dropdown คงค่า `'admin'`<br>- หลังตอบกลับ Support: `#admin-support-table-body` มีสถานะ `'RESOLVED'`<br>- Responsive ทั้ง 8 Viewport-Route pairs: `pageErrors` เท่ากับ `[]`, `apiServerErrors` (HTTP 5xx) เท่ากับ `[]`, Desktop `scrollWidth <= innerWidth + 1` และ Mobile `mainBox.width <= 391` | **PASS** |
+
+### ตัวอย่างโค้ด Playwright UI Test พร้อมการตรวจสอบ Expected Results
+จากไฟล์ `tests/ui/rbac-scanner-admin.spec.js`:
+
+```javascript
+test('staff validates ticket once on /scanner and sees duplicate scan fraud alert on reuse', async ({ page }) => {
+  await page.goto('/home');
+  await loginViaModal(page, 'staff@ticket.com', 'staff123');
+  await expect(page.locator('#authModal')).toBeHidden();
+
+  await page.goto('/scanner');
+  await expect(page.locator('#scannerContent')).toBeVisible();
+
+  // สแกนครั้งที่ 1: ต้องเช็กอินผ่านและขึ้น ADMISSION GRANTED + CHECKED_IN
+  await page.locator('#manualTicketCode').fill(freshTicketCode);
+  await page.locator('#validateCodeBtn').click();
+  await expect(page.locator('#scanResultArea')).toContainText('ADMISSION GRANTED');
+  await expect(page.locator('#scanResultArea')).toContainText('CHECKED_IN');
+
+  // สแกนครั้งที่ 2 ด้วยรหัสเดิม: ต้องแสดงกล่องแจ้งเตือนทุจริต FR-31
+  await page.locator('#manualTicketCode').fill(freshTicketCode);
+  await page.locator('#validateCodeBtn').click();
+  await expect(page.locator('#scanResultArea .fraud-warning-alert')).toBeVisible();
+  await expect(page.locator('#scanResultArea')).toContainText('DUPLICATE SCAN DETECTED');
+});
+```
+
+---
+
+## 5. ผลการทำ Profiling (Static Profiling และ Dynamic Profiling) เปรียบเทียบกับ Phase 3
+
+### 5.1 การเปรียบเทียบ Static Profiling (Phase 3 vs. Phase 4)
+ใน Phase 4 โค้ดชั้น `src/models/*` และ `src/store/jsonStore.js` ไม่มีการเปลี่ยนแปลงตรรกะภายใน (เพื่อรักษาความเสถียร 100% ระหว่างเพิ่ม UI Tests และ CI/CD) ดังนั้นผลจาก Custom Script (`tests/profiling/run-profiling.js`) จึงคงเดิมทุกไฟล์ แต่ใน Phase 4 ทีมได้**ยกระดับการวัด Static Profiling ด้วยเครื่องมือมาตรฐานอุตสาหกรรม 2 ตัว** ได้แก่ **Plato** (AST-based Complexity & Maintainability Analyzer — `reports/report.json`) และ **ESLint v9** (`eslint.config.mjs`, `reports/eslint-report.json`) เพื่อตรวจสอบความแม่นยำเทียบกับค่าประมาณจาก Phase 3:
+
+| ไฟล์ (File) | Phase 3: Custom Script<br>SLOC / V(G) / Vol / MI | Phase 4: Custom Script<br>SLOC / V(G) / Vol / MI | Phase 4: Plato AST Analyzer<br>Logical SLOC / V(G) / Vol / Est. Bugs / MI | ผลการเปรียบเทียบ & ข้อวิเคราะห์ |
+| :--- | :---: | :---: | :---: | :--- |
+| `src/models/user.model.js` | 111 / 57 / 8,140.1 / 20.33 | 111 / 57 / 8,140.1 / 20.33 | 93 / 57 / 5,951.4 / 1.984 / **70.74** | `V(G) = 57` ตรงกันทั้งสองเครื่องมือ; Plato ให้ MI ปกติ (70.74) |
+| `src/models/event.model.js` | 261 / 143 / 18,931.8 / 0.00 | 261 / 143 / 18,931.8 / 0.00 | 175 / 142 / 13,695.4 / 4.565 / **67.29** | `V(G)` ใกล้เคียงมาก (143 vs 142); ยืนยันว่าเป็นไฟล์ที่ซับซ้อนที่สุด |
+| `src/models/category.model.js` | 27 / 5 / 1,241.9 / 46.44 | 27 / 5 / 1,241.9 / 46.44 | 20 / 5 / 861.4 / 0.287 / **77.69** | `V(G) = 5` ตรงกัน; โครงสร้างเรียบง่าย ดูแลรักษาง่ายมาก |
+| `src/models/seat.model.js` | 198 / 67 / 10,980.7 / 12.60 | 198 / 67 / 10,980.7 / 12.60 | 160 / 58 / 7,282.2 / 2.427 / **66.33** | Plato แยก AST ได้แม่นยำกว่า (`V(G)` 58 vs 67); MI ต่ำสุดใน Models |
+| `src/models/booking.model.js` | 79 / 10 / 4,232.8 / 31.87 | 79 / 10 / 4,232.8 / 31.87 | 61 / 10 / 3,092.7 / 1.031 / **77.62** | `V(G) = 10` ตรงกัน 100%; Maintainability สูง |
+| `src/models/payment.model.js` | 42 / 3 / 1,524.3 / 41.90 | 42 / 3 / 1,524.3 / 41.90 | 35 / 3 / 1,150.3 / 0.383 / **73.53** | `V(G) = 3` ตรงกัน 100%; ความเสี่ยงบั๊กต่ำมาก (`0.383`) |
+| `src/models/ticket.model.js` | 97 / 13 / 4,561.2 / 29.29 | 97 / 13 / 4,561.2 / 29.29 | 74 / 11 / 3,453.4 / 1.151 / **69.47** | `V(G)` ใกล้เคียง (13 vs 11); ความซับซ้อนอยู่ในเกณฑ์ดี |
+| `src/models/promotion.model.js` | 12 / 4 / 432.4 / 57.46 | 12 / 4 / 432.4 / 57.46 | 8 / 4 / 282.4 / 0.094 / **81.79** | `V(G) = 4` ตรงกัน; ค่า MI สูงที่สุดในกลุ่ม Models |
+| `src/models/notification.model.js` | 60 / 15 / 2,724.8 / 35.14 | 60 / 15 / 2,724.8 / 35.14 | 23 / 5 / 1,049.7 / 0.350 / **76.43** | Plato ไม่นับ optional chaining เป็น branch เพิ่ม ทำให้ `V(G) = 5` |
+| `src/models/support.model.js` | 40 / 2 / 1,909.1 / 41.81 | 40 / 2 / 1,909.1 / 41.81 | 33 / 2 / 1,334.5 / 0.445 / **75.83** | `V(G) = 2` ตรงกัน 100%; ดูแลรักษาง่าย |
+| `src/store/jsonStore.js` | 251 / 46 / 13,433.9 / 12.56 | 251 / 46 / 13,433.9 / 12.56 | 173 / 33 / 8,722.7 / 2.908 / **68.47** | Plato แยก AST `V(G) = 33`, MI = 68.47 |
+
+* **สรุปผล Static Analysis ภาพรวมทั้งโปรเจกต์ใน Phase 4:**
+  * **Plato Whole-Repo Summary (51 JS files):** SLOC รวม `10,899` บรรทัด (เฉลี่ย `214` บรรทัด/ไฟล์), ค่าเฉลี่ย **Maintainability Index = `66.18`** (อยู่ในเกณฑ์ปานกลางถึงดี)
+  * **ESLint Static Audit (60 JS files):** ตรวจพบคำเตือนกฎ `complexity > 10` จำนวน `90` จุด, `no-unused-vars` `34` จุด, `no-useless-assignment` `4` จุด, `no-empty` `2` จุด และ `no-undef` `251` จุด (ส่วนใหญ่เกิดจากไฟล์ Frontend ใน `public/js/` ที่อ้างอิง Global Helper ข้ามไฟล์ `<script>` เช่น `API`, `Auth`, `showPopup`)
+
+### 5.2 การเปรียบเทียบ Dynamic Profiling (Phase 3 vs. Phase 4 — Structural / Instrumenting Method)
+ตารางเปรียบเทียบผลจากการรัน `npm run test:profile` (Workload เดียวกันครบวงจรตั้งแต่ Reset Seed -> จอง/ล็อกที่นั่ง -> ชำระเงิน -> ออก QR -> สแกนเข้างาน -> ยกเลิก/คืนเงิน -> Backup/Restore) ระหว่าง Phase 3 และ Phase 4:
+
+| ลำดับ | Function / Method | Call Count<br>(P3 / P4) | Phase 3 Inclusive / Exclusive (ms) | Phase 4 Inclusive / Exclusive (ms) | ผลต่าง Inclusive (ms) | วิเคราะห์พฤติกรรม (Comparison Analysis) |
+| :---: | :--- | :---: | :---: | :---: | :---: | :--- |
+| 1 | `JsonStore.save` | 42 / 42 | 64.998 / 53.139 | 148.116 / 114.898 | +83.118 | **คอขวดหลักอันดับ 1:** ถูกเรียก 42 ครั้งเท่าเดิม ความผันผวนของเวลาเกิดจาก Synchronous Disk I/O (`writeFileSync` + `renameSync`) ของ OS ในแต่ละรอบการทดสอบ |
+| 2 | `JsonStore.resetWithSeed` | 1 / 1 | 90.231 / 74.879 | 144.678 / 101.493 | +54.447 | ทำงานครั้งเดียวตอนตั้งต้น (คำนวณ Bcrypt hash + เขียนไฟล์เริ่มต้น 10 คอลเล็กชัน) |
+| 3 | `TicketModel.issueForBooking` | 1 / 1 | 50.634 / 47.704 | 84.446 / 78.424 | +33.812 | **คอขวดด้าน CPU:** สร้างภาพ PNG QR Code ด้วย `qrcode.toDataURL` สำหรับตั๋ว 2 ใบ |
+| 4 | `JsonStore.restoreBackup` | 1 / 1 | 31.397 / 17.910 | 39.575 / 13.851 | +8.178 | อ่าน Snapshot JSON และเขียนทับ 10 คอลเล็กชันกลับลงดิสก์ |
+| 5 | `JsonStore.ensureDirs` | 43 / 43 | 10.913 / 10.913 | 32.070 / 32.070 | +21.157 | ถูกเรียกซ้ำ 43 ครั้งทุกครั้งที่ `save()` (ตรวจ `fs.existsSync` ซ้ำซ้อน) |
+| 6 | `JsonStore.insert` | 8 / 8 | 12.449 / 0.207 | 26.025 / 0.306 | +13.576 | Exclusive time ต่ำมาก (~0.2–0.3 ms); เวลาเกือบทั้งหมดมาจาก `save()` |
+| 7 | `JsonStore.update` | 7 / 7 | 10.772 / 0.227 | 20.833 / 0.376 | +10.061 | Exclusive time < 0.4 ms; เวลาส่วนใหญ่คือการบันทึกลงดิสก์ |
+| 8 | `CategoryModel.findAll` | 1 / 1 | 10.255 / 10.242 | 18.751 / 18.741 | +8.496 | ใช้ `localeCompare` เรียงชื่อหมวดหมู่ครั้งแรก (Cold start ของ Intl collator) |
+| 9 | `SeatModel.holdSeats` | 1 / 1 | 3.012 / 0.072 | 5.267 / 0.134 | +2.255 | **ตรรกะล็อกที่นั่งเร็วมาก:** Exclusive runtime เพียง `0.072–0.134 ms` |
+| 10 | `BookingModel.createPending` | 1 / 1 | 2.520 / 0.639 | 3.341 / 0.430 | +0.821 | Exclusive runtime ลดลงเหลือ `0.430 ms` (คงที่ต่ำกว่า 1 ms) |
+| 11 | `SeatModel.generateForEvent` | 1 / 1 | 2.023 / 0.132 | 5.723 / 0.233 | +3.700 | สร้างผังที่นั่งทั้งหมดในหน่วยความจำใช้ Exclusive time เพียง `~0.2 ms` |
+| 12 | `SeatModel.markBooked` | 1 / 1 | 2.031 / 0.047 | 3.887 / 0.084 | +1.856 | Exclusive runtime ต่ำกว่า `0.1 ms` |
+
+* **ข้อสรุปจากการเทียบ Dynamic Profiling (Phase 3 vs. Phase 4):**
+  * จำนวนการเรียกฟังก์ชัน (`Call Count`) และลำดับความสำคัญของคอขวด **สอดคล้องกันทั้ง 2 เฟส**: ตรรกะธุรกิจใน Memory (`SeatModel`, `BookingModel`, `UserModel`) ทำงานได้เร็วมากระดับ **Sub-millisecond (`0.04–0.43 ms` Exclusive)**
+  * ความแตกต่างของเวลา Inclusive รวม (`225.7 ms` ใน Phase 3 เทียบกับ `382.3 ms` ใน Phase 4) มาจากความผันผวนของระบบไฟล์ OS (`fs.writeFileSync` + `fs.existsSync`) ซึ่งตอกย้ำว่าแนวทางเร่งความเร็วที่คุ้มค่าที่สุดสำหรับ Production Scale คือการแคช `ensureDirs()` ไว้ครั้งเดียวตอนเริ่มต้นระบบและการใช้ฐานข้อมูลจริง (PostgreSQL / Redis) แทนการเขียนไฟล์ JSON แบบ Synchronous
+
+---
+
+## 6. การทำ CI/CD สำหรับ Product (GitHub Actions & AWS Elastic Beanstalk)
+
+ระบบใช้ **GitHub Actions** (`.github/workflows/deploy-eb.yml`) ในการทดสอบและนำส่งโค้ดขึ้นเซิร์ฟเวอร์จริงแบบอัตโนมัติ (Continuous Integration & Continuous Deployment) เมื่อมีการ Push เข้า Branch `main` หรือสั่งรันผ่าน `workflow_dispatch`:
+
+```mermaid
+flowchart LR
+    PUSH_MAIN["Push to main / workflow_dispatch"] --> VERIFY["Job 1: test-and-verify (ubuntu-latest, Node 20)<br/>npm ci -> npm test (72) -> Adversarial (44) -> npm run seed"]
+    VERIFY -->|"All 116 Tests Pass"| DEPLOY["Job 2: deploy (needs: test-and-verify)<br/>Zip Bundle -> Upload AWS S3 -> Create App Version -> Update Elastic Beanstalk (TicketHub-env)"]
+```
+
+### ขั้นตอนการทำงานของ Pipeline (`.github/workflows/deploy-eb.yml`)
+1. **Job 1 — `test-and-verify` (Automated Test & Security Gate):**
+   * รันบน `ubuntu-latest` พร้อมติดตั้ง **Node.js 20** และแพ็กเกจด้วย `npm ci`
+   * รันชุดทดสอบ **Unit & E2E Integration Tests** (`npm test` จำนวน 72 ข้อ)
+   * รันชุดทดสอบ **Adversarial Auth & Concurrency Harness** (`node tests/adversarial-harness.js` จำนวน 44 ข้อ)
+   * รีเซ็ตข้อมูลเริ่มต้นให้สะอาดด้วย `npm run seed` — *หากการทดสอบข้อใดข้อหนึ่งล้มเหลว Pipeline จะหยุดทำงานทันทีและไม่ Deploy โค้ดที่มีบั๊กขึ้น Production*
+2. **Job 2 — `deploy` (`needs: test-and-verify`, environment: `aws-secret`):**
+   * เตรียมข้อมูล Seed เริ่มต้นและกำหนดสิทธิ์ execute ให้สคริปต์ `.platform/hooks/predeploy/01_persistent_storage.sh` เพื่อป้องกันข้อมูล JSON และไฟล์รูปอัปโหลดสูญหายเมื่อ Deploy เวอร์ชันใหม่
+   * บีบอัดไฟล์ที่จำเป็น (`server.js`, `package.json`, `package-lock.json`, `public/`, `src/`, `data/*.json`, `.ebextensions/`, `.platform/`) เป็นแพ็กเกจ `tickethub-v-<timestamp>-<sha>.zip` (ตัด `node_modules/`, `tests/`, `.git/`, `data/backups/` ออก)
+   * ตั้งค่า AWS Credentials จาก GitHub Secrets (`aws-secret`) อัปโหลดแพ็กเกจขึ้น **Amazon S3** (`aws s3 cp`)
+   * สร้าง Application Version ใหม่ (`aws elasticbeanstalk create-application-version`) และสั่งอัปเดตสภาพแวดล้อม **AWS Elastic Beanstalk (`TicketHub-env`)** ด้วยคำสั่ง `aws elasticbeanstalk update-environment` อัตโนมัติ
+
+---
+
+## 7. กระบวนการทำงานที่เพิ่มเติมจาก Phase 1, 2 และ 3 (Process, Methods, and Tools)
+
+เมื่อเทียบกับ Phase 1–3 ที่เน้นการเก็บ Requirement, ออกแบบ UI, พัฒนา MVC และเขียน Backend Unit Tests แล้ว ใน **Phase 4** ทีมได้ยกระดับกระบวนการทำงานเข้าสู่มาตรฐาน **Production-Grade Quality Engineering** ดังนี้:
+
+### 7.1 การบริหารจัดการโปรเจกต์ (Project & Branch Management)
+* **Branch Integration Workflow (`dev` / feature branch -> `main`):** แยก Branch พัฒนา (`dev` และ PR branch เช่น PR #56 `copilot/fix-package-deploy-actions-job`) ออกจากการปล่อยเวอร์ชันจริงบน `main` พร้อมตรวจสอบ Pull Request ก่อนทำการ Merge
+* **Dependency & Lockfile Governance:** บังคับให้ซิงค์ `package-lock.json` ทุกครั้งที่เพิ่มเครื่องมือใหม่ (เช่น commit `d548a58 Sync Playwright dependency lockfile`) เพื่อป้องกันความล้มเหลวของคำสั่ง `npm ci` บน GitHub Actions Runner
+
+### 7.2 การติดตามและตรวจสอบการ Build (Build & Deployment Monitoring)
+* **Automated Release Gate บน GitHub Actions (`.github/workflows/deploy-eb.yml`):** ตรวจสอบสถานะการ Build และผลทดสอบทั้ง 116 ข้อ (Unit/E2E 72 + Adversarial 44) ก่อนอนุญาตให้อัปโหลด Bundle ขึ้น Amazon S3 และอัปเดต **AWS Elastic Beanstalk (`TicketHub-env`)** พร้อมผูก Version Label เข้ากับ `github.sha` ทำให้สามารถติดตามและย้อนกลับ (Rollback) ได้ทุก Commit
+
+### 7.3 การจัดการบั๊กและการประกันคุณภาพ (Bug Management, UI Testing & Static Analysis Tools)
+* **Playwright End-to-End UI Automation (`@playwright/test` + `playwright.config.js`):**
+  * เพิ่มการทดสอบระดับเบราว์เซอร์จริง (Chromium/Chrome) ครอบคลุม 15 Test Cases บน Desktop และ Mobile
+  * ตั้งค่า **`screenshot: 'only-on-failure'`** และ **`trace: 'retain-on-failure'`** ช่วยให้เมื่อเกิด UI Bug ทีมสามารถเปิดดูภาพหน้าจอและ Time-travel Trace ณ วินาทีที่เกิด Error ได้ทันที
+  * ใช้ Isolated Test Server (`tests/ui/start-test-server.js`) ที่สร้าง `DATA_DIR` และ `UPLOAD_DIR` ชั่วคราวใน `os.tmpdir()` แล้วลบทิ้งหลังจบการทดสอบ ป้องกันข้อมูลทดสอบปนเปื้อนฐานข้อมูลหลัก
+* **ESLint v9 Flat Config (`eslint.config.mjs`):**
+  * ติดตั้งกฎ `js.configs.recommended` และ `complexity: ["warn", 10]` แยกสภาพแวดล้อมชัดเจนระหว่าง Node/CommonJS (`src/`, `server.js`, `tests/`) และ Browser Script (`public/js/`) พร้อมส่งออกผลเป็น JSON (`reports/eslint-report.json`) สำหรับติดตามแก้บั๊กและลด Technical Debt
+* **Plato Static Analysis Dashboard (`reports/index.html`):**
+  * ใช้เครื่องมือวิเคราะห์ AST สร้างรายงาน HTML เชิงโต้ตอบแสดงแนวโน้มค่า Maintainability Index, SLOC และ Cyclomatic Complexity รายไฟล์ทั้ง 51 ไฟล์ ช่วยชี้เป้าจุดเสี่ยงที่ควร Refactor ได้อย่างเป็นรูปธรรม
+
+---
+
+## 8. สรุปการประชุม Final Retrospective & ลิงก์นำเสนอผลงาน
+
+### 8.1 สรุปการประชุม Final Retrospective
+* **สิ่งที่ทำได้ดีตลอดทั้งโครงการ (Key Achievements):**
+  * ส่งมอบระบบ TicketHub ครบทั้ง 80 ข้อกำหนด (`FR-01`–`FR-50`, `NFR-01`–`NFR-17`, `UI-01`–`UI-13`) และผ่านชุดทดสอบอัตโนมัติครบทั้ง Backend, Security/Concurrency และ Browser UI (131/131 checks)
+  * วางระบบ CI/CD ผ่าน GitHub Actions (`deploy-eb.yml`) ขึ้นเซิร์ฟเวอร์จริงบน AWS Elastic Beanstalk ได้อย่างเสถียรพร้อมสคริปต์รักษา Persistent Storage
+* **ปัญหาและบทเรียนที่ได้รับ (Lessons Learned):**
+  * การจัดการ Concurrency Lock (`inFlightEmails`, `inFlightNids`, Atomic Seat Hold) และการเก็บไฟล์ถาวรบน Cloud (`.platform/hooks/predeploy/01_persistent_storage.sh`) เป็นหัวใจสำคัญที่ป้องกันข้อมูลเพี้ยนและสูญหายในระบบจริง
+  * การทำ Static/Dynamic Profiling ด้วย Plato, ESLint และ Structural Instrumentation ช่วยชี้เป้าคอขวด (`JsonStore.save`, `event.model.js`) ได้แม่นยำกว่าการคาดเดา
+* **แนวทางพัฒนาต่อยอดในอนาคต (Future Roadmap):**
+  * ย้ายชั้นจัดเก็บข้อมูลจาก `JsonStore` ไปยัง PostgreSQL + Redis TTL Lock และเพิ่ม WebSocket สำหรับอัปเดตผังที่นั่งแบบ Real-Time
+
+* **Final Retrospective YouTube Link:** `[TODO: Insert Final Retrospective YouTube Link]`
+
+### 8.2 ลิงก์วิดีโอนำเสนอและรายการเตรียมส่งงาน (Presentation & Submission)
+* **Presentation Video Link:** `[TODO: Insert Presentation Video Link]`
+* **Checklist สำหรับการนำเสนอ (Onsite Presentation):**
+  1. อธิบายกระบวนการทำงานและผลการเปรียบเทียบ Static/Dynamic Profiling (Phase 3 vs. Phase 4) ด้วยสไลด์
+  2. แสดงโครงสร้างโค้ดเว็บไซต์และ Test Code บน Git Repository พร้อมรันทดสอบสด (`npm test`, `node tests/adversarial-harness.js`, `npm run test:ui`, `npm run test:profile`)
+  3. แสดงการทำงานของ CI/CD Pipeline (`deploy-eb.yml`) บน GitHub Actions และ AWS Elastic Beanstalk
+  4. Demo การทำงานของเว็บไซต์จริงบน AWS (Discovery -> Booking Seat Matrix -> 4-Step Checkout -> E-Ticket QR -> Staff Gate Scanner -> Admin Dashboard)
+* **หมายเหตุการจัดเตรียมไฟล์ Zip ส่งงาน:** ไม่รวมโฟลเดอร์ `node_modules/` และโฟลเดอร์ `reports/` ที่สามารถสร้างใหม่ได้ตอนรันโปรแกรม
