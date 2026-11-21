@@ -37,13 +37,46 @@
 * **ต้นแบบการออกแบบ UI (Figma Prototype):** [`screenshot/design-prototype.png`](../screenshot/design-prototype.png)
   <img width="1201" height="620" alt="TicketHub Design Prototype" src="https://github.com/user-attachments/assets/1be8cfba-502c-4a27-b71d-18859b639d65" />
 * **รายการหน้าจอสำคัญของระบบจริง (Live Web Pages บน Local / AWS Elastic Beanstalk):**
-  1. **หน้าหลักและค้นหากิจกรรม (`/home` — `public/index.html`):** พื้นหลัง Oat Milk `#FDF9F2`, แถบค้นหา, ตัวกรองจังหวัด/ราคา, การ์ด Popular Event พร้อมปุ่ม CTA สี Candy Apple Red `#FF0800`
-  2. **หน้ารายละเอียดกิจกรรม (`/event?id=evt-1` — `public/event.html`):** โปสเตอร์งาน, รายละเอียดรอบแสดง, จำนวนที่นั่งว่างรายโซนแบบ Real-time และปุ่ม `Buy Now`
-  3. **หน้าผังที่นั่ง Interactive (`/booking?eventId=evt-1` — `public/booking.html`):** ธีม Monday Blue `#1D56CF`, แท็บเลือกโซน, ผังที่นั่งแยกสถานะว่าง/จองแล้ว (`✕`)/กำลังเลือก (`✓`) พร้อมสรุปราคาและค่าธรรมเนียม
-  4. **หน้าชำระเงิน 4 ขั้นตอน (`/checkout` — `public/checkout.html`):** นับถอยหลังล็อกที่นั่ง `10:00`, ช่องใส่โค้ดส่วนลด (`TICKETHUB10`), แลกคะแนนสะสม และจำลองการชำระเงิน 6 ช่องทาง
-  5. **หน้าบัตรอิเล็กทรอนิกส์ (`/my-tickets` — `public/my-tickets.html`):** แสดงการ์ดตั๋วพร้อม QR Code PNG Base64, สถานะ `VALID`, และกระดิ่งแจ้งเตือน (`PAYMENT_SUCCESS`)
-  6. **หน้าสแกนตรวจบัตร (`/scanner` — `public/scanner.html`):** แสดงผล `ADMISSION GRANTED` เมื่อสแกนครั้งแรก และกล่องแจ้งเตือนสีแดง `DUPLICATE SCAN DETECTED` เมื่อสแกนซ้ำ
-  7. **หน้าแผงควบคุมผู้ดูแลระบบ (`/admin` — `public/admin.html`):** แสดง KPI ยอดขาย, กราฟรายเดือน 12 เดือน, แท็บจัดการ Role (ป้องกันลดสิทธิ์ตัวเอง), ตอบกลับ Support และสร้าง/กู้คืน Backup
+  1. **หน้าหลักและค้นหากิจกรรม (`/home` — `public/index.html`):** พื้นหลัง Oat Milk `#FDF9F2`, แบนเนอร์ Feature Event, แถบค้นหาและตัวกรองหมวดหมู่/สถานะ/จังหวัด/เดือน, แถบ Popular Event พร้อมปุ่ม CTA สี Candy Apple Red `#FF0800` และแถบ Soon
+
+     ![TicketHub Home](../screenshot/TicketHub_home.png)
+
+  2. **หน้ารายการกิจกรรมทั้งหมด (`/event` — `public/events.html`):** แสดงการ์ดกิจกรรมทั้งหมด 6 รายการพร้อมป้ายสถานะ (`ON SALE`, `COMING SOON`, `SOLD OUT`), ตัวกรองหมวดหมู่/สถานะ/จังหวัด/วันที่ และตัวเลือก `On Sale Now`
+
+     ![TicketHub All Events](../screenshot/TicketHub_Event.png)
+
+  3. **หน้ารายละเอียดกิจกรรม (`/event?id=evt-2` — `public/event.html`):** แสดงแกลเลอรีภาพกิจกรรม (`Event #2 : fih Acoustic & Bass Arena Tour`), รอบการแสดง (`Available Show Rounds`), ราคาและจำนวนที่นั่งว่างรายโซนแบบ Real-time, ตัวอย่างผังที่นั่ง (`Seating Plan Preview`) และปุ่ม `Buy Now`
+
+     ![TicketHub Event Detail](../screenshot/TicketHub_Event_detail.png)
+
+  4. **หน้าผังที่นั่ง Interactive (`/booking?eventId=evt-1` — `public/booking.html`):** เฮดเดอร์ธีม Monday Blue `#1D56CF`, ตัวเลือกรอบแสดงและกรองโซน, ผังที่นั่งแยกสถานะว่าง (`UI-04`) / จองแล้ว (`✕`, `UI-05`) / กำลังเลือก (`✓`, `UI-06`) พร้อมแถบสรุปราคาและค่าธรรมเนียม `40 THB/seat`
+
+     ![TicketHub Interactive Seat Booking](../screenshot/TicketHub_booking_event.png)
+
+  5. **หน้าชำระเงิน ขั้นตอนที่ 1 — สรุปการจองและชื่อผู้ถือบัตร (`/checkout` — `public/checkout.html`):** แถบนับถอยหลังล็อกที่นั่ง `10:00` (`Seat Hold Lock Active`), ข้อมูลผู้จอง, ช่องระบุชื่อผู้ถือบัตรรายที่นั่ง (`FR-50`) และสรุปยอดก่อนส่วนลด
+
+     ![TicketHub Checkout Step 1 - Booking Summary](../screenshot/TicketHub_checkout.png)
+
+  6. **หน้าชำระเงิน ขั้นตอนที่ 2 — ช่องทางชำระเงินและส่วนลด (`/checkout` — `public/checkout.html`):** ช่องใส่โค้ดส่วนลด (`TICKETHUB10` / `WELCOME200`), การแลกคะแนนสะสม (`Loyalty Points`), ตัวเลือกการชำระเงิน 6 ช่องทาง (`PromptPay QR`, `Credit Card`, `Debit Card`, `KBank K PLUS`, `Krungthai NEXT`, `TrueMoney`) และยอดสุทธิหลังหักส่วนลด
+
+     ![TicketHub Checkout Step 2 - Payment Method & Discounts](../screenshot/TicketHub_Payment.png)
+
+  7. **หน้าบัตรอิเล็กทรอนิกส์และประวัติการจอง (`/my-tickets` — `public/my-tickets.html`):** แสดงการ์ดตั๋วพร้อม QR Code (`TKT-3BD8-A7-4011`), สถานะ `VALID`, รายการบัตรที่ซื้อ และตารางประวัติการจองพร้อมปุ่ม `View QR` / `Cancel & Refund`
+
+     ![TicketHub My Electronic Tickets](../screenshot/TicketHub_MyTicket.png)
+
+  8. **หน้าสแกนตรวจบัตรสำหรับเจ้าหน้าที่ — สแกนผ่านและแจ้งเตือนสแกนซ้ำ (`/admin` แท็บ Gate Admission Scanner / `/scanner` — `public/admin.html`, `public/scanner.html`):** สิทธิ์ `STAFF` แสดงผล `ADMISSION GRANTED` (`CHECKED_IN`) เมื่อสแกนครั้งแรก และกล่องแจ้งเตือนสีแดง `DUPLICATE SCAN DETECTED - ENTRY DENIED!` พร้อมตาราง `Session Scan Audit Log` เมื่อสแกนซ้ำ (`FR-31`)
+
+     ![TicketHub Staff Scanner - Admission Granted](../screenshot/TicketHub_ScannerPass.png)
+     ![TicketHub Staff Scanner - Duplicate Scan Alert](../screenshot/TicketHub_ScannerDuplicate.png)
+
+  9. **หน้าแผงควบคุมผู้ดูแลระบบ — ภาพรวมและสถิติยอดขาย (`/admin` แท็บ Overview & Analytics — `public/admin.html`):** สิทธิ์ `ADMIN` แสดง KPI ยอดขายรวม (`Total Revenue`), จำนวนบัตรที่ขาย/เช็กอิน, ที่นั่งว่าง/จองแล้ว และกราฟ `12-Month Sales & Ticket Distribution`
+
+     ![TicketHub Admin Overview & Analytics](../screenshot/TicketHub_AdminStats.png)
+
+  10. **หน้าแผงควบคุมผู้ดูแลระบบ — จัดการผู้ใช้และสิทธิ์ (`/admin` แท็บ User & Role Management — `public/admin.html`):** แสดงสรุปจำนวนผู้ใช้แยกตามบทบาท (`Admin`, `Staff`, `Customer`), ช่องค้นหาและตัวกรองบทบาท พร้อมตัวเปลี่ยน Role และป้าย `YOU` สำหรับป้องกันการลดสิทธิ์ตัวเอง
+
+      ![TicketHub Admin User & Role Management](../screenshot/TicketHub_AdmineRole.png)
 
 ---
 
