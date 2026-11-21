@@ -231,7 +231,7 @@ flowchart LR
 * **Final Retrospective YouTube Link:** `[TODO: Insert Final Retrospective YouTube Link]`
 
 ### 8.2 ลิงก์วิดีโอนำเสนอและรายการเตรียมส่งงาน (Presentation & Submission)
-* **Presentation Video Link:** `[TODO: Insert Presentation Video Link]`
+* **Presentation Video Link:** https://youtu.be/A8DToUubru4
 * **Checklist สำหรับการนำเสนอ (Onsite Presentation):**
   1. อธิบายกระบวนการทำงานและผลการเปรียบเทียบ Static/Dynamic Profiling (Phase 3 vs. Phase 4) ด้วยสไลด์
   2. แสดงโครงสร้างโค้ดเว็บไซต์และ Test Code บน Git Repository พร้อมรันทดสอบสด (`npm test`, `node tests/adversarial-harness.js`, `npm run test:ui`, `npm run test:profile`)
