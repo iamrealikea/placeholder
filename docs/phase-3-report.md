@@ -360,4 +360,4 @@ it('UT-DS-22: TicketModel.findByLookupCode, checkIn, cancelByBookingId handle al
   * เพิ่ม **Playwright Automated UI Test Cases** (>= 5 กรณีทดสอบพร้อม Expected Results assertions) ทดสอบบนเบราว์เซอร์จริงทั้ง Desktop และ Mobile
   * ติดตั้ง **ESLint** และ **Plato** เพื่อวิเคราะห์ Static Profiling เปรียบเทียบกับค่าฐานจาก Phase 3 และตรวจสอบ CI/CD บน AWS Elastic Beanstalk ให้เสถียรพร้อมนำเสนอจริง
 
-* **Retrospective Phase 3 YouTube Link:** `[TODO: Insert Phase 3 Retrospective YouTube Link]`
+* **Retrospective Phase 3 YouTube Link:** https://youtu.be/A8DToUubru4
